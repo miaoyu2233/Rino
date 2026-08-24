@@ -1,0 +1,15 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "edge.traversed",
+  "eventId": "90000000-0000-4000-8000-000000000011",
+  "sequence": 6,
+  "runId": "90000000-0000-4000-8000-000000000006",
+  "nodeId": "90000000-0000-4000-8000-000000000010",
+  "payload": {
+    "edgeId": "90000000-0000-4000-8000-000000000012",
+    "runSequence": 4,
+    "tokenId": 2,
+    "outputPortId": "next"
+  }
+}

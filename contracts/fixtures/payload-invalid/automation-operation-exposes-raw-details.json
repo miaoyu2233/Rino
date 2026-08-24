@@ -1,0 +1,20 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "automation.operationStateChanged",
+  "eventId": "94000000-0000-4000-8000-000000000001",
+  "sequence": 23,
+  "payload": {
+    "source": "controller",
+    "state": "starting",
+    "operationKind": "click",
+    "backendOperationId": "17",
+    "backendGeneration": 2,
+    "callbackSequence": 11,
+    "observedAtMilliseconds": 1300,
+    "details": {
+      "uuid": "must-not-cross-boundary",
+      "param": { "x": 10, "y": 20 }
+    }
+  }
+}

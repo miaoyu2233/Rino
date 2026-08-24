@@ -1,0 +1,16 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "device.stateChanged",
+  "eventId": "82000000-0000-4000-8000-000000000004",
+  "sequence": 2,
+  "payload": {
+    "device": {
+      "deviceKey": "device-opaque-1",
+      "displayName": "Android device 1",
+      "controllerFamily": "adb",
+      "state": "connected"
+    },
+    "reason": "connected"
+  }
+}

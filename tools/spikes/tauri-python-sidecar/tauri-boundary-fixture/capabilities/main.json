@@ -1,0 +1,7 @@
+{
+  "identifier": "main",
+  "description": "Minimal frontend capability for the sidecar transport spike.",
+  "local": true,
+  "windows": ["main"],
+  "permissions": ["core:event:default"]
+}

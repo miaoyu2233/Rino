@@ -1,0 +1,20 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "automation.operationStateChanged",
+  "eventId": "92000000-0000-4000-8000-000000000001",
+  "sequence": 21,
+  "runId": "92000000-0000-4000-8000-000000000002",
+  "nodeId": "92000000-0000-4000-8000-000000000003",
+  "payload": {
+    "source": "tasker",
+    "state": "succeeded",
+    "operationKind": "ocr",
+    "backendOperationId": "99",
+    "backendGeneration": 3,
+    "callbackSequence": 5,
+    "observedAtMilliseconds": 1200,
+    "requestId": "92000000-0000-4000-8000-000000000004",
+    "activationId": 7
+  }
+}

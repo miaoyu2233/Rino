@@ -1,0 +1,20 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "response",
+  "messageType": "system.handshake",
+  "requestId": "5f0c2e9a-1c2b-4f6e-9d3a-8b7c6d5e4f30",
+  "error": {
+    "code": "PROTOCOL_INCOMPATIBLE",
+    "messageKey": "runtime.error.protocolIncompatible",
+    "parameters": { "requestedMinimum": 2, "supportedMaximum": 1 },
+    "technicalDetail": "The desktop requested protocol versions 2-3 but this runtime supports only version 1.",
+    "retryability": "never",
+    "requestId": "5f0c2e9a-1c2b-4f6e-9d3a-8b7c6d5e4f30",
+    "causes": [
+      {
+        "code": "VERSION_RANGE_DISJOINT",
+        "technicalDetail": "No overlap between requested and supported protocol version ranges."
+      }
+    ]
+  }
+}

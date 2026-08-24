@@ -1,0 +1,390 @@
+.application-error {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  padding: var(--space-3);
+  background: var(--background);
+  color: var(--text-primary);
+}
+
+.application-error__panel {
+  display: flex;
+  width: min(100%, 680px);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1-half);
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-dialog);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-floating);
+}
+
+.application-error__title {
+  font-size: 16px;
+  margin: 0;
+}
+
+.application-error__description {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.application-error__summary {
+  width: 100%;
+  margin: 0;
+  padding: var(--space-1-half);
+  border-radius: var(--radius-control);
+  background: var(--surface-interactive);
+  overflow-wrap: anywhere;
+}
+
+.application-error__details {
+  width: 100%;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.application-error__details summary {
+  padding: var(--space-1-half);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.application-error__details pre {
+  max-height: 280px;
+  margin: 0;
+  padding: var(--space-1-half);
+  overflow: auto;
+  border-top: var(--border-width) solid var(--border);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.application-error__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.application-error__copy-status {
+  min-height: 20px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.feature-error {
+  display: flex;
+  width: 100%;
+  min-height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-2);
+  text-align: center;
+}
+
+.feature-error__icon {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-dialog);
+  background: var(--surface-elevated);
+  color: var(--danger);
+}
+
+.feature-error__title {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.feature-error__description {
+  max-width: 40ch;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.notification-region {
+  position: fixed;
+  z-index: 40;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  display: flex;
+  width: min(100%, 380px);
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  /* The region only hosts transient cards, so it must never intercept canvas input. */
+  pointer-events: none;
+}
+
+.notification {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-1-half);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-standard);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-floating);
+  pointer-events: auto;
+}
+
+.notification__icon {
+  display: inline-grid;
+  place-items: center;
+  color: var(--text-secondary);
+}
+
+.notification--error .notification__icon {
+  color: var(--danger);
+}
+
+.notification--warning .notification__icon {
+  color: var(--warning);
+}
+
+.notification__message {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+/* The problems surface stacks graph diagnostics above application and runtime problems.
+   Both sections share this chrome, so it lives with the panel rather than with either. */
+.problems-panel {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.problems-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.problems-section__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-half) var(--space-1-half);
+  border-bottom: var(--border-width) solid var(--border);
+  color: var(--text-secondary);
+}
+
+.problems-section__title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.problems-section__summary {
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.problems-section__note {
+  padding: var(--space-1) var(--space-1-half);
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.problems-section__note[data-severity="error"] {
+  color: var(--danger);
+}
+
+.problems {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.problems__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-half) var(--space-1-half);
+  border-bottom: var(--border-width) solid var(--border);
+}
+
+.problems__count {
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.problems__list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  min-height: 0;
+}
+
+.problem-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  border-bottom: var(--border-width) solid var(--border);
+}
+
+/* The application list draws its own row padding; a graph problem row gets it from the
+   button or container that fills the row. */
+.problems > .problems__list > .problem-row {
+  padding: var(--space-1) var(--space-1-half);
+}
+
+.problem-row__icon {
+  display: inline-grid;
+  padding-top: 2px;
+  place-items: center;
+  color: var(--text-secondary);
+}
+
+.problem-row--error .problem-row__icon {
+  color: var(--danger);
+}
+
+.problem-row--warning .problem-row__icon {
+  color: var(--warning);
+}
+
+.problem-row__body {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.problem-row__title {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.problem-row__description {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.problem-row__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.problem-row__code {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+.appearance-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: var(--border-width) solid var(--border);
+  margin-bottom: var(--space-2);
+}
+
+.appearance-settings__group > h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.appearance-settings__group > p {
+  max-width: 60ch;
+  margin: 4px 0 var(--space-1);
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.appearance-settings__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.runtime-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 var(--space-1);
+  color: var(--text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.runtime-status--ready {
+  color: var(--success);
+}
+
+.runtime-status--degraded {
+  color: var(--warning);
+}
+
+.runtime-status--failed,
+.runtime-status--unavailable {
+  color: var(--danger);
+}
+
+.runtime-notice {
+  display: flex;
+  width: min(100%, 420px);
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-2);
+  text-align: center;
+}
+
+.runtime-notice__icon {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-dialog);
+  background: var(--surface-elevated);
+  color: var(--danger);
+}
+
+.runtime-notice > strong {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.runtime-notice > p {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.runtime-notice__code {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}

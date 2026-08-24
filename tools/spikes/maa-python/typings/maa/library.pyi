@@ -1,0 +1,3 @@
+class Library:
+    @staticmethod
+    def version() -> str: ...

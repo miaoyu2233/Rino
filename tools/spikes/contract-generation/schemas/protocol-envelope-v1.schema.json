@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.rino.invalid/ipc/protocol-envelope-v1.schema.json",
+  "title": "RinoProtocolEnvelopeV1",
+  "description": "Version-one local runtime protocol envelope.",
+  "oneOf": [
+    { "$ref": "#/$defs/RequestEnvelopeV1" },
+    { "$ref": "#/$defs/SuccessResponseEnvelopeV1" },
+    { "$ref": "#/$defs/ErrorResponseEnvelopeV1" },
+    { "$ref": "#/$defs/EventEnvelopeV1" }
+  ],
+  "$defs": {
+    "JsonValue": {
+      "title": "JsonValue",
+      "oneOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "number" },
+        { "type": "string", "maxLength": 65536 },
+        {
+          "type": "array",
+          "items": { "$ref": "#/$defs/JsonValue" },
+          "maxItems": 1024
+        },
+        { "$ref": "#/$defs/JsonObject" }
+      ]
+    },
+    "JsonObject": {
+      "title": "JsonObject",
+      "type": "object",
+      "maxProperties": 256,
+      "additionalProperties": { "$ref": "#/$defs/JsonValue" }
+    },
+    "ProtocolErrorV1": {
+      "title": "ProtocolErrorV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "messageKey",
+        "parameters",
+        "technicalDetail",
+        "retryability"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+        },
+        "messageKey": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+          "maxLength": 128
+        },
+        "parameters": { "$ref": "#/$defs/JsonObject" },
+        "technicalDetail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "retryability": {
+          "type": "string",
+          "enum": ["never", "safe", "explicitConfirmation"]
+        }
+      }
+    },
+    "RequestEnvelopeV1": {
+      "title": "RequestEnvelopeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocolVersion",
+        "messageKind",
+        "messageType",
+        "requestId",
+        "payload"
+      ],
+      "properties": {
+        "protocolVersion": { "const": 1, "type": "integer" },
+        "messageKind": { "const": "request", "type": "string" },
+        "messageType": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+          "maxLength": 128
+        },
+        "requestId": { "type": "string", "format": "uuid" },
+        "payload": { "$ref": "#/$defs/JsonObject" }
+      }
+    },
+    "SuccessResponseEnvelopeV1": {
+      "title": "SuccessResponseEnvelopeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocolVersion",
+        "messageKind",
+        "messageType",
+        "requestId",
+        "result"
+      ],
+      "properties": {
+        "protocolVersion": { "const": 1, "type": "integer" },
+        "messageKind": { "const": "response", "type": "string" },
+        "messageType": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+          "maxLength": 128
+        },
+        "requestId": { "type": "string", "format": "uuid" },
+        "result": { "$ref": "#/$defs/JsonObject" }
+      }
+    },
+    "ErrorResponseEnvelopeV1": {
+      "title": "ErrorResponseEnvelopeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocolVersion",
+        "messageKind",
+        "messageType",
+        "requestId",
+        "error"
+      ],
+      "properties": {
+        "protocolVersion": { "const": 1, "type": "integer" },
+        "messageKind": { "const": "response", "type": "string" },
+        "messageType": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+          "maxLength": 128
+        },
+        "requestId": { "type": "string", "format": "uuid" },
+        "error": { "$ref": "#/$defs/ProtocolErrorV1" }
+      }
+    },
+    "EventEnvelopeV1": {
+      "title": "EventEnvelopeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocolVersion",
+        "messageKind",
+        "messageType",
+        "eventId",
+        "sequence",
+        "payload"
+      ],
+      "properties": {
+        "protocolVersion": { "const": 1, "type": "integer" },
+        "messageKind": { "const": "event", "type": "string" },
+        "messageType": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+          "maxLength": 128
+        },
+        "eventId": { "type": "string", "format": "uuid" },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "runId": { "type": "string", "format": "uuid" },
+        "nodeId": { "type": "string", "format": "uuid" },
+        "payload": { "$ref": "#/$defs/JsonObject" }
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "run.start",
+  "requestId": "90000000-0000-4000-8000-000000000014",
+  "payload": {
+    "document": { "schemaVersion": 1 }
+  }
+}

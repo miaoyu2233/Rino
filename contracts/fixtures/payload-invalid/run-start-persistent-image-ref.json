@@ -1,0 +1,17 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "run.start",
+  "requestId": "90000000-0000-4000-8000-000000000016",
+  "payload": {
+    "graphId": "90000000-0000-4000-8000-000000000004",
+    "document": { "schemaVersion": 1 },
+    "initialPersistentVariables": [
+      {
+        "variableId": "90000000-0000-4000-8000-000000000010",
+        "valueKind": "imageRef",
+        "value": {}
+      }
+    ]
+  }
+}

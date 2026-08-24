@@ -1,0 +1,18 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "response",
+  "messageType": "capture.prepare",
+  "requestId": "8d0de168-a7fd-4f51-8fd2-25615157b8a1",
+  "result": {
+    "capture": {
+      "captureToken": "abcdef0123456789abcdef0123456789",
+      "mediaType": "image/png",
+      "width": 300,
+      "height": 400,
+      "coordinateSpaceId": "capture-space-opaque",
+      "sourceKind": "regionCapture",
+      "byteLength": 785432,
+      "expiresInMilliseconds": 60000
+    }
+  }
+}

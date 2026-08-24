@@ -1,0 +1,8 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "system.healthChanged",
+  "eventId": "aa11bb22-cc33-4d44-8e55-ff6677889900",
+  "sequence": 7,
+  "payload": { "state": "degraded" }
+}

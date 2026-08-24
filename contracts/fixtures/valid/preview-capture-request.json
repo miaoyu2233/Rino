@@ -1,0 +1,11 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "preview.capture",
+  "requestId": "7d0de168-a7fd-4f51-8fd2-25615157b8a1",
+  "payload": {
+    "deviceKey": "device-opaque-1",
+    "maximumWidth": 960,
+    "maximumHeight": 540
+  }
+}

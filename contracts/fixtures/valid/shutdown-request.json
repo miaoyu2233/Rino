@@ -1,0 +1,7 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "system.shutdown",
+  "requestId": "9e8d7c6b-5a49-4837-a625-1403f2e1d0c9",
+  "payload": {}
+}

@@ -1,0 +1,136 @@
+# Local AI instructions and state
+/AGENTS.md
+/.ai-local/
+/CLAUDE.md
+/GEMINI.md
+/.cursorrules
+/.windsurfrules
+/.agents/
+/.codex/
+/.claude/
+/.gemini/
+/.cursor/
+/.cline/
+/.continue/
+/.roo/
+/.aider*
+/.github/copilot-instructions.md
+/.github/instructions/
+/.github/prompts/
+*.prompt.md
+
+# The public repository intentionally has no root README.
+/[Rr][Ee][Aa][Dd][Mm][Ee]
+/[Rr][Ee][Aa][Dd][Mm][Ee].*
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+*.crt
+*.cer
+*.der
+.netrc
+_netrc
+.pypirc
+credentials.json
+secrets.json
+
+# User and local application data
+**/user-data/
+**/local-data/
+**/local-scripts/
+**/downloads/
+**/recordings/
+**/screenshots/
+**/captures/
+**/crash-reports/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Logs, diagnostics, and MaaFramework output
+*.log
+*.trace
+*.dmp
+*.dump
+**/logs/
+**/debug/
+**/vision/
+**/on_error/
+**/profiles/
+
+# IPC recordings and protocol dumps
+**/ipc-captures/
+*.ipc-dump
+*.tmp
+*.har
+*.pcap
+*.pcapng
+
+# JavaScript and frontend output
+**/node_modules/
+**/.pnpm-store/
+**/dist/
+**/build/
+/.vite/
+**/coverage/
+**/.eslintcache
+*.lcov
+/.turbo/
+/.cache/
+*.tsbuildinfo
+
+# Tauri and Rust output
+**/target/
+**/src-tauri/gen/
+
+# Python environments and output
+**/.venv/
+/venv/
+/env/
+**/__pycache__/
+*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.pyright/
+**/.ruff_cache/
+**/.hypothesis/
+**/.coverage
+**/htmlcov/
+*.egg-info/
+
+# Frozen application and packaging intermediates
+/.nuitka-cache/
+/wheels/
+**/release-local/
+
+# Project persistence intermediates
+# A staging sibling exists only between a write and its atomic replacement; one left
+# behind by an interrupted save holds project content and is never published.
+*.rino-staging
+# Package export writes a private sibling until archive verification and atomic replacement finish.
+*.rino-package.rino-staging-*
+# Native Pipeline import sessions are private application-cache staging and may contain
+# source-derived project data while a transaction is in flight.
+*.rino-import-staging
+# Signed packages prepared for an explicit GitHub upload are short-lived private cache.
+**/publishing-cache/
+
+# Editors and operating systems
+**/.idea/
+**/.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~

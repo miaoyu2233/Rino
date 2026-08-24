@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": [
+      "vite/client",
+      "vitest/globals",
+      "@testing-library/jest-dom/vitest"
+    ],
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}

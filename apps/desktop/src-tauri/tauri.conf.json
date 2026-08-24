@@ -1,0 +1,61 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Rino",
+  "version": "0.0.0",
+  "identifier": "local.rino.desktop",
+  "build": {
+    "beforeBuildCommand": "corepack pnpm build",
+    "beforeDevCommand": "corepack pnpm dev",
+    "devUrl": "http://127.0.0.1:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Rino",
+        "url": "index.html",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1100,
+        "minHeight": 700,
+        "center": true,
+        "dragDropEnabled": false,
+        "resizable": true,
+        "maximizable": true,
+        "minimizable": true,
+        "closable": true,
+        "fullscreen": false,
+        "focus": true,
+        "focusable": true,
+        "transparent": false,
+        "maximized": false,
+        "visible": true,
+        "decorations": true,
+        "alwaysOnBottom": false,
+        "alwaysOnTop": false,
+        "contentProtected": false,
+        "skipTaskbar": false,
+        "incognito": false,
+        "zoomHotkeysEnabled": false,
+        "browserExtensionsEnabled": false,
+        "generalAutofillEnabled": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'; frame-ancestors 'none'; form-action 'none'",
+      "devCsp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:1420 ws://127.0.0.1:1420; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'; frame-ancestors 'none'; form-action 'none'",
+      "freezePrototype": false,
+      "dangerousDisableAssetCspModification": false,
+      "assetProtocol": {
+        "enable": false,
+        "scope": []
+      },
+      "capabilities": ["main-local", "device-preview-local"]
+    }
+  },
+  "bundle": {
+    "active": false
+  }
+}

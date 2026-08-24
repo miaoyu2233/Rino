@@ -1,0 +1,16 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "system.protocolError",
+  "eventId": "12345678-9abc-4def-8123-456789abcdef",
+  "sequence": 42,
+  "payload": {
+    "error": {
+      "code": "FRAME_TOO_LARGE",
+      "messageKey": "runtime.error.frameTooLarge",
+      "parameters": { "actualBytes": 2097152, "maximumBytes": 1048576 },
+      "technicalDetail": "An incoming frame declared 2097152 bytes but the negotiated limit is 1048576 bytes.",
+      "retryability": "never"
+    }
+  }
+}

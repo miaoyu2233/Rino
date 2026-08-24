@@ -1,0 +1,14 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "response",
+  "messageType": "device.connect",
+  "requestId": "82000000-0000-4000-8000-000000000002",
+  "result": {
+    "device": {
+      "deviceKey": "device-opaque-1",
+      "displayName": "Android device 1",
+      "controllerFamily": "adb",
+      "state": "connected"
+    }
+  }
+}

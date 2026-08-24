@@ -1,0 +1,29 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "graph.validate",
+  "requestId": "90000000-0000-4000-8000-000000000002",
+  "payload": {
+    "document": {
+      "schemaVersion": 1,
+      "documentId": "90000000-0000-4000-8000-000000000003",
+      "metadata": {
+        "name": "Validation fixture",
+        "createdAt": "2026-07-27T00:00:00Z",
+        "updatedAt": "2026-07-27T00:00:00Z"
+      },
+      "entryGraphId": "90000000-0000-4000-8000-000000000004",
+      "graphs": [
+        {
+          "graphId": "90000000-0000-4000-8000-000000000004",
+          "name": "Main",
+          "kind": "entry",
+          "nodes": [],
+          "edges": []
+        }
+      ],
+      "assets": [],
+      "requiredCapabilities": []
+    }
+  }
+}

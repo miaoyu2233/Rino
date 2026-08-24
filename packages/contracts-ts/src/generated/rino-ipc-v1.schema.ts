@@ -1,0 +1,1907 @@
+/* Generated from contracts/ipc/rino-ipc-v1.schema.json. Do not edit directly. */
+
+export const rinoIpcV1Schema = {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.rino.invalid/ipc/rino-ipc-v1.schema.json",
+  "title": "RinoIpcMessageV1",
+  "description": "Version-one Rino runtime IPC message: request, response, or event envelope.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/RequestEnvelopeV1"
+    },
+    {
+      "$ref": "#/$defs/SuccessResponseEnvelopeV1"
+    },
+    {
+      "$ref": "#/$defs/ErrorResponseEnvelopeV1"
+    },
+    {
+      "$ref": "#/$defs/EventEnvelopeV1"
+    }
+  ],
+  "$defs": {
+    "JsonValue": {
+      "title": "JsonValue",
+      "description": "Any JSON value. Integer is listed ahead of number so generated models keep whole numbers integral instead of widening them to floating point.",
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string",
+          "maxLength": 65536
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "maxItems": 1024
+        },
+        {
+          "$ref": "#/$defs/JsonObject"
+        }
+      ]
+    },
+    "JsonObject": {
+      "title": "JsonObject",
+      "type": "object",
+      "maxProperties": 256,
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      }
+    },
+    "SemanticVersionV1": {
+      "title": "SemanticVersionV1",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]{1,32})?$",
+      "maxLength": 64
+    },
+    "ProtocolVersionRangeV1": {
+      "title": "ProtocolVersionRangeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum",
+        "maximum"
+      ],
+      "properties": {
+        "minimum": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "maximum": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      }
+    },
+    "ErrorCauseEntryV1": {
+      "title": "ErrorCauseEntryV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "technicalDetail"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+        },
+        "technicalDetail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      }
+    },
+    "ProtocolErrorV1": {
+      "title": "ProtocolErrorV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "messageKey",
+        "parameters",
+        "technicalDetail",
+        "retryability"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+        },
+        "messageKey": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+          "maxLength": 128
+        },
+        "parameters": {
+          "$ref": "#/$defs/JsonObject"
+        },
+        "technicalDetail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "retryability": {
+          "type": "string",
+          "enum": [
+            "never",
+            "safe",
+            "explicitConfirmation"
+          ]
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "runId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "nodeId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "backendOperationId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "causes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ErrorCauseEntryV1"
+          },
+          "maxItems": 8
+        }
+      }
+    },
+    "EmptyPayloadV1": {
+      "title": "EmptyPayloadV1",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "HandshakeRequestPayloadV1": {
+      "title": "HandshakeRequestPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "desktopVersion",
+        "protocolVersionRange",
+        "maximumFrameBytes"
+      ],
+      "properties": {
+        "desktopVersion": {
+          "$ref": "#/$defs/SemanticVersionV1"
+        },
+        "protocolVersionRange": {
+          "$ref": "#/$defs/ProtocolVersionRangeV1"
+        },
+        "maximumFrameBytes": {
+          "type": "integer",
+          "minimum": 4096,
+          "maximum": 16777216
+        }
+      }
+    },
+    "MaaRuntimeStateV1": {
+      "title": "MaaRuntimeStateV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "available",
+            "unavailable"
+          ]
+        },
+        "bindingVersion": {
+          "$ref": "#/$defs/SemanticVersionV1"
+        },
+        "nativeVersion": {
+          "$ref": "#/$defs/SemanticVersionV1"
+        }
+      }
+    },
+    "DeviceKeyV1": {
+      "title": "DeviceKeyV1",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": ".*\\S.*"
+    },
+    "DeviceStateV1": {
+      "title": "DeviceStateV1",
+      "type": "string",
+      "enum": [
+        "available",
+        "connected",
+        "connectionLost"
+      ]
+    },
+    "DeviceDescriptorV1": {
+      "title": "DeviceDescriptorV1",
+      "description": "Safe display metadata for one sidecar-scoped opaque device key. Physical identifiers and local paths are never included.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deviceKey",
+        "displayName",
+        "controllerFamily",
+        "state"
+      ],
+      "properties": {
+        "deviceKey": {
+          "$ref": "#/$defs/DeviceKeyV1"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "controllerFamily": {
+          "type": "string",
+          "enum": [
+            "adb"
+          ]
+        },
+        "state": {
+          "$ref": "#/$defs/DeviceStateV1"
+        }
+      }
+    },
+    "DeviceListResultV1": {
+      "title": "DeviceListResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "devices"
+      ],
+      "properties": {
+        "devices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DeviceDescriptorV1"
+          },
+          "maxItems": 64
+        }
+      }
+    },
+    "DeviceConnectRequestPayloadV1": {
+      "title": "DeviceConnectRequestPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deviceKey"
+      ],
+      "properties": {
+        "deviceKey": {
+          "$ref": "#/$defs/DeviceKeyV1"
+        }
+      }
+    },
+    "DeviceConnectResultV1": {
+      "title": "DeviceConnectResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device"
+      ],
+      "properties": {
+        "device": {
+          "$ref": "#/$defs/DeviceDescriptorV1"
+        }
+      }
+    },
+    "DeviceDisconnectRequestPayloadV1": {
+      "title": "DeviceDisconnectRequestPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deviceKey"
+      ],
+      "properties": {
+        "deviceKey": {
+          "$ref": "#/$defs/DeviceKeyV1"
+        }
+      }
+    },
+    "DeviceDisconnectResultV1": {
+      "title": "DeviceDisconnectResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device"
+      ],
+      "properties": {
+        "device": {
+          "$ref": "#/$defs/DeviceDescriptorV1"
+        }
+      }
+    },
+    "DeviceInteractionPointV1": {
+      "title": "DeviceInteractionPointV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "coordinateSpaceId",
+        "sourceGeneration"
+      ],
+      "properties": {
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16383
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16383
+        },
+        "coordinateSpaceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "sourceGeneration": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "DeviceClickInteractionV1": {
+      "title": "DeviceClickInteractionV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "point"
+      ],
+      "properties": {
+        "kind": {
+          "const": "click",
+          "type": "string"
+        },
+        "point": {
+          "$ref": "#/$defs/DeviceInteractionPointV1"
+        }
+      }
+    },
+    "DeviceLongPressInteractionV1": {
+      "title": "DeviceLongPressInteractionV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "point",
+        "durationMilliseconds"
+      ],
+      "properties": {
+        "kind": {
+          "const": "longPress",
+          "type": "string"
+        },
+        "point": {
+          "$ref": "#/$defs/DeviceInteractionPointV1"
+        },
+        "durationMilliseconds": {
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 5000
+        }
+      }
+    },
+    "DeviceSwipeInteractionV1": {
+      "title": "DeviceSwipeInteractionV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "start",
+        "end",
+        "durationMilliseconds"
+      ],
+      "properties": {
+        "kind": {
+          "const": "swipe",
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/DeviceInteractionPointV1"
+        },
+        "end": {
+          "$ref": "#/$defs/DeviceInteractionPointV1"
+        },
+        "durationMilliseconds": {
+          "type": "integer",
+          "minimum": 50,
+          "maximum": 5000
+        }
+      }
+    },
+    "DeviceKeyInteractionV1": {
+      "title": "DeviceKeyInteractionV1",
+      "description": "One allowlisted device navigation key. Raw key codes are never accepted.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "key"
+      ],
+      "properties": {
+        "kind": {
+          "const": "key",
+          "type": "string"
+        },
+        "key": {
+          "const": "back",
+          "type": "string"
+        }
+      }
+    },
+    "DeviceInteractionV1": {
+      "title": "DeviceInteractionV1",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/DeviceClickInteractionV1"
+        },
+        {
+          "$ref": "#/$defs/DeviceLongPressInteractionV1"
+        },
+        {
+          "$ref": "#/$defs/DeviceSwipeInteractionV1"
+        },
+        {
+          "$ref": "#/$defs/DeviceKeyInteractionV1"
+        }
+      ]
+    },
+    "DeviceInteractRequestPayloadV1": {
+      "title": "DeviceInteractRequestPayloadV1",
+      "description": "One bounded non-idempotent device interaction. Clients must never retry it automatically.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deviceKey",
+        "interaction"
+      ],
+      "properties": {
+        "deviceKey": {
+          "$ref": "#/$defs/DeviceKeyV1"
+        },
+        "interaction": {
+          "$ref": "#/$defs/DeviceInteractionV1"
+        }
+      }
+    },
+    "DeviceInteractResultV1": {
+      "title": "DeviceInteractResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completed",
+        "kind"
+      ],
+      "properties": {
+        "completed": {
+          "const": true,
+          "type": "boolean"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "click",
+            "longPress",
+            "swipe",
+            "key"
+          ]
+        }
+      }
+    },
+    "PreviewTokenV1": {
+      "title": "PreviewTokenV1",
+      "type": "string",
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "PreviewCaptureRequestPayloadV1": {
+      "title": "PreviewCaptureRequestPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deviceKey",
+        "maximumWidth",
+        "maximumHeight"
+      ],
+      "properties": {
+        "deviceKey": {
+          "$ref": "#/$defs/DeviceKeyV1"
+        },
+        "maximumWidth": {
+          "type": "integer",
+          "minimum": 160,
+          "maximum": 1920
+        },
+        "maximumHeight": {
+          "type": "integer",
+          "minimum": 120,
+          "maximum": 1920
+        }
+      }
+    },
+    "PreviewArtifactDescriptorV1": {
+      "title": "PreviewArtifactDescriptorV1",
+      "description": "Safe metadata for a short-lived preview artifact. It never includes image bytes or a local path.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "previewToken",
+        "mediaType",
+        "width",
+        "height",
+        "sourceWidth",
+        "sourceHeight",
+        "sourceCoordinateSpaceId",
+        "sourceGeneration",
+        "byteLength",
+        "expiresInMilliseconds"
+      ],
+      "properties": {
+        "previewToken": {
+          "$ref": "#/$defs/PreviewTokenV1"
+        },
+        "mediaType": {
+          "const": "image/png",
+          "type": "string"
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1920
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1080
+        },
+        "sourceWidth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384
+        },
+        "sourceHeight": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384
+        },
+        "sourceCoordinateSpaceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "sourceGeneration": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "byteLength": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3145728
+        },
+        "expiresInMilliseconds": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 60000
+        }
+      }
+    },
+    "PreviewCaptureResultV1": {
+      "title": "PreviewCaptureResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preview"
+      ],
+      "properties": {
+        "preview": {
+          "$ref": "#/$defs/PreviewArtifactDescriptorV1"
+        }
+      }
+    },
+    "PreviewReleaseRequestPayloadV1": {
+      "title": "PreviewReleaseRequestPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "previewToken"
+      ],
+      "properties": {
+        "previewToken": {
+          "$ref": "#/$defs/PreviewTokenV1"
+        }
+      }
+    },
+    "PreviewReleaseResultV1": {
+      "title": "PreviewReleaseResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "released"
+      ],
+      "properties": {
+        "released": {
+          "type": "boolean"
+        }
+      }
+    },
+    "CaptureTokenV1": {
+      "title": "CaptureTokenV1",
+      "type": "string",
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "CaptureRegionV1": {
+      "title": "CaptureRegionV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height",
+        "coordinateSpaceId",
+        "sourceGeneration"
+      ],
+      "properties": {
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16383
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16383
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384
+        },
+        "coordinateSpaceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "sourceGeneration": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "CapturePrepareRequestPayloadV1": {
+      "title": "CapturePrepareRequestPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "previewToken"
+      ],
+      "properties": {
+        "previewToken": {
+          "$ref": "#/$defs/PreviewTokenV1"
+        },
+        "region": {
+          "$ref": "#/$defs/CaptureRegionV1"
+        }
+      }
+    },
+    "CaptureArtifactDescriptorV1": {
+      "title": "CaptureArtifactDescriptorV1",
+      "description": "Safe metadata for one confirmed, short-lived full-resolution capture. It never includes image bytes or a local path.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "captureToken",
+        "mediaType",
+        "width",
+        "height",
+        "coordinateSpaceId",
+        "sourceKind",
+        "byteLength",
+        "expiresInMilliseconds"
+      ],
+      "properties": {
+        "captureToken": {
+          "$ref": "#/$defs/CaptureTokenV1"
+        },
+        "mediaType": {
+          "const": "image/png",
+          "type": "string"
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384
+        },
+        "coordinateSpaceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "sourceKind": {
+          "type": "string",
+          "enum": [
+            "deviceCapture",
+            "regionCapture"
+          ]
+        },
+        "byteLength": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 67108864
+        },
+        "expiresInMilliseconds": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 120000
+        }
+      }
+    },
+    "CapturePrepareResultV1": {
+      "title": "CapturePrepareResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capture"
+      ],
+      "properties": {
+        "capture": {
+          "$ref": "#/$defs/CaptureArtifactDescriptorV1"
+        }
+      }
+    },
+    "CaptureReleaseRequestPayloadV1": {
+      "title": "CaptureReleaseRequestPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "captureToken"
+      ],
+      "properties": {
+        "captureToken": {
+          "$ref": "#/$defs/CaptureTokenV1"
+        }
+      }
+    },
+    "CaptureReleaseResultV1": {
+      "title": "CaptureReleaseResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "released"
+      ],
+      "properties": {
+        "released": {
+          "type": "boolean"
+        }
+      }
+    },
+    "HandshakeResultV1": {
+      "title": "HandshakeResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtimeVersion",
+        "protocolVersion",
+        "maximumFrameBytes",
+        "runtimeMode"
+      ],
+      "properties": {
+        "runtimeVersion": {
+          "$ref": "#/$defs/SemanticVersionV1"
+        },
+        "protocolVersion": {
+          "const": 1,
+          "type": "integer"
+        },
+        "maximumFrameBytes": {
+          "type": "integer",
+          "minimum": 4096,
+          "maximum": 16777216
+        },
+        "runtimeMode": {
+          "type": "string",
+          "enum": [
+            "source",
+            "frozen"
+          ]
+        },
+        "graphSchemaVersionRange": {
+          "$ref": "#/$defs/ProtocolVersionRangeV1"
+        },
+        "registryVersion": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "maaRuntime": {
+          "$ref": "#/$defs/MaaRuntimeStateV1"
+        },
+        "featureFlags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "maxItems": 64
+        }
+      }
+    },
+    "HealthResultV1": {
+      "title": "HealthResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "uptimeMilliseconds"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "degraded"
+          ]
+        },
+        "uptimeMilliseconds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "details": {
+          "$ref": "#/$defs/JsonObject"
+        }
+      }
+    },
+    "ShutdownResultV1": {
+      "title": "ShutdownResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "accepted"
+      ],
+      "properties": {
+        "accepted": {
+          "const": true,
+          "type": "boolean"
+        }
+      }
+    },
+    "RegistryGetResultV1": {
+      "title": "RegistryGetResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "registry"
+      ],
+      "properties": {
+        "registry": {
+          "$ref": "#/$defs/JsonObject"
+        }
+      }
+    },
+    "GraphValidateRequestPayloadV1": {
+      "title": "GraphValidateRequestPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document"
+      ],
+      "properties": {
+        "document": {
+          "$ref": "#/$defs/JsonObject"
+        }
+      }
+    },
+    "GraphValidateResultV1": {
+      "title": "GraphValidateResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "executable",
+        "report"
+      ],
+      "properties": {
+        "executable": {
+          "type": "boolean"
+        },
+        "report": {
+          "$ref": "#/$defs/JsonObject"
+        }
+      }
+    },
+    "RunProjectAssetBindingV1": {
+      "title": "RunProjectAssetBindingV1",
+      "description": "One desktop-prepared, token-addressed project image. The token is private to the application cache and never persists in a graph.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assetId",
+        "assetToken",
+        "contentHash",
+        "byteLength",
+        "width",
+        "height",
+        "coordinateSpaceId"
+      ],
+      "properties": {
+        "assetId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "assetToken": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "contentHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "byteLength": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 67108864
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384
+        },
+        "coordinateSpaceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "PersistentBoolVariableV1": {
+      "title": "PersistentBoolVariableV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variableId",
+        "valueKind",
+        "value"
+      ],
+      "properties": {
+        "variableId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "valueKind": {
+          "const": "bool",
+          "type": "string"
+        },
+        "value": {
+          "type": "boolean"
+        }
+      }
+    },
+    "PersistentNumberVariableV1": {
+      "title": "PersistentNumberVariableV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variableId",
+        "valueKind",
+        "value"
+      ],
+      "properties": {
+        "variableId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "valueKind": {
+          "const": "number",
+          "type": "string"
+        },
+        "value": {
+          "type": "number",
+          "minimum": -1e+308,
+          "maximum": 1e+308
+        }
+      }
+    },
+    "PersistentStringVariableV1": {
+      "title": "PersistentStringVariableV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variableId",
+        "valueKind",
+        "value"
+      ],
+      "properties": {
+        "variableId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "valueKind": {
+          "const": "string",
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 4096
+        }
+      }
+    },
+    "PersistentPointValueV1": {
+      "title": "PersistentPointValueV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y"
+      ],
+      "properties": {
+        "x": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "y": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        }
+      }
+    },
+    "PersistentRectValueV1": {
+      "title": "PersistentRectValueV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "x": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "y": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        }
+      }
+    },
+    "PersistentPointVariableV1": {
+      "title": "PersistentPointVariableV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variableId",
+        "valueKind",
+        "value"
+      ],
+      "properties": {
+        "variableId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "valueKind": {
+          "const": "point",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/PersistentPointValueV1"
+        }
+      }
+    },
+    "PersistentRectVariableV1": {
+      "title": "PersistentRectVariableV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variableId",
+        "valueKind",
+        "value"
+      ],
+      "properties": {
+        "variableId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "valueKind": {
+          "const": "rect",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/PersistentRectValueV1"
+        }
+      }
+    },
+    "PersistentVariableValueV1": {
+      "title": "PersistentVariableValueV1",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PersistentBoolVariableV1"
+        },
+        {
+          "$ref": "#/$defs/PersistentNumberVariableV1"
+        },
+        {
+          "$ref": "#/$defs/PersistentStringVariableV1"
+        },
+        {
+          "$ref": "#/$defs/PersistentPointVariableV1"
+        },
+        {
+          "$ref": "#/$defs/PersistentRectVariableV1"
+        }
+      ]
+    },
+    "RunStartRequestPayloadV1": {
+      "title": "RunStartRequestPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document",
+        "graphId"
+      ],
+      "properties": {
+        "document": {
+          "$ref": "#/$defs/JsonObject"
+        },
+        "graphId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "assetBindings": {
+          "description": "Injected by the trusted desktop boundary after resolving project asset identifiers. Frontend-supplied values are discarded.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RunProjectAssetBindingV1"
+          },
+          "maxItems": 32
+        },
+        "deviceKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": ".*\\S.*"
+        },
+        "initialPersistentVariables": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PersistentVariableValueV1"
+          },
+          "maxItems": 128
+        }
+      }
+    },
+    "RunStartResultV1": {
+      "title": "RunStartResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "accepted",
+        "runId",
+        "graphId",
+        "registryVersion"
+      ],
+      "properties": {
+        "accepted": {
+          "const": true,
+          "type": "boolean"
+        },
+        "runId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "graphId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "registryVersion": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "RunCancelRequestPayloadV1": {
+      "title": "RunCancelRequestPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runId"
+      ],
+      "properties": {
+        "runId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "RunCancelResultV1": {
+      "title": "RunCancelResultV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "accepted",
+        "runId",
+        "alreadyRequested",
+        "state"
+      ],
+      "properties": {
+        "accepted": {
+          "const": true,
+          "type": "boolean"
+        },
+        "runId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "alreadyRequested": {
+          "type": "boolean"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "cancelling",
+            "succeeded",
+            "failed",
+            "cancelled"
+          ]
+        }
+      }
+    },
+    "RuntimeValueSummaryV1": {
+      "title": "RuntimeValueSummaryV1",
+      "description": "A bounded display summary. It never carries image bytes or collection contents.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "portId",
+        "generation",
+        "kind",
+        "preview",
+        "truncated"
+      ],
+      "properties": {
+        "portId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "null",
+            "bool",
+            "number",
+            "string",
+            "point",
+            "rect",
+            "image",
+            "ocrCandidate",
+            "ocrResult",
+            "collection"
+          ]
+        },
+        "preview": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "itemCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        }
+      }
+    },
+    "RuntimeTerminalErrorV1": {
+      "title": "RuntimeTerminalErrorV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "messageKey"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+        },
+        "messageKey": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+          "maxLength": 128
+        },
+        "nodeId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "portId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
+    },
+    "RunStateChangedEventPayloadV1": {
+      "title": "RunStateChangedEventPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "graphId"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "running",
+            "cancelling",
+            "succeeded",
+            "failed",
+            "cancelled"
+          ]
+        },
+        "graphId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "runSequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "stepCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "tokensCreated": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "pureCacheHits": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "terminalError": {
+          "$ref": "#/$defs/RuntimeTerminalErrorV1"
+        },
+        "persistentVariableUpdates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PersistentVariableValueV1"
+          },
+          "maxItems": 128
+        }
+      }
+    },
+    "NodeStateChangedEventPayloadV1": {
+      "title": "NodeStateChangedEventPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "runSequence",
+        "tokenId",
+        "activationId"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "running",
+            "succeeded",
+            "failed"
+          ]
+        },
+        "runSequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "tokenId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "activationId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "outputPortIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "maxItems": 64,
+          "uniqueItems": true
+        },
+        "valueSummaries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RuntimeValueSummaryV1"
+          },
+          "maxItems": 64
+        },
+        "errorCode": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+        }
+      }
+    },
+    "EdgeTraversedEventPayloadV1": {
+      "title": "EdgeTraversedEventPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edgeId",
+        "runSequence",
+        "tokenId",
+        "outputPortId"
+      ],
+      "properties": {
+        "edgeId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "runSequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "tokenId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "outputPortId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
+    },
+    "RuntimeLogCreatedEventPayloadV1": {
+      "title": "RuntimeLogCreatedEventPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "logSequence",
+        "activationId",
+        "level",
+        "message"
+      ],
+      "properties": {
+        "logSequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "activationId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "debug",
+            "info",
+            "warning",
+            "error"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 4096
+        }
+      }
+    },
+    "AutomationOperationStateChangedEventPayloadV1": {
+      "title": "AutomationOperationStateChangedEventPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "state",
+        "operationKind",
+        "backendOperationId",
+        "backendGeneration",
+        "callbackSequence",
+        "observedAtMilliseconds"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": [
+            "controller",
+            "tasker"
+          ]
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "starting",
+            "succeeded",
+            "failed"
+          ]
+        },
+        "operationKind": {
+          "type": "string",
+          "enum": [
+            "deviceConnect",
+            "deviceDisconnect",
+            "screenCapture",
+            "ocr",
+            "ocrStop",
+            "click",
+            "keyPress",
+            "appStart"
+          ]
+        },
+        "backendOperationId": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,18}$"
+        },
+        "backendGeneration": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "callbackSequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "observedAtMilliseconds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "activationId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "AutomationCallbackDiagnosticEventPayloadV1": {
+      "title": "AutomationCallbackDiagnosticEventPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "count",
+        "backendGeneration"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "AUTOMATION_CALLBACK_MALFORMED",
+            "AUTOMATION_CALLBACK_UNSUPPORTED",
+            "AUTOMATION_CALLBACK_QUEUE_OVERFLOW",
+            "AUTOMATION_CALLBACK_CORRELATION_OVERFLOW",
+            "AUTOMATION_CALLBACK_OPERATION_UNMATCHED",
+            "AUTOMATION_CALLBACK_GENERATION_STALE",
+            "AUTOMATION_CALLBACK_EVENT_SINK_FAILED"
+          ]
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "backendGeneration": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "latestCallbackSequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "DeviceStateChangedEventPayloadV1": {
+      "title": "DeviceStateChangedEventPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device",
+        "reason"
+      ],
+      "properties": {
+        "device": {
+          "$ref": "#/$defs/DeviceDescriptorV1"
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "connected",
+            "disconnected",
+            "connectionLost"
+          ]
+        }
+      }
+    },
+    "SystemReadyEventPayloadV1": {
+      "title": "SystemReadyEventPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "const": "ready",
+          "type": "string"
+        }
+      }
+    },
+    "SystemHealthChangedEventPayloadV1": {
+      "title": "SystemHealthChangedEventPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "degraded"
+          ]
+        }
+      }
+    },
+    "SystemProtocolErrorEventPayloadV1": {
+      "title": "SystemProtocolErrorEventPayloadV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "error"
+      ],
+      "properties": {
+        "error": {
+          "$ref": "#/$defs/ProtocolErrorV1"
+        }
+      }
+    },
+    "RequestEnvelopeV1": {
+      "title": "RequestEnvelopeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocolVersion",
+        "messageKind",
+        "messageType",
+        "requestId",
+        "payload"
+      ],
+      "properties": {
+        "protocolVersion": {
+          "const": 1,
+          "type": "integer"
+        },
+        "messageKind": {
+          "const": "request",
+          "type": "string"
+        },
+        "messageType": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+          "maxLength": 128
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "payload": {
+          "$ref": "#/$defs/JsonObject"
+        }
+      }
+    },
+    "SuccessResponseEnvelopeV1": {
+      "title": "SuccessResponseEnvelopeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocolVersion",
+        "messageKind",
+        "messageType",
+        "requestId",
+        "result"
+      ],
+      "properties": {
+        "protocolVersion": {
+          "const": 1,
+          "type": "integer"
+        },
+        "messageKind": {
+          "const": "response",
+          "type": "string"
+        },
+        "messageType": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+          "maxLength": 128
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "result": {
+          "$ref": "#/$defs/JsonObject"
+        }
+      }
+    },
+    "ErrorResponseEnvelopeV1": {
+      "title": "ErrorResponseEnvelopeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocolVersion",
+        "messageKind",
+        "messageType",
+        "requestId",
+        "error"
+      ],
+      "properties": {
+        "protocolVersion": {
+          "const": 1,
+          "type": "integer"
+        },
+        "messageKind": {
+          "const": "response",
+          "type": "string"
+        },
+        "messageType": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+          "maxLength": 128
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "error": {
+          "$ref": "#/$defs/ProtocolErrorV1"
+        }
+      }
+    },
+    "EventEnvelopeV1": {
+      "title": "EventEnvelopeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocolVersion",
+        "messageKind",
+        "messageType",
+        "eventId",
+        "sequence",
+        "payload"
+      ],
+      "properties": {
+        "protocolVersion": {
+          "const": 1,
+          "type": "integer"
+        },
+        "messageKind": {
+          "const": "event",
+          "type": "string"
+        },
+        "messageType": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+          "maxLength": 128
+        },
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "runId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "nodeId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "payload": {
+          "$ref": "#/$defs/JsonObject"
+        }
+      }
+    }
+  }
+} as const;

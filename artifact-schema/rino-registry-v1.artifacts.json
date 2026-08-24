@@ -1,0 +1,703 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.rino.invalid/registry/rino-registry-v1.artifact-catalog.json",
+  "title": "RinoRegistryArtifactCatalog",
+  "description": "Generation-only catalog that makes every definition reachable.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "capabilityKeyV1": {
+      "$ref": "#/$defs/CapabilityKeyV1"
+    },
+    "collectionTypeV1": {
+      "$ref": "#/$defs/CollectionTypeV1"
+    },
+    "deprecationV1": {
+      "$ref": "#/$defs/DeprecationV1"
+    },
+    "iconKeyV1": {
+      "$ref": "#/$defs/IconKeyV1"
+    },
+    "jsonObject": {
+      "$ref": "#/$defs/JsonObject"
+    },
+    "jsonValue": {
+      "$ref": "#/$defs/JsonValue"
+    },
+    "localizationKeyV1": {
+      "$ref": "#/$defs/LocalizationKeyV1"
+    },
+    "nodeCategoryV1": {
+      "$ref": "#/$defs/NodeCategoryV1"
+    },
+    "nodeDefinitionV1": {
+      "$ref": "#/$defs/NodeDefinitionV1"
+    },
+    "nodeTypeKeyV1": {
+      "$ref": "#/$defs/NodeTypeKeyV1"
+    },
+    "optionalTypeV1": {
+      "$ref": "#/$defs/OptionalTypeV1"
+    },
+    "portDefinitionV1": {
+      "$ref": "#/$defs/PortDefinitionV1"
+    },
+    "portDirectionV1": {
+      "$ref": "#/$defs/PortDirectionV1"
+    },
+    "portIdV1": {
+      "$ref": "#/$defs/PortIdV1"
+    },
+    "portKindV1": {
+      "$ref": "#/$defs/PortKindV1"
+    },
+    "primitiveTypeKindV1": {
+      "$ref": "#/$defs/PrimitiveTypeKindV1"
+    },
+    "primitiveTypeV1": {
+      "$ref": "#/$defs/PrimitiveTypeV1"
+    },
+    "runtimeKindV1": {
+      "$ref": "#/$defs/RuntimeKindV1"
+    },
+    "sideEffectV1": {
+      "$ref": "#/$defs/SideEffectV1"
+    },
+    "templateEdgeV1": {
+      "$ref": "#/$defs/TemplateEdgeV1"
+    },
+    "templateNodeV1": {
+      "$ref": "#/$defs/TemplateNodeV1"
+    },
+    "templateWorkflowGroupMemberV1": {
+      "$ref": "#/$defs/TemplateWorkflowGroupMemberV1"
+    },
+    "templateWorkflowGroupPortV1": {
+      "$ref": "#/$defs/TemplateWorkflowGroupPortV1"
+    },
+    "templateWorkflowGroupV1": {
+      "$ref": "#/$defs/TemplateWorkflowGroupV1"
+    },
+    "typeDescriptorV1": {
+      "$ref": "#/$defs/TypeDescriptorV1"
+    },
+    "workflowGroupKindV1": {
+      "$ref": "#/$defs/WorkflowGroupKindV1"
+    },
+    "workflowTemplateV1": {
+      "$ref": "#/$defs/WorkflowTemplateV1"
+    },
+    "rinoNodeRegistrySnapshotV1": {
+      "title": "RinoNodeRegistrySnapshotV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "registryVersion",
+        "definitions"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1,
+          "type": "integer"
+        },
+        "registryVersion": {
+          "description": "Content hash of the snapshot, used to detect a registry change without comparing every definition.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "definitions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NodeDefinitionV1"
+          },
+          "maxItems": 1000
+        },
+        "workflowTemplates": {
+          "description": "Authoring assistance only. A template expands into ordinary registry nodes and edges and introduces no runtime behavior of its own.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/WorkflowTemplateV1"
+          },
+          "maxItems": 200
+        }
+      }
+    }
+  },
+  "$defs": {
+    "JsonValue": {
+      "title": "JsonValue",
+      "description": "Any JSON value. Integer is listed ahead of number so generated models keep whole numbers integral instead of widening them to floating point.",
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string",
+          "maxLength": 65536
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "maxItems": 1024
+        },
+        {
+          "$ref": "#/$defs/JsonObject"
+        }
+      ]
+    },
+    "JsonObject": {
+      "title": "JsonObject",
+      "type": "object",
+      "maxProperties": 256,
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      }
+    },
+    "NodeTypeKeyV1": {
+      "title": "NodeTypeKeyV1",
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+      "maxLength": 128
+    },
+    "PortIdV1": {
+      "title": "PortIdV1",
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9]*$",
+      "maxLength": 64
+    },
+    "CapabilityKeyV1": {
+      "title": "CapabilityKeyV1",
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+      "maxLength": 128
+    },
+    "LocalizationKeyV1": {
+      "title": "LocalizationKeyV1",
+      "description": "The registry sends localization keys rather than translated text, so node names follow the user's language.",
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-zA-Z0-9]+)+$",
+      "maxLength": 200
+    },
+    "IconKeyV1": {
+      "title": "IconKeyV1",
+      "description": "Resolved through the bundled static icon mapping. A project or runtime cannot supply image bytes or a remote icon address.",
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9]*\\.[a-zA-Z0-9]+$",
+      "maxLength": 64
+    },
+    "PrimitiveTypeKindV1": {
+      "title": "PrimitiveTypeKindV1",
+      "type": "string",
+      "enum": [
+        "exec",
+        "bool",
+        "number",
+        "string",
+        "point",
+        "rect",
+        "imageRef",
+        "ocrCandidate",
+        "ocrResult"
+      ]
+    },
+    "PrimitiveTypeV1": {
+      "title": "PrimitiveTypeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/PrimitiveTypeKindV1"
+        }
+      }
+    },
+    "CollectionTypeV1": {
+      "title": "CollectionTypeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "element"
+      ],
+      "properties": {
+        "kind": {
+          "const": "collection",
+          "type": "string"
+        },
+        "element": {
+          "$ref": "#/$defs/TypeDescriptorV1"
+        }
+      }
+    },
+    "OptionalTypeV1": {
+      "title": "OptionalTypeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "const": "optional",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/TypeDescriptorV1"
+        }
+      }
+    },
+    "TypeDescriptorV1": {
+      "title": "TypeDescriptorV1",
+      "description": "A port type. There is no implicit any type; a conversion between primitive types is always an explicit node.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PrimitiveTypeV1"
+        },
+        {
+          "$ref": "#/$defs/CollectionTypeV1"
+        },
+        {
+          "$ref": "#/$defs/OptionalTypeV1"
+        }
+      ]
+    },
+    "PortDirectionV1": {
+      "title": "PortDirectionV1",
+      "type": "string",
+      "enum": [
+        "input",
+        "output"
+      ]
+    },
+    "PortKindV1": {
+      "title": "PortKindV1",
+      "type": "string",
+      "enum": [
+        "execution",
+        "data"
+      ]
+    },
+    "PortDefinitionV1": {
+      "title": "PortDefinitionV1",
+      "description": "Connection cardinality is derived from direction and kind rather than configured per port: a data input accepts one edge, a data output and an execution input accept many, and an execution output accepts one unless it declares fan-out.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "portId",
+        "direction",
+        "portKind",
+        "type",
+        "labelKey"
+      ],
+      "properties": {
+        "portId": {
+          "$ref": "#/$defs/PortIdV1"
+        },
+        "direction": {
+          "$ref": "#/$defs/PortDirectionV1"
+        },
+        "portKind": {
+          "$ref": "#/$defs/PortKindV1"
+        },
+        "type": {
+          "$ref": "#/$defs/TypeDescriptorV1"
+        },
+        "labelKey": {
+          "$ref": "#/$defs/LocalizationKeyV1"
+        },
+        "descriptionKey": {
+          "$ref": "#/$defs/LocalizationKeyV1"
+        },
+        "required": {
+          "description": "A required data input must be satisfied by an edge or a literal before a graph can run.",
+          "type": "boolean"
+        },
+        "allowsFanOut": {
+          "description": "Only meaningful for an execution output. A node that declares it selects several successors in a defined order.",
+          "type": "boolean"
+        },
+        "acceptsLiteral": {
+          "description": "Whether the editor may offer an inline literal for this data input. Absent means no: most data types are runtime handles or structured values with no meaningful inline form, so a definition opts in where a literal makes sense.",
+          "type": "boolean"
+        }
+      }
+    },
+    "RuntimeKindV1": {
+      "title": "RuntimeKindV1",
+      "type": "string",
+      "enum": [
+        "entry",
+        "execution",
+        "pure"
+      ]
+    },
+    "SideEffectV1": {
+      "title": "SideEffectV1",
+      "type": "string",
+      "enum": [
+        "none",
+        "runtime",
+        "deviceRead",
+        "deviceWrite",
+        "diagnostic"
+      ]
+    },
+    "NodeCategoryV1": {
+      "title": "NodeCategoryV1",
+      "type": "string",
+      "enum": [
+        "flow",
+        "logic",
+        "values",
+        "text",
+        "vision",
+        "device",
+        "timing",
+        "diagnostics"
+      ]
+    },
+    "DeprecationV1": {
+      "title": "DeprecationV1",
+      "description": "A deprecated definition stays visible in a project that already uses it; only new insertion is prevented.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reasonKey"
+      ],
+      "properties": {
+        "reasonKey": {
+          "$ref": "#/$defs/LocalizationKeyV1"
+        },
+        "replacementTypeKey": {
+          "$ref": "#/$defs/NodeTypeKeyV1"
+        }
+      }
+    },
+    "NodeDefinitionV1": {
+      "title": "NodeDefinitionV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "typeKey",
+        "typeVersion",
+        "runtimeKind",
+        "sideEffect",
+        "category",
+        "titleKey",
+        "descriptionKey",
+        "iconKey",
+        "ports"
+      ],
+      "properties": {
+        "typeKey": {
+          "$ref": "#/$defs/NodeTypeKeyV1"
+        },
+        "typeVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "runtimeKind": {
+          "$ref": "#/$defs/RuntimeKindV1"
+        },
+        "sideEffect": {
+          "$ref": "#/$defs/SideEffectV1"
+        },
+        "category": {
+          "$ref": "#/$defs/NodeCategoryV1"
+        },
+        "titleKey": {
+          "$ref": "#/$defs/LocalizationKeyV1"
+        },
+        "descriptionKey": {
+          "$ref": "#/$defs/LocalizationKeyV1"
+        },
+        "iconKey": {
+          "$ref": "#/$defs/IconKeyV1"
+        },
+        "keywordKeys": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LocalizationKeyV1"
+          },
+          "maxItems": 32
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PortDefinitionV1"
+          },
+          "maxItems": 64
+        },
+        "propertySchema": {
+          "description": "A validated schema for behavior configuration that is not supplied through data ports.",
+          "$ref": "#/$defs/JsonObject"
+        },
+        "propertyDefaults": {
+          "$ref": "#/$defs/JsonObject"
+        },
+        "rendererKey": {
+          "description": "Selects a bundled specialist editor from an allowlist. A project cannot load an arbitrary component.",
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*$",
+          "maxLength": 64
+        },
+        "requiredCapabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CapabilityKeyV1"
+          },
+          "maxItems": 16
+        },
+        "deprecation": {
+          "$ref": "#/$defs/DeprecationV1"
+        }
+      }
+    },
+    "TemplateNodeV1": {
+      "title": "TemplateNodeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "placeholderId",
+        "typeKey",
+        "offset"
+      ],
+      "properties": {
+        "placeholderId": {
+          "description": "Identifies the node inside the template. Insertion assigns a fresh node identifier.",
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*$",
+          "maxLength": 64
+        },
+        "typeKey": {
+          "$ref": "#/$defs/NodeTypeKeyV1"
+        },
+        "offset": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y"
+          ],
+          "properties": {
+            "x": {
+              "type": "number",
+              "minimum": -10000,
+              "maximum": 10000
+            },
+            "y": {
+              "type": "number",
+              "minimum": -10000,
+              "maximum": 10000
+            }
+          }
+        },
+        "inputValues": {
+          "description": "Keys are port identifiers, checked against the referenced node definition's declared ports rather than by a key pattern here.",
+          "type": "object",
+          "maxProperties": 64,
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          }
+        },
+        "properties": {
+          "description": "Optional overrides applied on top of the referenced definition's property defaults.",
+          "$ref": "#/$defs/JsonObject"
+        }
+      }
+    },
+    "TemplateEdgeV1": {
+      "title": "TemplateEdgeV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edgeKind",
+        "sourcePlaceholderId",
+        "sourcePortId",
+        "targetPlaceholderId",
+        "targetPortId"
+      ],
+      "properties": {
+        "edgeKind": {
+          "type": "string",
+          "enum": [
+            "execution",
+            "data"
+          ]
+        },
+        "sourcePlaceholderId": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*$",
+          "maxLength": 64
+        },
+        "sourcePortId": {
+          "$ref": "#/$defs/PortIdV1"
+        },
+        "targetPlaceholderId": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*$",
+          "maxLength": 64
+        },
+        "targetPortId": {
+          "$ref": "#/$defs/PortIdV1"
+        }
+      }
+    },
+    "WorkflowGroupKindV1": {
+      "title": "WorkflowGroupKindV1",
+      "type": "string",
+      "enum": [
+        "imageRecognition",
+        "textRecognition"
+      ]
+    },
+    "TemplateWorkflowGroupMemberV1": {
+      "title": "TemplateWorkflowGroupMemberV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "placeholderId"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*$",
+          "maxLength": 64
+        },
+        "placeholderId": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*$",
+          "maxLength": 64
+        }
+      }
+    },
+    "TemplateWorkflowGroupPortV1": {
+      "title": "TemplateWorkflowGroupPortV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proxyPortId",
+        "placeholderId",
+        "portId",
+        "labelKey"
+      ],
+      "properties": {
+        "proxyPortId": {
+          "$ref": "#/$defs/PortIdV1"
+        },
+        "placeholderId": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*$",
+          "maxLength": 64
+        },
+        "portId": {
+          "$ref": "#/$defs/PortIdV1"
+        },
+        "labelKey": {
+          "$ref": "#/$defs/LocalizationKeyV1"
+        }
+      }
+    },
+    "TemplateWorkflowGroupV1": {
+      "title": "TemplateWorkflowGroupV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "members",
+        "exposedPorts"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/WorkflowGroupKindV1"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TemplateWorkflowGroupMemberV1"
+          },
+          "minItems": 1,
+          "maxItems": 32
+        },
+        "exposedPorts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TemplateWorkflowGroupPortV1"
+          },
+          "maxItems": 32
+        }
+      }
+    },
+    "WorkflowTemplateV1": {
+      "title": "WorkflowTemplateV1",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "templateKey",
+        "titleKey",
+        "descriptionKey",
+        "iconKey",
+        "nodes"
+      ],
+      "properties": {
+        "templateKey": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$",
+          "maxLength": 128
+        },
+        "titleKey": {
+          "$ref": "#/$defs/LocalizationKeyV1"
+        },
+        "descriptionKey": {
+          "$ref": "#/$defs/LocalizationKeyV1"
+        },
+        "iconKey": {
+          "$ref": "#/$defs/IconKeyV1"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TemplateNodeV1"
+          },
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TemplateEdgeV1"
+          },
+          "maxItems": 128
+        },
+        "exposedPorts": {
+          "description": "Optional template-level connection ports. Each port resolves to a real member node port after expansion.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TemplateWorkflowGroupPortV1"
+          },
+          "maxItems": 32
+        },
+        "workflowGroup": {
+          "$ref": "#/$defs/TemplateWorkflowGroupV1"
+        }
+      }
+    }
+  }
+}

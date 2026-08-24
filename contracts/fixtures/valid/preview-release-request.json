@@ -1,0 +1,9 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "preview.release",
+  "requestId": "55b2a9ea-4f0a-4b6d-af4b-28ac50d91fa2",
+  "payload": {
+    "previewToken": "0123456789abcdef0123456789abcdef"
+  }
+}

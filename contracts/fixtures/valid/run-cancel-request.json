@@ -1,0 +1,9 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "run.cancel",
+  "requestId": "90000000-0000-4000-8000-000000000007",
+  "payload": {
+    "runId": "90000000-0000-4000-8000-000000000006"
+  }
+}

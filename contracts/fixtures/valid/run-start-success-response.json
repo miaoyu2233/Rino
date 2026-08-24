@@ -1,0 +1,12 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "response",
+  "messageType": "run.start",
+  "requestId": "90000000-0000-4000-8000-000000000005",
+  "result": {
+    "accepted": true,
+    "runId": "90000000-0000-4000-8000-000000000006",
+    "graphId": "90000000-0000-4000-8000-000000000004",
+    "registryVersion": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  }
+}

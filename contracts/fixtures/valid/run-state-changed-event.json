@@ -1,0 +1,43 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "run.stateChanged",
+  "eventId": "90000000-0000-4000-8000-000000000008",
+  "sequence": 12,
+  "runId": "90000000-0000-4000-8000-000000000006",
+  "payload": {
+    "state": "succeeded",
+    "graphId": "90000000-0000-4000-8000-000000000004",
+    "runSequence": 9,
+    "stepCount": 2,
+    "tokensCreated": 2,
+    "pureCacheHits": 0,
+    "persistentVariableUpdates": [
+      {
+        "variableId": "90000000-0000-4000-8000-000000000010",
+        "valueKind": "bool",
+        "value": false
+      },
+      {
+        "variableId": "90000000-0000-4000-8000-000000000011",
+        "valueKind": "number",
+        "value": 5
+      },
+      {
+        "variableId": "90000000-0000-4000-8000-000000000012",
+        "valueKind": "string",
+        "value": "saved"
+      },
+      {
+        "variableId": "90000000-0000-4000-8000-000000000013",
+        "valueKind": "point",
+        "value": { "x": 1, "y": 2 }
+      },
+      {
+        "variableId": "90000000-0000-4000-8000-000000000014",
+        "valueKind": "rect",
+        "value": { "x": 1, "y": 2, "width": 3, "height": 4 }
+      }
+    ]
+  }
+}

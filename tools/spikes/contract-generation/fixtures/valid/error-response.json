@@ -1,0 +1,15 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "response",
+  "messageType": "graph.validate",
+  "requestId": "0197b46d-7e52-77d5-a345-81561b837b2c",
+  "error": {
+    "code": "INVALID_GRAPH",
+    "messageKey": "runtime.error.invalidGraph",
+    "parameters": {
+      "diagnosticCount": 2
+    },
+    "technicalDetail": "The graph failed structural validation.",
+    "retryability": "never"
+  }
+}

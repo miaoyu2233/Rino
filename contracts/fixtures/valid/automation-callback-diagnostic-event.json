@@ -1,0 +1,13 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "automation.callbackDiagnostic",
+  "eventId": "93000000-0000-4000-8000-000000000001",
+  "sequence": 22,
+  "payload": {
+    "code": "AUTOMATION_CALLBACK_QUEUE_OVERFLOW",
+    "count": 4,
+    "backendGeneration": 3,
+    "latestCallbackSequence": 8
+  }
+}

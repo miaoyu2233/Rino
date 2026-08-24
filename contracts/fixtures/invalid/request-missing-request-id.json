@@ -1,0 +1,6 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "system.health",
+  "payload": {}
+}

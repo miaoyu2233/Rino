@@ -1,0 +1,42 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "run.start",
+  "requestId": "90000000-0000-4000-8000-000000000005",
+  "payload": {
+    "graphId": "90000000-0000-4000-8000-000000000004",
+    "deviceKey": "local-device-session",
+    "initialPersistentVariables": [
+      {
+        "variableId": "90000000-0000-4000-8000-000000000010",
+        "valueKind": "bool",
+        "value": true
+      },
+      {
+        "variableId": "90000000-0000-4000-8000-000000000011",
+        "valueKind": "number",
+        "value": 42.5
+      },
+      {
+        "variableId": "90000000-0000-4000-8000-000000000012",
+        "valueKind": "string",
+        "value": "remembered"
+      },
+      {
+        "variableId": "90000000-0000-4000-8000-000000000013",
+        "valueKind": "point",
+        "value": { "x": -12, "y": 34 }
+      },
+      {
+        "variableId": "90000000-0000-4000-8000-000000000014",
+        "valueKind": "rect",
+        "value": { "x": -12, "y": 34, "width": 1920, "height": 1080 }
+      }
+    ],
+    "document": {
+      "schemaVersion": 1,
+      "documentId": "90000000-0000-4000-8000-000000000003",
+      "entryGraphId": "90000000-0000-4000-8000-000000000004"
+    }
+  }
+}

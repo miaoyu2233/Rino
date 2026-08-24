@@ -1,0 +1,17 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "capture.prepare",
+  "requestId": "8d0de168-a7fd-4f51-8fd2-25615157b8a1",
+  "payload": {
+    "previewToken": "0123456789abcdef0123456789abcdef",
+    "region": {
+      "x": 100,
+      "y": 200,
+      "width": 300,
+      "height": 400,
+      "coordinateSpaceId": "coordinate-space-opaque",
+      "sourceGeneration": 7
+    }
+  }
+}

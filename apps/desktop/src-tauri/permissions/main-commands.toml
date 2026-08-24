@@ -1,0 +1,33 @@
+[[permission]]
+identifier = "main-commands"
+description = "Allows the main window to use the reviewed application command surface."
+commands.allow = [
+  "runtime_status",
+  "runtime_start",
+  "runtime_restart",
+  "runtime_shutdown",
+  "runtime_request",
+  "runtime_preview_read",
+  "runtime_capture_read",
+  "device_preview_open",
+  "device_preview_publish",
+  "device_preview_close",
+  "device_preview_focus",
+  "project_choose_location",
+  "project_open",
+  "project_create",
+  "project_save",
+  "project_store_capture",
+  "project_read_image_asset",
+  "project_cleanup_orphan_assets",
+  "project_cleanup_orphan_graphs",
+  "project_save_as",
+  "project_close",
+  "project_write_autosave",
+  "project_discard_recovery",
+  "publishing_status",
+  "publishing_login",
+  "publishing_logout",
+  "publishing_export",
+  "publishing_publish"
+]

@@ -1,0 +1,24 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "response",
+  "messageType": "system.health",
+  "requestId": "0b9d4a77-6c3f-4d2e-8a1b-2c3d4e5f6a70",
+  "error": {
+    "code": "CAUSE_CHAIN_OVERFLOW",
+    "messageKey": "runtime.error.causeChainOverflow",
+    "parameters": {},
+    "technicalDetail": "The cause chain is bounded at eight entries.",
+    "retryability": "never",
+    "causes": [
+      { "code": "CAUSE_ONE", "technicalDetail": "one" },
+      { "code": "CAUSE_TWO", "technicalDetail": "two" },
+      { "code": "CAUSE_THREE", "technicalDetail": "three" },
+      { "code": "CAUSE_FOUR", "technicalDetail": "four" },
+      { "code": "CAUSE_FIVE", "technicalDetail": "five" },
+      { "code": "CAUSE_SIX", "technicalDetail": "six" },
+      { "code": "CAUSE_SEVEN", "technicalDetail": "seven" },
+      { "code": "CAUSE_EIGHT", "technicalDetail": "eight" },
+      { "code": "CAUSE_NINE", "technicalDetail": "nine" }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "system.ready",
+  "eventId": "7f023c18-7055-4536-8c35-3f1a8a3b55dd",
+  "sequence": -1,
+  "payload": {}
+}

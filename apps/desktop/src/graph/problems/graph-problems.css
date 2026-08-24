@@ -1,0 +1,43 @@
+.problem-row__content {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-1-half);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+
+.problem-row__content--actionable {
+  cursor: pointer;
+  transition: background-color var(--duration-micro) var(--ease-standard);
+}
+
+.problem-row__content--actionable:hover {
+  background: var(--surface-interactive-hover);
+}
+
+.problem-row__content--actionable:focus-visible {
+  /* The row fills its list item, so the shared outline offset would be clipped by the
+     scrolling list. It is drawn inside the row instead. */
+  outline-offset: calc(var(--focus-ring-width) * -1);
+}
+
+.problem-row__subject {
+  display: inline-flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-half);
+}
+
+.problem-row__subject-piece + .problem-row__subject-piece::before {
+  content: "›";
+  padding-inline-end: var(--space-half);
+  color: var(--text-muted);
+}

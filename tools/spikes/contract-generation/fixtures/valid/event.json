@@ -1,0 +1,13 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "node.stateChanged",
+  "eventId": "7f023c18-7055-4536-8c35-3f1a8a3b55dd",
+  "sequence": 42,
+  "runId": "632364ea-6a27-471c-9ebc-a10288e579dd",
+  "nodeId": "8d2c9fc3-7791-48a0-83e4-a60174dc8d5e",
+  "payload": {
+    "state": "running",
+    "progress": 0.5
+  }
+}

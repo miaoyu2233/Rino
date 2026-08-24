@@ -1,0 +1,10 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "response",
+  "messageType": "device.interact",
+  "requestId": "82000000-0000-4000-8000-000000000009",
+  "result": {
+    "completed": true,
+    "kind": "click"
+  }
+}

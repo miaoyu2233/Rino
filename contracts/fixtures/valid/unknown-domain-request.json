@@ -1,0 +1,7 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "future.someOperation",
+  "requestId": "7d6c5b4a-3928-4716-a504-f3e2d1c0b9a8",
+  "payload": { "anything": ["compatible", 1, true, null] }
+}

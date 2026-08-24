@@ -1,0 +1,16 @@
+{
+  "cases": [
+    { "file": "valid/request.json", "valid": true },
+    { "file": "valid/success-response.json", "valid": true },
+    { "file": "valid/error-response.json", "valid": true },
+    { "file": "valid/event.json", "valid": true },
+    { "file": "invalid/response-both-result-error.json", "valid": false },
+    { "file": "invalid/request-extra-property.json", "valid": false },
+    { "file": "invalid/event-bad-sequence.json", "valid": false },
+    { "file": "invalid/request-bad-uuid.json", "valid": false },
+    { "file": "invalid/unsupported-version.json", "valid": false },
+    { "file": "invalid/unknown-kind.json", "valid": false },
+    { "file": "invalid/error-code-lowercase.json", "valid": false },
+    { "file": "invalid/event-missing-sequence.json", "valid": false }
+  ]
+}

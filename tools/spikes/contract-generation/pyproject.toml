@@ -1,0 +1,36 @@
+[project]
+name = "rino-contract-generation-spike"
+version = "0.0.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "jsonschema==4.26.0",
+  "pydantic==2.13.4",
+]
+
+[dependency-groups]
+dev = [
+  "datamodel-code-generator==0.70.0",
+  "pyright==1.1.411",
+  "ruff==0.16.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "RUF", "SIM", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"generated/python/*.py" = ["UP045"]
+
+[tool.pyright]
+include = ["generated/python", "scripts", "src"]
+exclude = [".venv"]
+pythonVersion = "3.13"
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"

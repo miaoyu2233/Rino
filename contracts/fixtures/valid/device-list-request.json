@@ -1,0 +1,7 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "device.list",
+  "requestId": "82000000-0000-4000-8000-000000000001",
+  "payload": {}
+}

@@ -1,0 +1,7 @@
+{
+  "CancellationProbe": {
+    "recognition": "DirectHit",
+    "action": "DoNothing",
+    "post_delay": 10000
+  }
+}

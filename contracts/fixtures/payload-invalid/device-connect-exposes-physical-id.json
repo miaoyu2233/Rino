@@ -1,0 +1,10 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "device.connect",
+  "requestId": "82000000-0000-4000-8000-000000000005",
+  "payload": {
+    "deviceKey": "device-opaque-1",
+    "physicalId": "forbidden-physical-identifier"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "registryVersion": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "definitions": [
+    {
+      "typeKey": "core.flow.start",
+      "typeVersion": 1,
+      "runtimeKind": "entry",
+      "sideEffect": "none",
+      "category": "flow",
+      "titleKey": "node.core.flow.start.title",
+      "descriptionKey": "node.core.flow.start.description",
+      "iconKey": "run.start",
+      "ports": [
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "collection"
+          },
+          "labelKey": "node.core.flow.start.port.next"
+        }
+      ]
+    }
+  ]
+}

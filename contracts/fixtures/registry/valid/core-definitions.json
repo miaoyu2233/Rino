@@ -1,0 +1,6534 @@
+{
+  "schemaVersion": 1,
+  "registryVersion": "2a3c93e80fc7ccae6fde06a111eb1afb0679765b02e9acafe4f6292caf90a017",
+  "definitions": [
+    {
+      "typeKey": "automation.captureScreen",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "deviceRead",
+      "category": "device",
+      "titleKey": "node.automation.captureScreen.title",
+      "descriptionKey": "node.automation.captureScreen.description",
+      "iconKey": "node.imageRecognition",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.captureScreen.port.run"
+        },
+        {
+          "portId": "image",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.automation.captureScreen.port.image"
+        },
+        {
+          "portId": "width",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.automation.captureScreen.port.width"
+        },
+        {
+          "portId": "height",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.automation.captureScreen.port.height"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.captureScreen.port.next"
+        }
+      ],
+      "requiredCapabilities": ["automation.captureScreen"]
+    },
+    {
+      "typeKey": "automation.clickPoint",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "deviceWrite",
+      "category": "device",
+      "titleKey": "node.automation.clickPoint.title",
+      "descriptionKey": "node.automation.clickPoint.description",
+      "iconKey": "node.click",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.clickPoint.port.run"
+        },
+        {
+          "portId": "point",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.automation.clickPoint.port.point"
+        },
+        {
+          "portId": "image",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.automation.clickPoint.port.image"
+        },
+        {
+          "portId": "points",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "point"
+            }
+          },
+          "labelKey": "node.automation.clickPoint.port.points"
+        },
+        {
+          "portId": "rect",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.automation.clickPoint.port.rect"
+        },
+        {
+          "portId": "x",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.automation.clickPoint.port.x",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "y",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.automation.clickPoint.port.y",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "referenceWidth",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.automation.clickPoint.port.referenceWidth",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "referenceHeight",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.automation.clickPoint.port.referenceHeight",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "clicked",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.automation.clickPoint.port.clicked"
+        },
+        {
+          "portId": "clickedCount",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.automation.clickPoint.port.clickedCount"
+        },
+        {
+          "portId": "selectedIndex",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.automation.clickPoint.port.selectedIndex"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.clickPoint.port.next"
+        },
+        {
+          "portId": "failed",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.clickPoint.port.failed"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["inputMode"],
+        "properties": {
+          "inputMode": {
+            "type": "string",
+            "enum": [
+              "point",
+              "coordinates",
+              "randomPoints",
+              "sequentialPoints",
+              "rectCenter",
+              "rectRandom"
+            ],
+            "x-rinoLabelKey": "node.automation.clickPoint.property.inputMode.label",
+            "x-rinoDescriptionKey": "node.automation.clickPoint.property.inputMode.description",
+            "x-rinoOptionLabelKeys": {
+              "point": "node.automation.clickPoint.property.inputMode.option.point",
+              "coordinates": "node.automation.clickPoint.property.inputMode.option.coordinates",
+              "randomPoints": "node.automation.clickPoint.property.inputMode.option.randomPoints",
+              "sequentialPoints": "node.automation.clickPoint.property.inputMode.option.sequentialPoints",
+              "rectCenter": "node.automation.clickPoint.property.inputMode.option.rectCenter",
+              "rectRandom": "node.automation.clickPoint.property.inputMode.option.rectRandom"
+            }
+          },
+          "intervalMilliseconds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 60000,
+            "x-rinoLabelKey": "node.automation.clickPoint.property.intervalMilliseconds.label",
+            "x-rinoDescriptionKey": "node.automation.clickPoint.property.intervalMilliseconds.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "inputMode": "coordinates",
+        "intervalMilliseconds": 100
+      },
+      "requiredCapabilities": ["automation.clickPoint"]
+    },
+    {
+      "typeKey": "automation.clickRectCenter",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "deviceWrite",
+      "category": "device",
+      "titleKey": "node.automation.clickRectCenter.title",
+      "descriptionKey": "node.automation.clickRectCenter.description",
+      "iconKey": "node.click",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.clickRectCenter.port.run"
+        },
+        {
+          "portId": "rect",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.automation.clickRectCenter.port.rect",
+          "required": true
+        },
+        {
+          "portId": "offsetX",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.automation.clickRectCenter.port.offsetX"
+        },
+        {
+          "portId": "offsetY",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.automation.clickRectCenter.port.offsetY"
+        },
+        {
+          "portId": "offsetWidth",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.automation.clickRectCenter.port.offsetWidth"
+        },
+        {
+          "portId": "offsetHeight",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.automation.clickRectCenter.port.offsetHeight"
+        },
+        {
+          "portId": "clicked",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.automation.clickRectCenter.port.clicked"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.clickRectCenter.port.next"
+        },
+        {
+          "portId": "failed",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.clickRectCenter.port.failed"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["offsetX", "offsetY", "offsetWidth", "offsetHeight"],
+        "properties": {
+          "offsetX": {
+            "type": "integer",
+            "minimum": -65536,
+            "maximum": 65536,
+            "x-rinoLabelKey": "node.automation.clickRectCenter.property.offsetX.label",
+            "x-rinoDescriptionKey": "node.automation.clickRectCenter.property.offsetX.description"
+          },
+          "offsetY": {
+            "type": "integer",
+            "minimum": -65536,
+            "maximum": 65536,
+            "x-rinoLabelKey": "node.automation.clickRectCenter.property.offsetY.label",
+            "x-rinoDescriptionKey": "node.automation.clickRectCenter.property.offsetY.description"
+          },
+          "offsetWidth": {
+            "type": "integer",
+            "minimum": -65536,
+            "maximum": 65536,
+            "x-rinoLabelKey": "node.automation.clickRectCenter.property.offsetWidth.label",
+            "x-rinoDescriptionKey": "node.automation.clickRectCenter.property.offsetWidth.description"
+          },
+          "offsetHeight": {
+            "type": "integer",
+            "minimum": -65536,
+            "maximum": 65536,
+            "x-rinoLabelKey": "node.automation.clickRectCenter.property.offsetHeight.label",
+            "x-rinoDescriptionKey": "node.automation.clickRectCenter.property.offsetHeight.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "offsetX": 0,
+        "offsetY": 0,
+        "offsetWidth": 0,
+        "offsetHeight": 0
+      },
+      "requiredCapabilities": ["automation.clickRectCenter"]
+    },
+    {
+      "typeKey": "automation.launchAndroidApp",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "deviceWrite",
+      "category": "device",
+      "titleKey": "node.automation.launchAndroidApp.title",
+      "descriptionKey": "node.automation.launchAndroidApp.description",
+      "iconKey": "node.launchAndroidApp",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.launchAndroidApp.port.run"
+        },
+        {
+          "portId": "launched",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.automation.launchAndroidApp.port.launched"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.launchAndroidApp.port.next"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["intent"],
+        "properties": {
+          "intent": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^(?:(?:[A-Za-z][A-Za-z0-9_]*(?:\\.[A-Za-z][A-Za-z0-9_]*)+)(?:/(?:\\.[A-Za-z_$][A-Za-z0-9_$]*|[A-Za-z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*))?)$",
+            "x-rinoLabelKey": "node.automation.launchAndroidApp.property.intent.label",
+            "x-rinoDescriptionKey": "node.automation.launchAndroidApp.property.intent.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "intent": "com.example.app"
+      },
+      "requiredCapabilities": ["automation.launchAndroidApp"]
+    },
+    {
+      "typeKey": "automation.pressAndroidKey",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "deviceWrite",
+      "category": "device",
+      "titleKey": "node.automation.pressAndroidKey.title",
+      "descriptionKey": "node.automation.pressAndroidKey.description",
+      "iconKey": "node.pressAndroidKey",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.pressAndroidKey.port.run"
+        },
+        {
+          "portId": "pressed",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.automation.pressAndroidKey.port.pressed"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.pressAndroidKey.port.next"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key"],
+        "properties": {
+          "key": {
+            "type": "string",
+            "enum": ["escape"],
+            "x-rinoLabelKey": "node.automation.pressAndroidKey.property.key.label",
+            "x-rinoDescriptionKey": "node.automation.pressAndroidKey.property.key.description",
+            "x-rinoOptionLabelKeys": {
+              "escape": "node.automation.pressAndroidKey.property.key.option.escape"
+            }
+          }
+        }
+      },
+      "propertyDefaults": {
+        "key": "escape"
+      },
+      "requiredCapabilities": ["automation.pressAndroidKey"]
+    },
+    {
+      "typeKey": "automation.swipe",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "deviceWrite",
+      "category": "device",
+      "titleKey": "node.automation.swipe.title",
+      "descriptionKey": "node.automation.swipe.description",
+      "iconKey": "node.swipe",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.swipe.port.run"
+        },
+        {
+          "portId": "start",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.automation.swipe.port.start",
+          "required": true
+        },
+        {
+          "portId": "end",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.automation.swipe.port.end",
+          "required": true
+        },
+        {
+          "portId": "completed",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.automation.swipe.port.completed"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.swipe.port.next"
+        },
+        {
+          "portId": "failed",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.swipe.port.failed"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["durationMilliseconds"],
+        "properties": {
+          "durationMilliseconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 60000,
+            "x-rinoLabelKey": "node.automation.swipe.property.durationMilliseconds.label",
+            "x-rinoDescriptionKey": "node.automation.swipe.property.durationMilliseconds.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "durationMilliseconds": 200
+      },
+      "requiredCapabilities": ["automation.swipe"]
+    },
+    {
+      "typeKey": "automation.touchAction",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "deviceWrite",
+      "category": "device",
+      "titleKey": "node.automation.touchAction.title",
+      "descriptionKey": "node.automation.touchAction.description",
+      "iconKey": "node.touchAction",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.touchAction.port.run"
+        },
+        {
+          "portId": "start",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.automation.touchAction.port.start",
+          "required": true
+        },
+        {
+          "portId": "end",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.automation.touchAction.port.end"
+        },
+        {
+          "portId": "secondaryStart",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.automation.touchAction.port.secondaryStart"
+        },
+        {
+          "portId": "secondaryEnd",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.automation.touchAction.port.secondaryEnd"
+        },
+        {
+          "portId": "completed",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.automation.touchAction.port.completed"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.automation.touchAction.port.next"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "actionType",
+          "longPressDurationMilliseconds",
+          "swipeDurationMilliseconds",
+          "secondaryStartDelayMilliseconds"
+        ],
+        "properties": {
+          "actionType": {
+            "type": "string",
+            "enum": ["click", "longPress", "swipe", "multiSwipe"],
+            "x-rinoLabelKey": "node.automation.touchAction.property.actionType.label",
+            "x-rinoDescriptionKey": "node.automation.touchAction.property.actionType.description",
+            "x-rinoOptionLabelKeys": {
+              "click": "node.automation.touchAction.property.actionType.option.click",
+              "longPress": "node.automation.touchAction.property.actionType.option.longPress",
+              "swipe": "node.automation.touchAction.property.actionType.option.swipe",
+              "multiSwipe": "node.automation.touchAction.property.actionType.option.multiSwipe"
+            }
+          },
+          "longPressDurationMilliseconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 60000,
+            "x-rinoLabelKey": "node.automation.touchAction.property.longPressDurationMilliseconds.label",
+            "x-rinoDescriptionKey": "node.automation.touchAction.property.longPressDurationMilliseconds.description"
+          },
+          "swipeDurationMilliseconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 60000,
+            "x-rinoLabelKey": "node.automation.touchAction.property.swipeDurationMilliseconds.label",
+            "x-rinoDescriptionKey": "node.automation.touchAction.property.swipeDurationMilliseconds.description"
+          },
+          "secondaryStartDelayMilliseconds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 60000,
+            "x-rinoLabelKey": "node.automation.touchAction.property.secondaryStartDelayMilliseconds.label",
+            "x-rinoDescriptionKey": "node.automation.touchAction.property.secondaryStartDelayMilliseconds.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "actionType": "click",
+        "longPressDurationMilliseconds": 1000,
+        "swipeDurationMilliseconds": 200,
+        "secondaryStartDelayMilliseconds": 0
+      },
+      "requiredCapabilities": ["automation.touchAction"]
+    },
+    {
+      "typeKey": "core.collection.imageList",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "vision",
+      "titleKey": "node.core.collection.imageList.title",
+      "descriptionKey": "node.core.collection.imageList.description",
+      "iconKey": "node.imageRecognition",
+      "ports": [
+        {
+          "portId": "item1",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item1"
+        },
+        {
+          "portId": "item2",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item2"
+        },
+        {
+          "portId": "item3",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item3"
+        },
+        {
+          "portId": "item4",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item4"
+        },
+        {
+          "portId": "item5",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item5"
+        },
+        {
+          "portId": "item6",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item6"
+        },
+        {
+          "portId": "item7",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item7"
+        },
+        {
+          "portId": "item8",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item8"
+        },
+        {
+          "portId": "item9",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item9"
+        },
+        {
+          "portId": "item10",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item10"
+        },
+        {
+          "portId": "item11",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item11"
+        },
+        {
+          "portId": "item12",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item12"
+        },
+        {
+          "portId": "item13",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item13"
+        },
+        {
+          "portId": "item14",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item14"
+        },
+        {
+          "portId": "item15",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item15"
+        },
+        {
+          "portId": "item16",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.collection.imageList.port.item16"
+        },
+        {
+          "portId": "images",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "imageRef"
+            }
+          },
+          "labelKey": "node.core.collection.imageList.port.images"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.collection.pointList",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "values",
+      "titleKey": "node.core.collection.pointList.title",
+      "descriptionKey": "node.core.collection.pointList.description",
+      "iconKey": "node.coordinate",
+      "ports": [
+        {
+          "portId": "item1",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item1"
+        },
+        {
+          "portId": "item2",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item2"
+        },
+        {
+          "portId": "item3",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item3"
+        },
+        {
+          "portId": "item4",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item4"
+        },
+        {
+          "portId": "item5",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item5"
+        },
+        {
+          "portId": "item6",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item6"
+        },
+        {
+          "portId": "item7",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item7"
+        },
+        {
+          "portId": "item8",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item8"
+        },
+        {
+          "portId": "item9",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item9"
+        },
+        {
+          "portId": "item10",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item10"
+        },
+        {
+          "portId": "item11",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item11"
+        },
+        {
+          "portId": "item12",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item12"
+        },
+        {
+          "portId": "item13",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item13"
+        },
+        {
+          "portId": "item14",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item14"
+        },
+        {
+          "portId": "item15",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item15"
+        },
+        {
+          "portId": "item16",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.collection.pointList.port.item16"
+        },
+        {
+          "portId": "points",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "point"
+            }
+          },
+          "labelKey": "node.core.collection.pointList.port.points"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.collection.regionList",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "values",
+      "titleKey": "node.core.collection.regionList.title",
+      "descriptionKey": "node.core.collection.regionList.description",
+      "iconKey": "node.coordinate",
+      "ports": [
+        {
+          "portId": "item1",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item1"
+        },
+        {
+          "portId": "item2",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item2"
+        },
+        {
+          "portId": "item3",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item3"
+        },
+        {
+          "portId": "item4",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item4"
+        },
+        {
+          "portId": "item5",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item5"
+        },
+        {
+          "portId": "item6",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item6"
+        },
+        {
+          "portId": "item7",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item7"
+        },
+        {
+          "portId": "item8",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item8"
+        },
+        {
+          "portId": "item9",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item9"
+        },
+        {
+          "portId": "item10",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item10"
+        },
+        {
+          "portId": "item11",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item11"
+        },
+        {
+          "portId": "item12",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item12"
+        },
+        {
+          "portId": "item13",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item13"
+        },
+        {
+          "portId": "item14",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item14"
+        },
+        {
+          "portId": "item15",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item15"
+        },
+        {
+          "portId": "item16",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.collection.regionList.port.item16"
+        },
+        {
+          "portId": "regions",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "rect"
+            }
+          },
+          "labelKey": "node.core.collection.regionList.port.regions"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.diagnostic.log",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "diagnostic",
+      "category": "diagnostics",
+      "titleKey": "node.core.diagnostic.log.title",
+      "descriptionKey": "node.core.diagnostic.log.description",
+      "iconKey": "node.log",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.diagnostic.log.port.run"
+        },
+        {
+          "portId": "textPart1",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart1",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart1",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart1",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart2",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart2",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart2",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart2",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart3",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart3",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart3",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart3",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart4",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart4",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart4",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart4",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart5",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart5",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart5",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart5",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart6",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart6",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart6",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart6",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart7",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart7",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart7",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart7",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart8",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart8",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart8",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart8",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart9",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart9",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart9",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart9",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart10",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart10",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart10",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart10",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart11",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart11",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart11",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart11",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart12",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart12",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart12",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart12",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart13",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart13",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart13",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart13",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart14",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart14",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart14",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart14",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart15",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart15",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart15",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart15",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "textPart16",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.textPart16",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "numberPart16",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.diagnostic.log.port.numberPart16",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "message",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.diagnostic.log.port.message",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.diagnostic.log.port.next"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "segmentKinds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 16,
+            "items": {
+              "type": "string",
+              "enum": ["text", "number"]
+            },
+            "x-rinoLabelKey": "node.core.diagnostic.log.property.segmentKinds.label",
+            "x-rinoDescriptionKey": "node.core.diagnostic.log.property.segmentKinds.description"
+          },
+          "appendNewline": {
+            "type": "boolean",
+            "x-rinoLabelKey": "node.core.diagnostic.log.property.appendNewline.label",
+            "x-rinoDescriptionKey": "node.core.diagnostic.log.property.appendNewline.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "appendNewline": false
+      }
+    },
+    {
+      "typeKey": "core.flow.boundedRetry",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "timing",
+      "titleKey": "node.core.flow.boundedRetry.title",
+      "descriptionKey": "node.core.flow.boundedRetry.description",
+      "iconKey": "node.delay",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.boundedRetry.port.run"
+        },
+        {
+          "portId": "attempt",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.boundedRetry.port.attempt"
+        },
+        {
+          "portId": "exhausted",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.boundedRetry.port.exhausted"
+        },
+        {
+          "portId": "attemptNumber",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.flow.boundedRetry.port.attemptNumber"
+        },
+        {
+          "portId": "elapsedMilliseconds",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.flow.boundedRetry.port.elapsedMilliseconds"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "timeoutMilliseconds",
+          "rateLimitMilliseconds",
+          "maximumAttempts"
+        ],
+        "properties": {
+          "timeoutMilliseconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 18000000,
+            "x-rinoLabelKey": "node.core.flow.boundedRetry.property.timeoutMilliseconds.label",
+            "x-rinoDescriptionKey": "node.core.flow.boundedRetry.property.timeoutMilliseconds.description"
+          },
+          "rateLimitMilliseconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 60000,
+            "x-rinoLabelKey": "node.core.flow.boundedRetry.property.rateLimitMilliseconds.label",
+            "x-rinoDescriptionKey": "node.core.flow.boundedRetry.property.rateLimitMilliseconds.description"
+          },
+          "maximumAttempts": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20000,
+            "x-rinoLabelKey": "node.core.flow.boundedRetry.property.maximumAttempts.label",
+            "x-rinoDescriptionKey": "node.core.flow.boundedRetry.property.maximumAttempts.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "timeoutMilliseconds": 20000,
+        "rateLimitMilliseconds": 1000,
+        "maximumAttempts": 20
+      }
+    },
+    {
+      "typeKey": "core.flow.endPath",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "flow",
+      "titleKey": "node.core.flow.endPath.title",
+      "descriptionKey": "node.core.flow.endPath.description",
+      "iconKey": "run.stop",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.endPath.port.run"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["scope"],
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": ["current", "all"],
+            "x-rinoLabelKey": "node.core.flow.endPath.property.scope.label",
+            "x-rinoDescriptionKey": "node.core.flow.endPath.property.scope.description",
+            "x-rinoOptionLabelKeys": {
+              "current": "node.core.flow.endPath.property.scope.option.current",
+              "all": "node.core.flow.endPath.property.scope.option.all"
+            }
+          }
+        }
+      },
+      "propertyDefaults": {
+        "scope": "current"
+      }
+    },
+    {
+      "typeKey": "core.flow.parallel",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "none",
+      "category": "flow",
+      "titleKey": "node.core.flow.parallel.title",
+      "descriptionKey": "node.core.flow.parallel.description",
+      "iconKey": "category.flow",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.parallel.port.run"
+        },
+        {
+          "portId": "branch1",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.parallel.port.branch1"
+        },
+        {
+          "portId": "branch2",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.parallel.port.branch2"
+        },
+        {
+          "portId": "branch3",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.parallel.port.branch3"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.flow.runCounter",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "flow",
+      "titleKey": "node.core.flow.runCounter.title",
+      "descriptionKey": "node.core.flow.runCounter.description",
+      "iconKey": "category.flow",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.runCounter.port.run"
+        },
+        {
+          "portId": "targetCount",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.flow.runCounter.port.targetCount",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "currentCount",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.flow.runCounter.port.currentCount"
+        },
+        {
+          "portId": "reached",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.runCounter.port.reached"
+        },
+        {
+          "portId": "notReached",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.runCounter.port.notReached"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.flow.sequence",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "none",
+      "category": "flow",
+      "titleKey": "node.core.flow.sequence.title",
+      "descriptionKey": "node.core.flow.sequence.description",
+      "iconKey": "category.flow",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.run"
+        },
+        {
+          "portId": "order",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "string"
+            }
+          },
+          "labelKey": "node.core.flow.sequence.port.order"
+        },
+        {
+          "portId": "steps",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.steps",
+          "allowsFanOut": true
+        },
+        {
+          "portId": "step1",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step1"
+        },
+        {
+          "portId": "step2",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step2"
+        },
+        {
+          "portId": "step3",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step3"
+        },
+        {
+          "portId": "step4",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step4"
+        },
+        {
+          "portId": "step5",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step5"
+        },
+        {
+          "portId": "step6",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step6"
+        },
+        {
+          "portId": "step7",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step7"
+        },
+        {
+          "portId": "step8",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step8"
+        },
+        {
+          "portId": "step9",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step9"
+        },
+        {
+          "portId": "step10",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step10"
+        },
+        {
+          "portId": "step11",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step11"
+        },
+        {
+          "portId": "step12",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step12"
+        },
+        {
+          "portId": "step13",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step13"
+        },
+        {
+          "portId": "step14",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step14"
+        },
+        {
+          "portId": "step15",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step15"
+        },
+        {
+          "portId": "step16",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.sequence.port.step16"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.flow.sequenceOrder",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "flow",
+      "titleKey": "node.core.flow.sequenceOrder.title",
+      "descriptionKey": "node.core.flow.sequenceOrder.description",
+      "iconKey": "category.flow",
+      "ports": [
+        {
+          "portId": "order",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "string"
+            }
+          },
+          "labelKey": "node.core.flow.sequenceOrder.port.order",
+          "allowsFanOut": true
+        }
+      ]
+    },
+    {
+      "typeKey": "core.flow.start",
+      "typeVersion": 1,
+      "runtimeKind": "entry",
+      "sideEffect": "none",
+      "category": "flow",
+      "titleKey": "node.core.flow.start.title",
+      "descriptionKey": "node.core.flow.start.description",
+      "iconKey": "run.start",
+      "ports": [
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.start.port.next"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.flow.stop",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "flow",
+      "titleKey": "node.core.flow.stop.title",
+      "descriptionKey": "node.core.flow.stop.description",
+      "iconKey": "run.stop",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.flow.stop.port.run"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.geometry.point",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "values",
+      "titleKey": "node.core.geometry.point.title",
+      "descriptionKey": "node.core.geometry.point.description",
+      "iconKey": "node.coordinate",
+      "ports": [
+        {
+          "portId": "image",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.geometry.point.port.image",
+          "required": true
+        },
+        {
+          "portId": "x",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.geometry.point.port.x",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "y",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.geometry.point.port.y",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "referenceWidth",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.geometry.point.port.referenceWidth",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "referenceHeight",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.geometry.point.port.referenceHeight",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "point",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.geometry.point.port.point"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.geometry.rectangle",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "values",
+      "titleKey": "node.core.geometry.rectangle.title",
+      "descriptionKey": "node.core.geometry.rectangle.description",
+      "iconKey": "node.coordinate",
+      "ports": [
+        {
+          "portId": "image",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.geometry.rectangle.port.image",
+          "required": true
+        },
+        {
+          "portId": "x",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.geometry.rectangle.port.x",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "y",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.geometry.rectangle.port.y",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "width",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.geometry.rectangle.port.width",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "height",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.geometry.rectangle.port.height",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "referenceWidth",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.geometry.rectangle.port.referenceWidth",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "referenceHeight",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.geometry.rectangle.port.referenceHeight",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "rectangle",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.geometry.rectangle.port.rectangle"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.image.projectAsset",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "values",
+      "titleKey": "node.core.image.projectAsset.title",
+      "descriptionKey": "node.core.image.projectAsset.description",
+      "iconKey": "node.imageRecognition",
+      "ports": [
+        {
+          "portId": "image",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.image.projectAsset.port.image"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["assetId"],
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "format": "uuid",
+            "x-rinoLabelKey": "node.core.image.projectAsset.property.assetId.label",
+            "x-rinoDescriptionKey": "node.core.image.projectAsset.property.assetId.description"
+          }
+        }
+      }
+    },
+    {
+      "typeKey": "core.logic.branch",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "none",
+      "category": "logic",
+      "titleKey": "node.core.logic.branch.title",
+      "descriptionKey": "node.core.logic.branch.description",
+      "iconKey": "node.branch",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.branch.port.run"
+        },
+        {
+          "portId": "condition",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.branch.port.condition",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "whenTrue",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.branch.port.whenTrue"
+        },
+        {
+          "portId": "whenFalse",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.branch.port.whenFalse"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.logic.caseOverlayBool",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "logic",
+      "titleKey": "node.core.logic.caseOverlayBool.title",
+      "descriptionKey": "node.core.logic.caseOverlayBool.description",
+      "iconKey": "node.branch",
+      "ports": [
+        {
+          "portId": "selectedCaseId",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.selectedCaseId",
+          "required": true
+        },
+        {
+          "portId": "fallback",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.fallback",
+          "required": true
+        },
+        {
+          "portId": "case1",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case1"
+        },
+        {
+          "portId": "case2",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case2"
+        },
+        {
+          "portId": "case3",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case3"
+        },
+        {
+          "portId": "case4",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case4"
+        },
+        {
+          "portId": "case5",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case5"
+        },
+        {
+          "portId": "case6",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case6"
+        },
+        {
+          "portId": "case7",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case7"
+        },
+        {
+          "portId": "case8",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case8"
+        },
+        {
+          "portId": "case9",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case9"
+        },
+        {
+          "portId": "case10",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case10"
+        },
+        {
+          "portId": "case11",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case11"
+        },
+        {
+          "portId": "case12",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case12"
+        },
+        {
+          "portId": "case13",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case13"
+        },
+        {
+          "portId": "case14",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case14"
+        },
+        {
+          "portId": "case15",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case15"
+        },
+        {
+          "portId": "case16",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.case16"
+        },
+        {
+          "portId": "value",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.caseOverlayBool.port.value"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.logic.caseOverlayImageRef",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "logic",
+      "titleKey": "node.core.logic.caseOverlayImageRef.title",
+      "descriptionKey": "node.core.logic.caseOverlayImageRef.description",
+      "iconKey": "node.branch",
+      "ports": [
+        {
+          "portId": "selectedCaseId",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.selectedCaseId",
+          "required": true
+        },
+        {
+          "portId": "fallback",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.fallback"
+        },
+        {
+          "portId": "case1",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case1"
+        },
+        {
+          "portId": "case2",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case2"
+        },
+        {
+          "portId": "case3",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case3"
+        },
+        {
+          "portId": "case4",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case4"
+        },
+        {
+          "portId": "case5",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case5"
+        },
+        {
+          "portId": "case6",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case6"
+        },
+        {
+          "portId": "case7",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case7"
+        },
+        {
+          "portId": "case8",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case8"
+        },
+        {
+          "portId": "case9",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case9"
+        },
+        {
+          "portId": "case10",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case10"
+        },
+        {
+          "portId": "case11",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case11"
+        },
+        {
+          "portId": "case12",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case12"
+        },
+        {
+          "portId": "case13",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case13"
+        },
+        {
+          "portId": "case14",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case14"
+        },
+        {
+          "portId": "case15",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case15"
+        },
+        {
+          "portId": "case16",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.case16"
+        },
+        {
+          "portId": "value",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.logic.caseOverlayImageRef.port.value"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.logic.caseOverlayNumber",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "logic",
+      "titleKey": "node.core.logic.caseOverlayNumber.title",
+      "descriptionKey": "node.core.logic.caseOverlayNumber.description",
+      "iconKey": "node.branch",
+      "ports": [
+        {
+          "portId": "selectedCaseId",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.selectedCaseId",
+          "required": true
+        },
+        {
+          "portId": "fallback",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.fallback",
+          "required": true
+        },
+        {
+          "portId": "case1",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case1"
+        },
+        {
+          "portId": "case2",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case2"
+        },
+        {
+          "portId": "case3",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case3"
+        },
+        {
+          "portId": "case4",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case4"
+        },
+        {
+          "portId": "case5",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case5"
+        },
+        {
+          "portId": "case6",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case6"
+        },
+        {
+          "portId": "case7",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case7"
+        },
+        {
+          "portId": "case8",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case8"
+        },
+        {
+          "portId": "case9",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case9"
+        },
+        {
+          "portId": "case10",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case10"
+        },
+        {
+          "portId": "case11",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case11"
+        },
+        {
+          "portId": "case12",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case12"
+        },
+        {
+          "portId": "case13",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case13"
+        },
+        {
+          "portId": "case14",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case14"
+        },
+        {
+          "portId": "case15",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case15"
+        },
+        {
+          "portId": "case16",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.case16"
+        },
+        {
+          "portId": "value",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.caseOverlayNumber.port.value"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.logic.numberCompare",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "logic",
+      "titleKey": "node.core.logic.numberCompare.title",
+      "descriptionKey": "node.core.logic.numberCompare.description",
+      "iconKey": "node.compare",
+      "ports": [
+        {
+          "portId": "left",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberCompare.port.left",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "right",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberCompare.port.right",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "result",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.logic.numberCompare.port.result"
+        },
+        {
+          "portId": "relation",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.logic.numberCompare.port.relation"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["operator"],
+        "properties": {
+          "operator": {
+            "type": "string",
+            "enum": [
+              "greaterThan",
+              "greaterThanOrEqual",
+              "lessThan",
+              "lessThanOrEqual",
+              "equalTo",
+              "notEqualTo"
+            ],
+            "x-rinoLabelKey": "node.core.logic.numberCompare.property.operator.label",
+            "x-rinoDescriptionKey": "node.core.logic.numberCompare.property.operator.description",
+            "x-rinoOptionLabelKeys": {
+              "greaterThan": "node.core.logic.numberCompare.property.operator.option.greaterThan",
+              "greaterThanOrEqual": "node.core.logic.numberCompare.property.operator.option.greaterThanOrEqual",
+              "lessThan": "node.core.logic.numberCompare.property.operator.option.lessThan",
+              "lessThanOrEqual": "node.core.logic.numberCompare.property.operator.option.lessThanOrEqual",
+              "equalTo": "node.core.logic.numberCompare.property.operator.option.equalTo",
+              "notEqualTo": "node.core.logic.numberCompare.property.operator.option.notEqualTo"
+            }
+          }
+        }
+      },
+      "propertyDefaults": {
+        "operator": "greaterThan"
+      }
+    },
+    {
+      "typeKey": "core.logic.numberSelect",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "logic",
+      "titleKey": "node.core.logic.numberSelect.title",
+      "descriptionKey": "node.core.logic.numberSelect.description",
+      "iconKey": "node.compare",
+      "ports": [
+        {
+          "portId": "a",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.a",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "b",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.b",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "c",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.c",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "d",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.d",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "e",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.e",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "f",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.f",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "g",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.g",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "h",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.h",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "i",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.i",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "j",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.j",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "k",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.k",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "l",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.l",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "m",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.m",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "n",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.n",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "o",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.o",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "p",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.p",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "value",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.value"
+        },
+        {
+          "portId": "condition",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.logic.numberSelect.port.condition"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["mode"],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["maximum", "minimum"],
+            "x-rinoLabelKey": "node.core.logic.numberSelect.property.mode.label",
+            "x-rinoDescriptionKey": "node.core.logic.numberSelect.property.mode.description",
+            "x-rinoOptionLabelKeys": {
+              "maximum": "node.core.logic.numberSelect.property.mode.option.maximum",
+              "minimum": "node.core.logic.numberSelect.property.mode.option.minimum"
+            }
+          }
+        }
+      },
+      "propertyDefaults": {
+        "mode": "maximum"
+      }
+    },
+    {
+      "typeKey": "core.logic.taskChoice",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "none",
+      "category": "logic",
+      "titleKey": "node.core.logic.taskChoice.title",
+      "descriptionKey": "node.core.logic.taskChoice.description",
+      "iconKey": "node.branch",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.run"
+        },
+        {
+          "portId": "selectedCaseId",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.selectedCaseId"
+        },
+        {
+          "portId": "case1",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case2",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case3",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case4",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case5",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case6",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case7",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case8",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case9",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case10",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case11",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case12",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case13",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case14",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case15",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "case16",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.case"
+        },
+        {
+          "portId": "unmatched",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.logic.taskChoice.port.unmatched"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["selectedCaseId", "settingKey", "exposeInTaskSettings"],
+        "properties": {
+          "selectedCaseId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "x-rinoLabelKey": "node.core.logic.taskChoice.property.selectedCaseId.label",
+            "x-rinoDescriptionKey": "node.core.logic.taskChoice.property.selectedCaseId.description"
+          },
+          "settingKey": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9]*(?:[._-][a-zA-Z0-9]+)*$",
+            "maxLength": 64,
+            "x-rinoLabelKey": "node.core.logic.taskChoice.property.settingKey.label",
+            "x-rinoDescriptionKey": "node.core.logic.taskChoice.property.settingKey.description"
+          },
+          "exposeInTaskSettings": {
+            "type": "boolean",
+            "x-rinoLabelKey": "node.core.logic.taskChoice.property.exposeInTaskSettings.label",
+            "x-rinoDescriptionKey": "node.core.logic.taskChoice.property.exposeInTaskSettings.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "selectedCaseId": "case1",
+        "settingKey": "taskChoice",
+        "exposeInTaskSettings": true
+      }
+    },
+    {
+      "typeKey": "core.math.arithmetic",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "logic",
+      "titleKey": "node.core.math.arithmetic.title",
+      "descriptionKey": "node.core.math.arithmetic.description",
+      "iconKey": "node.compare",
+      "ports": [
+        {
+          "portId": "left",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.arithmetic.port.left",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "right",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.arithmetic.port.right",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "result",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.arithmetic.port.result"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["operator"],
+        "properties": {
+          "operator": {
+            "type": "string",
+            "enum": ["add", "subtract", "multiply", "divide"],
+            "x-rinoLabelKey": "node.core.math.arithmetic.property.operator.label",
+            "x-rinoDescriptionKey": "node.core.math.arithmetic.property.operator.description",
+            "x-rinoOptionLabelKeys": {
+              "add": "node.core.math.arithmetic.property.operator.option.add",
+              "subtract": "node.core.math.arithmetic.property.operator.option.subtract",
+              "multiply": "node.core.math.arithmetic.property.operator.option.multiply",
+              "divide": "node.core.math.arithmetic.property.operator.option.divide"
+            }
+          }
+        }
+      },
+      "propertyDefaults": {
+        "operator": "add"
+      }
+    },
+    {
+      "typeKey": "core.math.expression",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "logic",
+      "titleKey": "node.core.math.expression.title",
+      "descriptionKey": "node.core.math.expression.description",
+      "iconKey": "node.compare",
+      "ports": [
+        {
+          "portId": "a",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.a",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "b",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.b",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "c",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.c",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "d",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.d",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "e",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.e",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "f",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.f",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "g",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.g",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "h",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.h",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "i",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.i",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "j",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.j",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "k",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.k",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "l",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.l",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "m",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.m",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "n",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.n",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "o",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.o",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "p",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.p",
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "result",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.math.expression.port.result"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["expression"],
+        "properties": {
+          "expression": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "x-rinoLabelKey": "node.core.math.expression.property.expression.label",
+            "x-rinoDescriptionKey": "node.core.math.expression.property.expression.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "expression": "a + b - c"
+      }
+    },
+    {
+      "typeKey": "core.time.delay",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "timing",
+      "titleKey": "node.core.time.delay.title",
+      "descriptionKey": "node.core.time.delay.description",
+      "iconKey": "node.delay",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.time.delay.port.run"
+        },
+        {
+          "portId": "durationMilliseconds",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.time.delay.port.durationMilliseconds",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.time.delay.port.next"
+        }
+      ]
+    },
+    {
+      "typeKey": "core.value.numberLiteral",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "values",
+      "titleKey": "node.core.value.numberLiteral.title",
+      "descriptionKey": "node.core.value.numberLiteral.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "value",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.value.numberLiteral.port.value"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value"],
+        "properties": {
+          "value": {
+            "type": "number",
+            "x-rinoLabelKey": "node.core.value.numberLiteral.property.value.label",
+            "x-rinoDescriptionKey": "node.core.value.numberLiteral.property.value.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "value": 0
+      }
+    },
+    {
+      "typeKey": "core.value.stringLiteral",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "values",
+      "titleKey": "node.core.value.stringLiteral.title",
+      "descriptionKey": "node.core.value.stringLiteral.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "value",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.value.stringLiteral.port.value"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value"],
+        "properties": {
+          "value": {
+            "type": "string",
+            "x-rinoLabelKey": "node.core.value.stringLiteral.property.value.label",
+            "x-rinoDescriptionKey": "node.core.value.stringLiteral.property.value.description",
+            "maxLength": 65536
+          }
+        }
+      },
+      "propertyDefaults": {
+        "value": ""
+      }
+    },
+    {
+      "typeKey": "core.variable.getBool",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "values",
+      "titleKey": "node.core.variable.getBool.title",
+      "descriptionKey": "node.core.variable.getBool.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "value",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.variable.getBool.port.value"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variableId"],
+        "properties": {
+          "variableId": {
+            "type": "string",
+            "format": "uuid",
+            "maxLength": 36
+          }
+        }
+      }
+    },
+    {
+      "typeKey": "core.variable.getImageRef",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "values",
+      "titleKey": "node.core.variable.getImageRef.title",
+      "descriptionKey": "node.core.variable.getImageRef.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "value",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.variable.getImageRef.port.value"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variableId"],
+        "properties": {
+          "variableId": {
+            "type": "string",
+            "format": "uuid",
+            "maxLength": 36
+          }
+        }
+      }
+    },
+    {
+      "typeKey": "core.variable.getNumber",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "values",
+      "titleKey": "node.core.variable.getNumber.title",
+      "descriptionKey": "node.core.variable.getNumber.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "value",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.variable.getNumber.port.value"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variableId"],
+        "properties": {
+          "variableId": {
+            "type": "string",
+            "format": "uuid",
+            "maxLength": 36
+          }
+        }
+      }
+    },
+    {
+      "typeKey": "core.variable.getPoint",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "values",
+      "titleKey": "node.core.variable.getPoint.title",
+      "descriptionKey": "node.core.variable.getPoint.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "value",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.variable.getPoint.port.value"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variableId"],
+        "properties": {
+          "variableId": {
+            "type": "string",
+            "format": "uuid",
+            "maxLength": 36
+          }
+        }
+      }
+    },
+    {
+      "typeKey": "core.variable.getRect",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "values",
+      "titleKey": "node.core.variable.getRect.title",
+      "descriptionKey": "node.core.variable.getRect.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "value",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.variable.getRect.port.value"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variableId"],
+        "properties": {
+          "variableId": {
+            "type": "string",
+            "format": "uuid",
+            "maxLength": 36
+          }
+        }
+      }
+    },
+    {
+      "typeKey": "core.variable.getString",
+      "typeVersion": 1,
+      "runtimeKind": "pure",
+      "sideEffect": "none",
+      "category": "values",
+      "titleKey": "node.core.variable.getString.title",
+      "descriptionKey": "node.core.variable.getString.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "value",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.variable.getString.port.value"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variableId"],
+        "properties": {
+          "variableId": {
+            "type": "string",
+            "format": "uuid",
+            "maxLength": 36
+          }
+        }
+      }
+    },
+    {
+      "typeKey": "core.variable.setBool",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "values",
+      "titleKey": "node.core.variable.setBool.title",
+      "descriptionKey": "node.core.variable.setBool.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.variable.setBool.port.run"
+        },
+        {
+          "portId": "value",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.variable.setBool.port.value",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "storedValue",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.core.variable.setBool.port.storedValue"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.variable.setBool.port.next"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variableId"],
+        "properties": {
+          "variableId": {
+            "type": "string",
+            "format": "uuid",
+            "maxLength": 36
+          }
+        }
+      }
+    },
+    {
+      "typeKey": "core.variable.setImageRef",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "values",
+      "titleKey": "node.core.variable.setImageRef.title",
+      "descriptionKey": "node.core.variable.setImageRef.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.variable.setImageRef.port.run"
+        },
+        {
+          "portId": "value",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.variable.setImageRef.port.value",
+          "required": true
+        },
+        {
+          "portId": "storedValue",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.core.variable.setImageRef.port.storedValue"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.variable.setImageRef.port.next"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variableId"],
+        "properties": {
+          "variableId": {
+            "type": "string",
+            "format": "uuid",
+            "maxLength": 36
+          }
+        }
+      }
+    },
+    {
+      "typeKey": "core.variable.setNumber",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "values",
+      "titleKey": "node.core.variable.setNumber.title",
+      "descriptionKey": "node.core.variable.setNumber.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.variable.setNumber.port.run"
+        },
+        {
+          "portId": "value",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.variable.setNumber.port.value",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "storedValue",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.core.variable.setNumber.port.storedValue"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.variable.setNumber.port.next"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variableId"],
+        "properties": {
+          "variableId": {
+            "type": "string",
+            "format": "uuid",
+            "maxLength": 36
+          }
+        }
+      }
+    },
+    {
+      "typeKey": "core.variable.setPoint",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "values",
+      "titleKey": "node.core.variable.setPoint.title",
+      "descriptionKey": "node.core.variable.setPoint.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.variable.setPoint.port.run"
+        },
+        {
+          "portId": "value",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.variable.setPoint.port.value",
+          "required": true
+        },
+        {
+          "portId": "storedValue",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "point"
+          },
+          "labelKey": "node.core.variable.setPoint.port.storedValue"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.variable.setPoint.port.next"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variableId"],
+        "properties": {
+          "variableId": {
+            "type": "string",
+            "format": "uuid",
+            "maxLength": 36
+          }
+        }
+      }
+    },
+    {
+      "typeKey": "core.variable.setRect",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "values",
+      "titleKey": "node.core.variable.setRect.title",
+      "descriptionKey": "node.core.variable.setRect.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.variable.setRect.port.run"
+        },
+        {
+          "portId": "value",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.variable.setRect.port.value",
+          "required": true
+        },
+        {
+          "portId": "storedValue",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.core.variable.setRect.port.storedValue"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.variable.setRect.port.next"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variableId"],
+        "properties": {
+          "variableId": {
+            "type": "string",
+            "format": "uuid",
+            "maxLength": 36
+          }
+        }
+      }
+    },
+    {
+      "typeKey": "core.variable.setString",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "values",
+      "titleKey": "node.core.variable.setString.title",
+      "descriptionKey": "node.core.variable.setString.description",
+      "iconKey": "node.variable",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.variable.setString.port.run"
+        },
+        {
+          "portId": "value",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.variable.setString.port.value",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "storedValue",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.core.variable.setString.port.storedValue"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.core.variable.setString.port.next"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["variableId"],
+        "properties": {
+          "variableId": {
+            "type": "string",
+            "format": "uuid",
+            "maxLength": 36
+          }
+        }
+      }
+    },
+    {
+      "typeKey": "text.parseNumber",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "none",
+      "category": "text",
+      "titleKey": "node.text.parseNumber.title",
+      "descriptionKey": "node.text.parseNumber.description",
+      "iconKey": "node.compare",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.parseNumber.port.run"
+        },
+        {
+          "portId": "text",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.text.parseNumber.port.text",
+          "required": true,
+          "acceptsLiteral": true
+        },
+        {
+          "portId": "number",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.text.parseNumber.port.number"
+        },
+        {
+          "portId": "normalizedText",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.text.parseNumber.port.normalizedText"
+        },
+        {
+          "portId": "parsed",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.parseNumber.port.parsed"
+        },
+        {
+          "portId": "invalid",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.parseNumber.port.invalid"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "decimalSeparator",
+          "groupingSeparator",
+          "normalizeFullWidth",
+          "allowSign"
+        ],
+        "properties": {
+          "decimalSeparator": {
+            "type": "string",
+            "enum": [".", ","],
+            "x-rinoLabelKey": "node.text.parseNumber.property.decimalSeparator.label",
+            "x-rinoDescriptionKey": "node.text.parseNumber.property.decimalSeparator.description"
+          },
+          "groupingSeparator": {
+            "type": "string",
+            "enum": ["", ".", ",", " "],
+            "x-rinoLabelKey": "node.text.parseNumber.property.groupingSeparator.label",
+            "x-rinoDescriptionKey": "node.text.parseNumber.property.groupingSeparator.description"
+          },
+          "normalizeFullWidth": {
+            "type": "boolean",
+            "x-rinoLabelKey": "node.text.parseNumber.property.normalizeFullWidth.label",
+            "x-rinoDescriptionKey": "node.text.parseNumber.property.normalizeFullWidth.description"
+          },
+          "allowSign": {
+            "type": "boolean",
+            "x-rinoLabelKey": "node.text.parseNumber.property.allowSign.label",
+            "x-rinoDescriptionKey": "node.text.parseNumber.property.allowSign.description"
+          },
+          "minimum": {
+            "type": "number",
+            "x-rinoLabelKey": "node.text.parseNumber.property.minimum.label",
+            "x-rinoDescriptionKey": "node.text.parseNumber.property.minimum.description"
+          },
+          "maximum": {
+            "type": "number",
+            "x-rinoLabelKey": "node.text.parseNumber.property.maximum.label",
+            "x-rinoDescriptionKey": "node.text.parseNumber.property.maximum.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "decimalSeparator": ".",
+        "groupingSeparator": ",",
+        "normalizeFullWidth": false,
+        "allowSign": true
+      }
+    },
+    {
+      "typeKey": "text.readNumber",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "none",
+      "category": "text",
+      "titleKey": "node.text.readNumber.title",
+      "descriptionKey": "node.text.readNumber.description",
+      "iconKey": "node.compare",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.readNumber.port.run"
+        },
+        {
+          "portId": "result",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "ocrResult"
+          },
+          "labelKey": "node.text.readNumber.port.result",
+          "required": true
+        },
+        {
+          "portId": "number",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.text.readNumber.port.number"
+        },
+        {
+          "portId": "normalizedText",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.text.readNumber.port.normalizedText"
+        },
+        {
+          "portId": "rect",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.text.readNumber.port.rect"
+        },
+        {
+          "portId": "selected",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.readNumber.port.selected"
+        },
+        {
+          "portId": "missing",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.readNumber.port.missing"
+        },
+        {
+          "portId": "invalid",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.readNumber.port.invalid"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidateIndex",
+          "readingOrder",
+          "decimalSeparator",
+          "groupingSeparator",
+          "normalizeFullWidth",
+          "allowSign"
+        ],
+        "properties": {
+          "candidateIndex": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 256,
+            "x-rinoLabelKey": "node.text.readNumber.property.candidateIndex.label",
+            "x-rinoDescriptionKey": "node.text.readNumber.property.candidateIndex.description"
+          },
+          "readingOrder": {
+            "type": "string",
+            "enum": ["rowMajor", "columnMajor"],
+            "x-rinoLabelKey": "node.text.readNumber.property.readingOrder.label",
+            "x-rinoDescriptionKey": "node.text.readNumber.property.readingOrder.description",
+            "x-rinoOptionLabelKeys": {
+              "rowMajor": "node.text.readNumber.property.readingOrder.option.rowMajor",
+              "columnMajor": "node.text.readNumber.property.readingOrder.option.columnMajor"
+            }
+          },
+          "decimalSeparator": {
+            "type": "string",
+            "enum": [".", ","],
+            "x-rinoLabelKey": "node.text.readNumber.property.decimalSeparator.label",
+            "x-rinoDescriptionKey": "node.text.readNumber.property.decimalSeparator.description"
+          },
+          "groupingSeparator": {
+            "type": "string",
+            "enum": ["", ".", ",", " "],
+            "x-rinoLabelKey": "node.text.readNumber.property.groupingSeparator.label",
+            "x-rinoDescriptionKey": "node.text.readNumber.property.groupingSeparator.description"
+          },
+          "normalizeFullWidth": {
+            "type": "boolean",
+            "x-rinoLabelKey": "node.text.readNumber.property.normalizeFullWidth.label",
+            "x-rinoDescriptionKey": "node.text.readNumber.property.normalizeFullWidth.description"
+          },
+          "allowSign": {
+            "type": "boolean",
+            "x-rinoLabelKey": "node.text.readNumber.property.allowSign.label",
+            "x-rinoDescriptionKey": "node.text.readNumber.property.allowSign.description"
+          },
+          "minimum": {
+            "type": "number",
+            "x-rinoLabelKey": "node.text.readNumber.property.minimum.label",
+            "x-rinoDescriptionKey": "node.text.readNumber.property.minimum.description"
+          },
+          "maximum": {
+            "type": "number",
+            "x-rinoLabelKey": "node.text.readNumber.property.maximum.label",
+            "x-rinoDescriptionKey": "node.text.readNumber.property.maximum.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "candidateIndex": 1,
+        "readingOrder": "rowMajor",
+        "decimalSeparator": ".",
+        "groupingSeparator": ",",
+        "normalizeFullWidth": false,
+        "allowSign": true
+      }
+    },
+    {
+      "typeKey": "text.readText",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "none",
+      "category": "text",
+      "titleKey": "node.text.readText.title",
+      "descriptionKey": "node.text.readText.description",
+      "iconKey": "node.ocr",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.readText.port.run"
+        },
+        {
+          "portId": "result",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "ocrResult"
+          },
+          "labelKey": "node.text.readText.port.result",
+          "required": true
+        },
+        {
+          "portId": "text",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.text.readText.port.text"
+        },
+        {
+          "portId": "rect",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.text.readText.port.rect"
+        },
+        {
+          "portId": "selected",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.readText.port.selected"
+        },
+        {
+          "portId": "missing",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.readText.port.missing"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["candidateIndex", "readingOrder"],
+        "properties": {
+          "candidateIndex": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 256,
+            "x-rinoLabelKey": "node.text.readText.property.candidateIndex.label",
+            "x-rinoDescriptionKey": "node.text.readText.property.candidateIndex.description"
+          },
+          "readingOrder": {
+            "type": "string",
+            "enum": ["rowMajor", "columnMajor"],
+            "x-rinoLabelKey": "node.text.readText.property.readingOrder.label",
+            "x-rinoDescriptionKey": "node.text.readText.property.readingOrder.description",
+            "x-rinoOptionLabelKeys": {
+              "rowMajor": "node.text.readText.property.readingOrder.option.rowMajor",
+              "columnMajor": "node.text.readText.property.readingOrder.option.columnMajor"
+            }
+          }
+        }
+      },
+      "propertyDefaults": {
+        "candidateIndex": 1,
+        "readingOrder": "rowMajor"
+      }
+    },
+    {
+      "typeKey": "text.readValue",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "none",
+      "category": "text",
+      "titleKey": "node.text.readValue.title",
+      "descriptionKey": "node.text.readValue.description",
+      "iconKey": "node.compare",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.readValue.port.run"
+        },
+        {
+          "portId": "result",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "ocrResult"
+          },
+          "labelKey": "node.text.readValue.port.result",
+          "required": true
+        },
+        {
+          "portId": "text",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.text.readValue.port.text"
+        },
+        {
+          "portId": "texts",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "string"
+            }
+          },
+          "labelKey": "node.text.readValue.port.texts"
+        },
+        {
+          "portId": "number",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.text.readValue.port.number"
+        },
+        {
+          "portId": "numbers",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "number"
+            }
+          },
+          "labelKey": "node.text.readValue.port.numbers"
+        },
+        {
+          "portId": "rect",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.text.readValue.port.rect"
+        },
+        {
+          "portId": "rects",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "rect"
+            }
+          },
+          "labelKey": "node.text.readValue.port.rects"
+        },
+        {
+          "portId": "selected",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.readValue.port.selected"
+        },
+        {
+          "portId": "missing",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.readValue.port.missing"
+        },
+        {
+          "portId": "invalid",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.text.readValue.port.invalid"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "valueMode",
+          "numberType",
+          "selectionMode",
+          "readingOrder",
+          "lineIndex",
+          "itemIndex",
+          "decimalSeparator",
+          "groupingSeparator",
+          "normalizeFullWidth",
+          "allowSign"
+        ],
+        "properties": {
+          "valueMode": {
+            "type": "string",
+            "enum": ["text", "number"],
+            "x-rinoLabelKey": "node.text.readValue.property.valueMode.label",
+            "x-rinoDescriptionKey": "node.text.readValue.property.valueMode.description",
+            "x-rinoOptionLabelKeys": {
+              "text": "node.text.readValue.property.valueMode.option.text",
+              "number": "node.text.readValue.property.valueMode.option.number"
+            }
+          },
+          "numberType": {
+            "type": "string",
+            "enum": [
+              "integer",
+              "float",
+              "percentage",
+              "positive",
+              "unsignedInteger"
+            ],
+            "x-rinoLabelKey": "node.text.readValue.property.numberType.label",
+            "x-rinoDescriptionKey": "node.text.readValue.property.numberType.description",
+            "x-rinoOptionLabelKeys": {
+              "integer": "node.text.readValue.property.numberType.option.integer",
+              "float": "node.text.readValue.property.numberType.option.float",
+              "percentage": "node.text.readValue.property.numberType.option.percentage",
+              "positive": "node.text.readValue.property.numberType.option.positive",
+              "unsignedInteger": "node.text.readValue.property.numberType.option.unsignedInteger"
+            }
+          },
+          "selectionMode": {
+            "type": "string",
+            "enum": ["all", "position"],
+            "x-rinoLabelKey": "node.text.readValue.property.selectionMode.label",
+            "x-rinoDescriptionKey": "node.text.readValue.property.selectionMode.description",
+            "x-rinoOptionLabelKeys": {
+              "all": "node.text.readValue.property.selectionMode.option.all",
+              "position": "node.text.readValue.property.selectionMode.option.position"
+            }
+          },
+          "readingOrder": {
+            "type": "string",
+            "enum": ["rowMajor", "columnMajor"],
+            "x-rinoLabelKey": "node.text.readValue.property.readingOrder.label",
+            "x-rinoDescriptionKey": "node.text.readValue.property.readingOrder.description",
+            "x-rinoOptionLabelKeys": {
+              "rowMajor": "node.text.readValue.property.readingOrder.option.rowMajor",
+              "columnMajor": "node.text.readValue.property.readingOrder.option.columnMajor"
+            }
+          },
+          "lineIndex": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 256,
+            "x-rinoLabelKey": "node.text.readValue.property.lineIndex.label",
+            "x-rinoDescriptionKey": "node.text.readValue.property.lineIndex.description"
+          },
+          "itemIndex": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 256,
+            "x-rinoLabelKey": "node.text.readValue.property.itemIndex.label",
+            "x-rinoDescriptionKey": "node.text.readValue.property.itemIndex.description"
+          },
+          "decimalSeparator": {
+            "type": "string",
+            "enum": [".", ","],
+            "x-rinoLabelKey": "node.text.readValue.property.decimalSeparator.label",
+            "x-rinoDescriptionKey": "node.text.readValue.property.decimalSeparator.description"
+          },
+          "groupingSeparator": {
+            "type": "string",
+            "enum": ["", ".", ",", " "],
+            "x-rinoLabelKey": "node.text.readValue.property.groupingSeparator.label",
+            "x-rinoDescriptionKey": "node.text.readValue.property.groupingSeparator.description"
+          },
+          "normalizeFullWidth": {
+            "type": "boolean",
+            "x-rinoLabelKey": "node.text.readValue.property.normalizeFullWidth.label",
+            "x-rinoDescriptionKey": "node.text.readValue.property.normalizeFullWidth.description"
+          },
+          "allowSign": {
+            "type": "boolean",
+            "x-rinoLabelKey": "node.text.readValue.property.allowSign.label",
+            "x-rinoDescriptionKey": "node.text.readValue.property.allowSign.description"
+          },
+          "minimum": {
+            "type": "number",
+            "x-rinoLabelKey": "node.text.readValue.property.minimum.label",
+            "x-rinoDescriptionKey": "node.text.readValue.property.minimum.description"
+          },
+          "maximum": {
+            "type": "number",
+            "x-rinoLabelKey": "node.text.readValue.property.maximum.label",
+            "x-rinoDescriptionKey": "node.text.readValue.property.maximum.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "valueMode": "number",
+        "numberType": "float",
+        "selectionMode": "position",
+        "readingOrder": "rowMajor",
+        "lineIndex": 1,
+        "itemIndex": 1,
+        "decimalSeparator": ".",
+        "groupingSeparator": ",",
+        "normalizeFullWidth": false,
+        "allowSign": true
+      }
+    },
+    {
+      "typeKey": "vision.colorMatch",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "vision",
+      "titleKey": "node.vision.colorMatch.title",
+      "descriptionKey": "node.vision.colorMatch.description",
+      "iconKey": "recognition.color",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.vision.colorMatch.port.run"
+        },
+        {
+          "portId": "image",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.vision.colorMatch.port.image",
+          "required": true
+        },
+        {
+          "portId": "roi",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.vision.colorMatch.port.roi"
+        },
+        {
+          "portId": "regions",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "rect"
+            }
+          },
+          "labelKey": "node.vision.colorMatch.port.regions"
+        },
+        {
+          "portId": "matched",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.vision.colorMatch.port.matched"
+        },
+        {
+          "portId": "bestRect",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.vision.colorMatch.port.bestRect"
+        },
+        {
+          "portId": "bestCount",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.vision.colorMatch.port.bestCount"
+        },
+        {
+          "portId": "matchedRegionIndex",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.vision.colorMatch.port.matchedRegionIndex"
+        },
+        {
+          "portId": "rects",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "rect"
+            }
+          },
+          "labelKey": "node.vision.colorMatch.port.rects"
+        },
+        {
+          "portId": "counts",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "number"
+            }
+          },
+          "labelKey": "node.vision.colorMatch.port.counts"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.vision.colorMatch.port.next"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method",
+          "lower1",
+          "lower2",
+          "lower3",
+          "upper1",
+          "upper2",
+          "upper3",
+          "minimumCount",
+          "connected"
+        ],
+        "properties": {
+          "method": {
+            "type": "string",
+            "enum": ["RGB", "HSV", "GRAY"],
+            "x-rinoLabelKey": "node.vision.colorMatch.property.method.label",
+            "x-rinoDescriptionKey": "node.vision.colorMatch.property.method.description",
+            "x-rinoOptionLabelKeys": {
+              "RGB": "node.vision.colorMatch.property.method.option.RGB",
+              "HSV": "node.vision.colorMatch.property.method.option.HSV",
+              "GRAY": "node.vision.colorMatch.property.method.option.GRAY"
+            }
+          },
+          "lower1": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "x-rinoLabelKey": "node.vision.colorMatch.property.lower1.label",
+            "x-rinoDescriptionKey": "node.vision.colorMatch.property.lower1.description"
+          },
+          "lower2": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "x-rinoLabelKey": "node.vision.colorMatch.property.lower2.label",
+            "x-rinoDescriptionKey": "node.vision.colorMatch.property.lower2.description"
+          },
+          "lower3": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "x-rinoLabelKey": "node.vision.colorMatch.property.lower3.label",
+            "x-rinoDescriptionKey": "node.vision.colorMatch.property.lower3.description"
+          },
+          "upper1": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "x-rinoLabelKey": "node.vision.colorMatch.property.upper1.label",
+            "x-rinoDescriptionKey": "node.vision.colorMatch.property.upper1.description"
+          },
+          "upper2": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "x-rinoLabelKey": "node.vision.colorMatch.property.upper2.label",
+            "x-rinoDescriptionKey": "node.vision.colorMatch.property.upper2.description"
+          },
+          "upper3": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255,
+            "x-rinoLabelKey": "node.vision.colorMatch.property.upper3.label",
+            "x-rinoDescriptionKey": "node.vision.colorMatch.property.upper3.description"
+          },
+          "minimumCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000,
+            "x-rinoLabelKey": "node.vision.colorMatch.property.minimumCount.label",
+            "x-rinoDescriptionKey": "node.vision.colorMatch.property.minimumCount.description"
+          },
+          "connected": {
+            "type": "boolean",
+            "x-rinoLabelKey": "node.vision.colorMatch.property.connected.label",
+            "x-rinoDescriptionKey": "node.vision.colorMatch.property.connected.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "method": "RGB",
+        "lower1": 0,
+        "lower2": 0,
+        "lower3": 0,
+        "upper1": 255,
+        "upper2": 255,
+        "upper3": 255,
+        "minimumCount": 1,
+        "connected": false
+      },
+      "requiredCapabilities": ["vision.colorMatch"]
+    },
+    {
+      "typeKey": "vision.featureMatch",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "vision",
+      "titleKey": "node.vision.featureMatch.title",
+      "descriptionKey": "node.vision.featureMatch.description",
+      "iconKey": "recognition.feature",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.vision.featureMatch.port.run"
+        },
+        {
+          "portId": "image",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.vision.featureMatch.port.image",
+          "required": true
+        },
+        {
+          "portId": "template",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.vision.featureMatch.port.template"
+        },
+        {
+          "portId": "templates",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "imageRef"
+            }
+          },
+          "labelKey": "node.vision.featureMatch.port.templates"
+        },
+        {
+          "portId": "roi",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.vision.featureMatch.port.roi"
+        },
+        {
+          "portId": "regions",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "rect"
+            }
+          },
+          "labelKey": "node.vision.featureMatch.port.regions"
+        },
+        {
+          "portId": "matched",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.vision.featureMatch.port.matched"
+        },
+        {
+          "portId": "bestRect",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.vision.featureMatch.port.bestRect"
+        },
+        {
+          "portId": "bestCount",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.vision.featureMatch.port.bestCount"
+        },
+        {
+          "portId": "matchedRegionIndex",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.vision.featureMatch.port.matchedRegionIndex"
+        },
+        {
+          "portId": "rects",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "rect"
+            }
+          },
+          "labelKey": "node.vision.featureMatch.port.rects"
+        },
+        {
+          "portId": "counts",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "number"
+            }
+          },
+          "labelKey": "node.vision.featureMatch.port.counts"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.vision.featureMatch.port.next"
+        },
+        {
+          "portId": "matchedTemplate",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.vision.featureMatch.port.matchedTemplate"
+        },
+        {
+          "portId": "matchedTemplateIndex",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.vision.featureMatch.port.matchedTemplateIndex"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["detector", "minimumCount", "ratio", "greenMask"],
+        "properties": {
+          "detector": {
+            "type": "string",
+            "enum": ["SIFT", "KAZE", "AKAZE", "BRISK", "ORB"],
+            "x-rinoLabelKey": "node.vision.featureMatch.property.detector.label",
+            "x-rinoDescriptionKey": "node.vision.featureMatch.property.detector.description",
+            "x-rinoOptionLabelKeys": {
+              "SIFT": "node.vision.featureMatch.property.detector.option.SIFT",
+              "KAZE": "node.vision.featureMatch.property.detector.option.KAZE",
+              "AKAZE": "node.vision.featureMatch.property.detector.option.AKAZE",
+              "BRISK": "node.vision.featureMatch.property.detector.option.BRISK",
+              "ORB": "node.vision.featureMatch.property.detector.option.ORB"
+            }
+          },
+          "minimumCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "x-rinoLabelKey": "node.vision.featureMatch.property.minimumCount.label",
+            "x-rinoDescriptionKey": "node.vision.featureMatch.property.minimumCount.description"
+          },
+          "ratio": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 0.99,
+            "x-rinoLabelKey": "node.vision.featureMatch.property.ratio.label",
+            "x-rinoDescriptionKey": "node.vision.featureMatch.property.ratio.description"
+          },
+          "greenMask": {
+            "type": "boolean",
+            "x-rinoLabelKey": "node.vision.featureMatch.property.greenMask.label",
+            "x-rinoDescriptionKey": "node.vision.featureMatch.property.greenMask.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "detector": "SIFT",
+        "minimumCount": 4,
+        "ratio": 0.6,
+        "greenMask": false
+      },
+      "requiredCapabilities": ["vision.featureMatch"]
+    },
+    {
+      "typeKey": "vision.ocr",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "vision",
+      "titleKey": "node.vision.ocr.title",
+      "descriptionKey": "node.vision.ocr.description",
+      "iconKey": "node.ocr",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.vision.ocr.port.run"
+        },
+        {
+          "portId": "image",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.vision.ocr.port.image",
+          "required": true
+        },
+        {
+          "portId": "roi",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.vision.ocr.port.roi"
+        },
+        {
+          "portId": "regions",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "rect"
+            }
+          },
+          "labelKey": "node.vision.ocr.port.regions"
+        },
+        {
+          "portId": "confidenceThreshold",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.vision.ocr.port.confidenceThreshold"
+        },
+        {
+          "portId": "result",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "ocrResult"
+          },
+          "labelKey": "node.vision.ocr.port.result"
+        },
+        {
+          "portId": "matched",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.vision.ocr.port.matched"
+        },
+        {
+          "portId": "bestText",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "string"
+          },
+          "labelKey": "node.vision.ocr.port.bestText"
+        },
+        {
+          "portId": "bestConfidence",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.vision.ocr.port.bestConfidence"
+        },
+        {
+          "portId": "matchedRegionIndex",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.vision.ocr.port.matchedRegionIndex"
+        },
+        {
+          "portId": "bestRect",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.vision.ocr.port.bestRect"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.vision.ocr.port.next"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["confidenceThreshold"],
+        "properties": {
+          "confidenceThreshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "x-rinoLabelKey": "node.vision.ocr.property.confidenceThreshold.label",
+            "x-rinoDescriptionKey": "node.vision.ocr.property.confidenceThreshold.description"
+          },
+          "expected": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 32,
+            "items": {
+              "type": "string",
+              "maxLength": 256
+            },
+            "x-rinoLabelKey": "node.vision.ocr.property.expected.label",
+            "x-rinoDescriptionKey": "node.vision.ocr.property.expected.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "confidenceThreshold": 0.3,
+        "expected": []
+      },
+      "requiredCapabilities": ["vision.ocr"]
+    },
+    {
+      "typeKey": "vision.templateMatch",
+      "typeVersion": 1,
+      "runtimeKind": "execution",
+      "sideEffect": "runtime",
+      "category": "vision",
+      "titleKey": "node.vision.templateMatch.title",
+      "descriptionKey": "node.vision.templateMatch.description",
+      "iconKey": "recognition.template",
+      "ports": [
+        {
+          "portId": "run",
+          "direction": "input",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.vision.templateMatch.port.run"
+        },
+        {
+          "portId": "image",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.vision.templateMatch.port.image",
+          "required": true
+        },
+        {
+          "portId": "template",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.vision.templateMatch.port.template"
+        },
+        {
+          "portId": "templates",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "imageRef"
+            }
+          },
+          "labelKey": "node.vision.templateMatch.port.templates"
+        },
+        {
+          "portId": "roi",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.vision.templateMatch.port.roi"
+        },
+        {
+          "portId": "regions",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "rect"
+            }
+          },
+          "labelKey": "node.vision.templateMatch.port.regions"
+        },
+        {
+          "portId": "matched",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "bool"
+          },
+          "labelKey": "node.vision.templateMatch.port.matched"
+        },
+        {
+          "portId": "bestRect",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "rect"
+          },
+          "labelKey": "node.vision.templateMatch.port.bestRect"
+        },
+        {
+          "portId": "bestScore",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.vision.templateMatch.port.bestScore"
+        },
+        {
+          "portId": "matchedRegionIndex",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.vision.templateMatch.port.matchedRegionIndex"
+        },
+        {
+          "portId": "rects",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "rect"
+            }
+          },
+          "labelKey": "node.vision.templateMatch.port.rects"
+        },
+        {
+          "portId": "scores",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "collection",
+            "element": {
+              "kind": "number"
+            }
+          },
+          "labelKey": "node.vision.templateMatch.port.scores"
+        },
+        {
+          "portId": "next",
+          "direction": "output",
+          "portKind": "execution",
+          "type": {
+            "kind": "exec"
+          },
+          "labelKey": "node.vision.templateMatch.port.next"
+        },
+        {
+          "portId": "matchedTemplate",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "imageRef"
+          },
+          "labelKey": "node.vision.templateMatch.port.matchedTemplate"
+        },
+        {
+          "portId": "matchedTemplateIndex",
+          "direction": "output",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.vision.templateMatch.port.matchedTemplateIndex"
+        },
+        {
+          "portId": "threshold",
+          "direction": "input",
+          "portKind": "data",
+          "type": {
+            "kind": "number"
+          },
+          "labelKey": "node.vision.templateMatch.port.threshold"
+        }
+      ],
+      "propertySchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["threshold", "method", "greenMask"],
+        "properties": {
+          "threshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "x-rinoLabelKey": "node.vision.templateMatch.property.threshold.label",
+            "x-rinoDescriptionKey": "node.vision.templateMatch.property.threshold.description"
+          },
+          "method": {
+            "type": "string",
+            "enum": ["normalizedCoefficient", "coefficient", "rgbDifference"],
+            "x-rinoLabelKey": "node.vision.templateMatch.property.method.label",
+            "x-rinoDescriptionKey": "node.vision.templateMatch.property.method.description",
+            "x-rinoOptionLabelKeys": {
+              "normalizedCoefficient": "node.vision.templateMatch.property.method.option.normalizedCoefficient",
+              "coefficient": "node.vision.templateMatch.property.method.option.coefficient",
+              "rgbDifference": "node.vision.templateMatch.property.method.option.rgbDifference"
+            }
+          },
+          "greenMask": {
+            "type": "boolean",
+            "x-rinoLabelKey": "node.vision.templateMatch.property.greenMask.label",
+            "x-rinoDescriptionKey": "node.vision.templateMatch.property.greenMask.description"
+          }
+        }
+      },
+      "propertyDefaults": {
+        "threshold": 0.7,
+        "method": "normalizedCoefficient",
+        "greenMask": false
+      },
+      "requiredCapabilities": ["vision.templateMatch"]
+    }
+  ],
+  "workflowTemplates": [
+    {
+      "templateKey": "template.captureAndClickPoint",
+      "titleKey": "template.captureAndClickPoint.title",
+      "descriptionKey": "template.captureAndClickPoint.description",
+      "iconKey": "node.click",
+      "nodes": [
+        {
+          "placeholderId": "start",
+          "typeKey": "core.flow.start",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          }
+        },
+        {
+          "placeholderId": "capture",
+          "typeKey": "automation.captureScreen",
+          "offset": {
+            "x": 280.0,
+            "y": 0.0
+          }
+        },
+        {
+          "placeholderId": "point",
+          "typeKey": "core.geometry.point",
+          "offset": {
+            "x": 280.0,
+            "y": 220.0
+          }
+        },
+        {
+          "placeholderId": "click",
+          "typeKey": "automation.clickPoint",
+          "offset": {
+            "x": 620.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "start",
+          "sourcePortId": "next",
+          "targetPlaceholderId": "capture",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "capture",
+          "sourcePortId": "next",
+          "targetPlaceholderId": "click",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "capture",
+          "sourcePortId": "image",
+          "targetPlaceholderId": "point",
+          "targetPortId": "image"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "point",
+          "sourcePortId": "point",
+          "targetPlaceholderId": "click",
+          "targetPortId": "point"
+        }
+      ]
+    },
+    {
+      "templateKey": "template.compareNumbersAndBranch",
+      "titleKey": "template.compareNumbersAndBranch.title",
+      "descriptionKey": "template.compareNumbersAndBranch.description",
+      "iconKey": "category.logic",
+      "nodes": [
+        {
+          "placeholderId": "start",
+          "typeKey": "core.flow.start",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          }
+        },
+        {
+          "placeholderId": "compare",
+          "typeKey": "core.logic.numberCompare",
+          "offset": {
+            "x": 300.0,
+            "y": 100.0
+          },
+          "inputValues": {
+            "left": 0,
+            "right": 100
+          }
+        },
+        {
+          "placeholderId": "branch",
+          "typeKey": "core.logic.branch",
+          "offset": {
+            "x": 620.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "start",
+          "sourcePortId": "next",
+          "targetPlaceholderId": "branch",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "compare",
+          "sourcePortId": "result",
+          "targetPlaceholderId": "branch",
+          "targetPortId": "condition"
+        }
+      ]
+    },
+    {
+      "templateKey": "template.imageRecognition",
+      "titleKey": "workflowGroup.imageRecognition.title",
+      "descriptionKey": "workflowGroup.imageRecognition.description",
+      "iconKey": "node.imageRecognition",
+      "nodes": [
+        {
+          "placeholderId": "delay",
+          "typeKey": "core.time.delay",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "inputValues": {
+            "durationMilliseconds": 0
+          }
+        },
+        {
+          "placeholderId": "capture",
+          "typeKey": "automation.captureScreen",
+          "offset": {
+            "x": 280.0,
+            "y": 0.0
+          }
+        },
+        {
+          "placeholderId": "recognizer",
+          "typeKey": "vision.templateMatch",
+          "offset": {
+            "x": 560.0,
+            "y": 0.0
+          }
+        },
+        {
+          "placeholderId": "roi",
+          "typeKey": "core.geometry.rectangle",
+          "offset": {
+            "x": 560.0,
+            "y": 240.0
+          },
+          "inputValues": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1,
+            "referenceWidth": 1,
+            "referenceHeight": 1
+          }
+        },
+        {
+          "placeholderId": "matchBranch",
+          "typeKey": "core.logic.branch",
+          "offset": {
+            "x": 840.0,
+            "y": 0.0
+          }
+        },
+        {
+          "placeholderId": "templateAsset",
+          "typeKey": "core.image.projectAsset",
+          "offset": {
+            "x": 280.0,
+            "y": 240.0
+          }
+        },
+        {
+          "placeholderId": "visibleOcr",
+          "typeKey": "vision.ocr",
+          "offset": {
+            "x": 1120.0,
+            "y": 0.0
+          }
+        },
+        {
+          "placeholderId": "click",
+          "typeKey": "core.flow.sequence",
+          "offset": {
+            "x": 1400.0,
+            "y": 0.0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "delay",
+          "sourcePortId": "next",
+          "targetPlaceholderId": "capture",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "capture",
+          "sourcePortId": "next",
+          "targetPlaceholderId": "recognizer",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "capture",
+          "sourcePortId": "image",
+          "targetPlaceholderId": "recognizer",
+          "targetPortId": "image"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "capture",
+          "sourcePortId": "image",
+          "targetPlaceholderId": "roi",
+          "targetPortId": "image"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "roi",
+          "sourcePortId": "rectangle",
+          "targetPlaceholderId": "recognizer",
+          "targetPortId": "roi"
+        },
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "recognizer",
+          "sourcePortId": "next",
+          "targetPlaceholderId": "matchBranch",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "recognizer",
+          "sourcePortId": "matched",
+          "targetPlaceholderId": "matchBranch",
+          "targetPortId": "condition"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "templateAsset",
+          "sourcePortId": "image",
+          "targetPlaceholderId": "recognizer",
+          "targetPortId": "template"
+        },
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "matchBranch",
+          "sourcePortId": "whenTrue",
+          "targetPlaceholderId": "visibleOcr",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "capture",
+          "sourcePortId": "image",
+          "targetPlaceholderId": "visibleOcr",
+          "targetPortId": "image"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "recognizer",
+          "sourcePortId": "bestRect",
+          "targetPlaceholderId": "visibleOcr",
+          "targetPortId": "roi"
+        },
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "visibleOcr",
+          "sourcePortId": "next",
+          "targetPlaceholderId": "click",
+          "targetPortId": "run"
+        }
+      ],
+      "workflowGroup": {
+        "kind": "imageRecognition",
+        "members": [
+          {
+            "role": "delay",
+            "placeholderId": "delay"
+          },
+          {
+            "role": "capture",
+            "placeholderId": "capture"
+          },
+          {
+            "role": "recognizer",
+            "placeholderId": "recognizer"
+          },
+          {
+            "role": "roi",
+            "placeholderId": "roi"
+          },
+          {
+            "role": "matchBranch",
+            "placeholderId": "matchBranch"
+          },
+          {
+            "role": "templateAsset",
+            "placeholderId": "templateAsset"
+          },
+          {
+            "role": "visibleOcr",
+            "placeholderId": "visibleOcr"
+          },
+          {
+            "role": "click",
+            "placeholderId": "click"
+          }
+        ],
+        "exposedPorts": [
+          {
+            "proxyPortId": "run",
+            "placeholderId": "delay",
+            "portId": "run",
+            "labelKey": "workflowGroup.imageRecognition.port.run"
+          },
+          {
+            "proxyPortId": "templates",
+            "placeholderId": "recognizer",
+            "portId": "templates",
+            "labelKey": "workflowGroup.imageRecognition.port.templates"
+          },
+          {
+            "proxyPortId": "regions",
+            "placeholderId": "recognizer",
+            "portId": "regions",
+            "labelKey": "workflowGroup.imageRecognition.port.regions"
+          },
+          {
+            "proxyPortId": "matched",
+            "placeholderId": "recognizer",
+            "portId": "matched",
+            "labelKey": "workflowGroup.imageRecognition.port.matched"
+          },
+          {
+            "proxyPortId": "matchValue",
+            "placeholderId": "recognizer",
+            "portId": "bestScore",
+            "labelKey": "workflowGroup.imageRecognition.port.matchValue"
+          },
+          {
+            "proxyPortId": "image",
+            "placeholderId": "capture",
+            "portId": "image",
+            "labelKey": "workflowGroup.imageRecognition.port.image"
+          },
+          {
+            "proxyPortId": "noMatch",
+            "placeholderId": "matchBranch",
+            "portId": "whenFalse",
+            "labelKey": "workflowGroup.imageRecognition.port.noMatch"
+          },
+          {
+            "proxyPortId": "next",
+            "placeholderId": "click",
+            "portId": "steps",
+            "labelKey": "workflowGroup.imageRecognition.port.next"
+          }
+        ]
+      }
+    },
+    {
+      "templateKey": "template.recognizeNumberAndBranch",
+      "titleKey": "template.recognizeNumberAndBranch.title",
+      "descriptionKey": "template.recognizeNumberAndBranch.description",
+      "iconKey": "node.ocr",
+      "nodes": [
+        {
+          "placeholderId": "capture",
+          "typeKey": "automation.captureScreen",
+          "offset": {
+            "x": 280.0,
+            "y": 120.0
+          }
+        },
+        {
+          "placeholderId": "ocr",
+          "typeKey": "vision.ocr",
+          "offset": {
+            "x": 560.0,
+            "y": 120.0
+          }
+        },
+        {
+          "placeholderId": "matchedBranch",
+          "typeKey": "core.logic.branch",
+          "offset": {
+            "x": 860.0,
+            "y": 120.0
+          }
+        },
+        {
+          "placeholderId": "parse",
+          "typeKey": "text.parseNumber",
+          "offset": {
+            "x": 1160.0,
+            "y": 120.0
+          }
+        },
+        {
+          "placeholderId": "compare",
+          "typeKey": "core.logic.numberCompare",
+          "offset": {
+            "x": 1440.0,
+            "y": 340.0
+          },
+          "inputValues": {
+            "right": 100
+          }
+        },
+        {
+          "placeholderId": "resultBranch",
+          "typeKey": "core.logic.branch",
+          "offset": {
+            "x": 1740.0,
+            "y": 120.0
+          }
+        },
+        {
+          "placeholderId": "noMatchLog",
+          "typeKey": "core.diagnostic.log",
+          "offset": {
+            "x": 1160.0,
+            "y": -140.0
+          },
+          "inputValues": {
+            "message": "No OCR match"
+          }
+        },
+        {
+          "placeholderId": "invalidNumberLog",
+          "typeKey": "core.diagnostic.log",
+          "offset": {
+            "x": 1440.0,
+            "y": -140.0
+          },
+          "inputValues": {
+            "message": "Invalid number"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "capture",
+          "sourcePortId": "next",
+          "targetPlaceholderId": "ocr",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "ocr",
+          "sourcePortId": "next",
+          "targetPlaceholderId": "matchedBranch",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "matchedBranch",
+          "sourcePortId": "whenTrue",
+          "targetPlaceholderId": "parse",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "matchedBranch",
+          "sourcePortId": "whenFalse",
+          "targetPlaceholderId": "noMatchLog",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "parse",
+          "sourcePortId": "parsed",
+          "targetPlaceholderId": "resultBranch",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "parse",
+          "sourcePortId": "invalid",
+          "targetPlaceholderId": "invalidNumberLog",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "capture",
+          "sourcePortId": "image",
+          "targetPlaceholderId": "ocr",
+          "targetPortId": "image"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "ocr",
+          "sourcePortId": "matched",
+          "targetPlaceholderId": "matchedBranch",
+          "targetPortId": "condition"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "ocr",
+          "sourcePortId": "bestText",
+          "targetPlaceholderId": "parse",
+          "targetPortId": "text"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "parse",
+          "sourcePortId": "number",
+          "targetPlaceholderId": "compare",
+          "targetPortId": "left"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "compare",
+          "sourcePortId": "result",
+          "targetPlaceholderId": "resultBranch",
+          "targetPortId": "condition"
+        }
+      ],
+      "exposedPorts": [
+        {
+          "proxyPortId": "run",
+          "placeholderId": "capture",
+          "portId": "run",
+          "labelKey": "template.recognizeNumberAndBranch.port.run"
+        },
+        {
+          "proxyPortId": "next",
+          "placeholderId": "resultBranch",
+          "portId": "whenTrue",
+          "labelKey": "template.recognizeNumberAndBranch.port.next"
+        }
+      ]
+    },
+    {
+      "templateKey": "template.textRecognition",
+      "titleKey": "workflowGroup.textRecognition.title",
+      "descriptionKey": "workflowGroup.textRecognition.description",
+      "iconKey": "node.ocr",
+      "nodes": [
+        {
+          "placeholderId": "delay",
+          "typeKey": "core.time.delay",
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          },
+          "inputValues": {
+            "durationMilliseconds": 0
+          }
+        },
+        {
+          "placeholderId": "capture",
+          "typeKey": "automation.captureScreen",
+          "offset": {
+            "x": 280.0,
+            "y": 0.0
+          }
+        },
+        {
+          "placeholderId": "recognizer",
+          "typeKey": "vision.ocr",
+          "offset": {
+            "x": 560.0,
+            "y": 0.0
+          }
+        },
+        {
+          "placeholderId": "roi",
+          "typeKey": "core.geometry.rectangle",
+          "offset": {
+            "x": 560.0,
+            "y": 240.0
+          },
+          "inputValues": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1,
+            "referenceWidth": 1,
+            "referenceHeight": 1
+          }
+        },
+        {
+          "placeholderId": "matchBranch",
+          "typeKey": "core.logic.branch",
+          "offset": {
+            "x": 840.0,
+            "y": 0.0
+          }
+        },
+        {
+          "placeholderId": "click",
+          "typeKey": "core.flow.sequence",
+          "offset": {
+            "x": 1120.0,
+            "y": 0.0
+          }
+        },
+        {
+          "placeholderId": "clickPoint",
+          "typeKey": "core.geometry.point",
+          "offset": {
+            "x": 1120.0,
+            "y": 240.0
+          },
+          "inputValues": {
+            "x": 0,
+            "y": 0,
+            "referenceWidth": 1,
+            "referenceHeight": 1
+          }
+        }
+      ],
+      "edges": [
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "delay",
+          "sourcePortId": "next",
+          "targetPlaceholderId": "capture",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "capture",
+          "sourcePortId": "next",
+          "targetPlaceholderId": "recognizer",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "capture",
+          "sourcePortId": "image",
+          "targetPlaceholderId": "recognizer",
+          "targetPortId": "image"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "capture",
+          "sourcePortId": "image",
+          "targetPlaceholderId": "roi",
+          "targetPortId": "image"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "roi",
+          "sourcePortId": "rectangle",
+          "targetPlaceholderId": "recognizer",
+          "targetPortId": "roi"
+        },
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "recognizer",
+          "sourcePortId": "next",
+          "targetPlaceholderId": "matchBranch",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "recognizer",
+          "sourcePortId": "matched",
+          "targetPlaceholderId": "matchBranch",
+          "targetPortId": "condition"
+        },
+        {
+          "edgeKind": "execution",
+          "sourcePlaceholderId": "matchBranch",
+          "sourcePortId": "whenTrue",
+          "targetPlaceholderId": "click",
+          "targetPortId": "run"
+        },
+        {
+          "edgeKind": "data",
+          "sourcePlaceholderId": "capture",
+          "sourcePortId": "image",
+          "targetPlaceholderId": "clickPoint",
+          "targetPortId": "image"
+        }
+      ],
+      "workflowGroup": {
+        "kind": "textRecognition",
+        "members": [
+          {
+            "role": "delay",
+            "placeholderId": "delay"
+          },
+          {
+            "role": "capture",
+            "placeholderId": "capture"
+          },
+          {
+            "role": "recognizer",
+            "placeholderId": "recognizer"
+          },
+          {
+            "role": "roi",
+            "placeholderId": "roi"
+          },
+          {
+            "role": "matchBranch",
+            "placeholderId": "matchBranch"
+          },
+          {
+            "role": "click",
+            "placeholderId": "click"
+          },
+          {
+            "role": "clickPoint",
+            "placeholderId": "clickPoint"
+          }
+        ],
+        "exposedPorts": [
+          {
+            "proxyPortId": "run",
+            "placeholderId": "delay",
+            "portId": "run",
+            "labelKey": "workflowGroup.textRecognition.port.run"
+          },
+          {
+            "proxyPortId": "regions",
+            "placeholderId": "recognizer",
+            "portId": "regions",
+            "labelKey": "workflowGroup.textRecognition.port.regions"
+          },
+          {
+            "proxyPortId": "matched",
+            "placeholderId": "recognizer",
+            "portId": "matched",
+            "labelKey": "workflowGroup.textRecognition.port.matched"
+          },
+          {
+            "proxyPortId": "matchValue",
+            "placeholderId": "recognizer",
+            "portId": "bestConfidence",
+            "labelKey": "workflowGroup.textRecognition.port.matchValue"
+          },
+          {
+            "proxyPortId": "image",
+            "placeholderId": "capture",
+            "portId": "image",
+            "labelKey": "workflowGroup.textRecognition.port.image"
+          },
+          {
+            "proxyPortId": "noMatch",
+            "placeholderId": "matchBranch",
+            "portId": "whenFalse",
+            "labelKey": "workflowGroup.textRecognition.port.noMatch"
+          },
+          {
+            "proxyPortId": "next",
+            "placeholderId": "click",
+            "portId": "steps",
+            "labelKey": "workflowGroup.textRecognition.port.next"
+          }
+        ]
+      }
+    }
+  ]
+}

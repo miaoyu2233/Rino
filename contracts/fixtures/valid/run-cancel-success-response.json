@@ -1,0 +1,12 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "response",
+  "messageType": "run.cancel",
+  "requestId": "90000000-0000-4000-8000-000000000007",
+  "result": {
+    "accepted": true,
+    "runId": "90000000-0000-4000-8000-000000000006",
+    "alreadyRequested": false,
+    "state": "cancelling"
+  }
+}

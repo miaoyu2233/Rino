@@ -1,0 +1,9 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "response",
+  "messageType": "capture.release",
+  "requestId": "9d0de168-a7fd-4f51-8fd2-25615157b8a1",
+  "result": {
+    "released": true
+  }
+}

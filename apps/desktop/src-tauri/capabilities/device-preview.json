@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "device-preview-local",
+  "description": "Local device-preview child window limited to preview metadata, image-token reads, and close lifecycle commands.",
+  "local": true,
+  "windows": ["device-preview"],
+  "permissions": [
+    "core:window:allow-inner-size",
+    "core:window:allow-scale-factor",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "device-preview"
+  ]
+}

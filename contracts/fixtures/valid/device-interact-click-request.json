@@ -1,0 +1,18 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "device.interact",
+  "requestId": "82000000-0000-4000-8000-000000000009",
+  "payload": {
+    "deviceKey": "device-opaque-1",
+    "interaction": {
+      "kind": "click",
+      "point": {
+        "x": 120,
+        "y": 240,
+        "coordinateSpaceId": "coordinate-space-opaque",
+        "sourceGeneration": 7
+      }
+    }
+  }
+}

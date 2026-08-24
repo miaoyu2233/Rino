@@ -1,0 +1,16 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "response",
+  "messageType": "device.list",
+  "requestId": "82000000-0000-4000-8000-000000000001",
+  "result": {
+    "devices": [
+      {
+        "deviceKey": "device-opaque-1",
+        "displayName": "Android device 1",
+        "controllerFamily": "adb",
+        "state": "available"
+      }
+    ]
+  }
+}

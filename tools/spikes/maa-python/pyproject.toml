@@ -1,0 +1,31 @@
+[project]
+name = "rino-maa-python-spike"
+version = "0.0.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "MaaFw==5.10.5",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "RUF", "SIM", "UP"]
+
+[tool.pyright]
+include = ["probe.py"]
+pythonVersion = "3.13"
+stubPath = "typings"
+typeCheckingMode = "strict"
+venv = ".venv"
+venvPath = "."
+
+[dependency-groups]
+dev = [
+    "pyright==1.1.411",
+    "ruff==0.16.0",
+]

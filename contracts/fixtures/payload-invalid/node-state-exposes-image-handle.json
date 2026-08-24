@@ -1,0 +1,28 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "node.stateChanged",
+  "eventId": "90000000-0000-4000-8000-000000000015",
+  "sequence": 8,
+  "runId": "90000000-0000-4000-8000-000000000006",
+  "nodeId": "90000000-0000-4000-8000-000000000010",
+  "payload": {
+    "state": "succeeded",
+    "runSequence": 6,
+    "tokenId": 2,
+    "activationId": 2,
+    "outputPortIds": ["image"],
+    "valueSummaries": [
+      {
+        "portId": "image",
+        "generation": 1,
+        "kind": "image",
+        "preview": "1920 x 1080",
+        "truncated": false,
+        "width": 1920,
+        "height": 1080,
+        "handleId": "private-handle"
+      }
+    ]
+  }
+}

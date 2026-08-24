@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "documentId": "1b0d4c3a-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+  "metadata": {
+    "name": "数值识别示例",
+    "createdAt": "2026-07-26T10:00:00Z",
+    "updatedAt": "2026-07-26T10:30:00Z"
+  },
+  "entryGraphId": "2c1e5d4b-6f70-4b8c-9daf-1f2a3b4c5d6e",
+  "graphs": [
+    {
+      "graphId": "2c1e5d4b-6f70-4b8c-9daf-1f2a3b4c5d6e",
+      "name": "主图",
+      "kind": "entry",
+      "nodes": [
+        {
+          "nodeId": "3d2f6e5c-7081-4c9d-8eb0-2a3b4c5d6e7f",
+          "typeKey": "core.flow.start",
+          "typeVersion": 1,
+          "position": { "x": 0, "y": 0 },
+          "properties": {},
+          "inputValues": {}
+        },
+        {
+          "nodeId": "4e3a7f6d-8192-4dae-9fc1-3b4c5d6e7f80",
+          "typeKey": "core.value.numberLiteral",
+          "typeVersion": 1,
+          "displayAlias": "阈值",
+          "position": { "x": 40, "y": 180 },
+          "properties": {},
+          "inputValues": { "value": 100 }
+        },
+        {
+          "nodeId": "5f4b8a7e-92a3-4ebf-8ad2-4c5d6e7f8091",
+          "typeKey": "core.logic.numberCompare",
+          "typeVersion": 1,
+          "position": { "x": 320, "y": 120 },
+          "properties": { "operator": "greaterThan" },
+          "inputValues": { "left": 0 }
+        },
+        {
+          "nodeId": "6a5c9b8f-a3b4-4fc0-9be3-5d6e7f809102",
+          "typeKey": "core.logic.branch",
+          "typeVersion": 1,
+          "position": { "x": 600, "y": 0 },
+          "properties": {},
+          "inputValues": {},
+          "breakpoint": true
+        }
+      ],
+      "edges": [
+        {
+          "edgeId": "7b6dac90-b4c5-40d1-8cf4-6e7f80910213",
+          "edgeKind": "execution",
+          "sourceNodeId": "3d2f6e5c-7081-4c9d-8eb0-2a3b4c5d6e7f",
+          "sourcePortId": "next",
+          "targetNodeId": "6a5c9b8f-a3b4-4fc0-9be3-5d6e7f809102",
+          "targetPortId": "run"
+        },
+        {
+          "edgeId": "8c7ebda1-c5d6-41e2-9d05-7f8091021324",
+          "edgeKind": "data",
+          "sourceNodeId": "4e3a7f6d-8192-4dae-9fc1-3b4c5d6e7f80",
+          "sourcePortId": "value",
+          "targetNodeId": "5f4b8a7e-92a3-4ebf-8ad2-4c5d6e7f8091",
+          "targetPortId": "right"
+        },
+        {
+          "edgeId": "9d8fceb2-d6e7-42f3-8e16-80910213245f",
+          "edgeKind": "data",
+          "sourceNodeId": "5f4b8a7e-92a3-4ebf-8ad2-4c5d6e7f8091",
+          "sourcePortId": "result",
+          "targetNodeId": "6a5c9b8f-a3b4-4fc0-9be3-5d6e7f809102",
+          "targetPortId": "condition"
+        }
+      ],
+      "editorMetadata": {
+        "comments": [
+          {
+            "commentId": "ae90dfc3-e7f8-4304-9f27-910213245f60",
+            "text": "先比较数值，再决定执行哪个分支。",
+            "position": { "x": 320, "y": -80 }
+          }
+        ]
+      }
+    }
+  ],
+  "assets": [
+    {
+      "assetId": "bfa1e0d4-f809-4415-8038-0213245f6071",
+      "displayName": "capture-20260726-100500-001",
+      "contentHash": "9f2c1a7be3d45608192a3b4c5d6e7f80910213245f60718293a4b5c6d7e8f900",
+      "mediaType": "image/png",
+      "byteLength": 240128,
+      "coordinateSpace": {
+        "spaceId": "device.main",
+        "width": 1080,
+        "height": 2400
+      },
+      "sourceKind": "deviceCapture",
+      "createdAt": "2026-07-26T10:05:00Z"
+    }
+  ],
+  "requiredCapabilities": ["automation.captureScreen", "vision.ocr"]
+}

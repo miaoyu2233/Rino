@@ -1,0 +1,4 @@
+# Generated contract artifacts are owned by tools/contracts/generate.py. Formatting them
+# here would make the tracked files differ from generator output and break the
+# determinism check.
+**/src/generated/**

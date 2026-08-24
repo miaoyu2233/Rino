@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "NodeNext",
+    "moduleDetection": "force",
+    "noEmitOnError": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "rootDir": ".",
+    "strict": true,
+    "target": "ES2024",
+    "types": ["node"],
+    "verbatimModuleSyntax": true
+  },
+  "include": ["generated/typescript/**/*.d.ts", "src/**/*.ts"]
+}

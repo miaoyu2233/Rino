@@ -1,0 +1,1494 @@
+.graph-canvas {
+  --node-font-title: 13px;
+  --node-font-body: 12px;
+  --node-font-secondary: 11px;
+  --node-font-metadata: 10px;
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  background: var(--background);
+}
+
+.rino-node__body-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.graph-canvas[data-comment-mode="true"],
+.graph-canvas[data-comment-mode="true"] .react-flow__pane {
+  cursor: crosshair;
+}
+
+.graph-comment-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.graph-comment {
+  position: absolute;
+  z-index: -1;
+  overflow: visible;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in oklch, var(--warning) 42%, var(--border));
+  border-radius: var(--radius-standard);
+  background: color-mix(in oklch, var(--warning) 7%, transparent);
+  pointer-events: none;
+}
+
+.graph-comment[data-selected="true"] {
+  border-color: color-mix(in oklch, var(--warning) 68%, var(--border-strong));
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--warning) 18%, transparent);
+}
+
+.graph-comment__header {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 5px 8px;
+  border-bottom: 1px solid
+    color-mix(in oklch, var(--warning) 24%, var(--border));
+  background: color-mix(in oklch, var(--warning) 12%, var(--surface));
+  pointer-events: auto;
+  cursor: move;
+}
+
+.graph-comment__text {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  min-height: 32px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 32px;
+  padding: 0 2px;
+  margin: 0;
+  cursor: text;
+}
+
+.graph-comment__remove {
+  display: inline-grid;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.graph-comment__remove:hover {
+  background: var(--surface-interactive-hover);
+  color: var(--text-primary);
+}
+
+.graph-comment__remove:focus-visible,
+.graph-comment__resize:focus-visible,
+.graph-comment__text:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.graph-comment__resize {
+  position: absolute;
+  bottom: -5px;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--warning);
+  border-radius: 4px;
+  background: var(--surface-elevated);
+  pointer-events: auto;
+}
+
+.graph-comment__resize--se {
+  right: -5px;
+  cursor: nwse-resize;
+}
+
+.graph-comment__resize--sw {
+  left: -5px;
+  cursor: nesw-resize;
+}
+
+.graph-comment--draft {
+  z-index: 5;
+  border-style: dashed;
+  background: color-mix(in oklch, var(--warning) 10%, transparent);
+}
+
+.graph-canvas .react-flow__pane {
+  cursor: default;
+}
+
+.graph-canvas .react-flow__pane.dragging {
+  cursor: grabbing;
+}
+
+.graph-canvas[data-panning="true"],
+.graph-canvas[data-panning="true"] .react-flow__pane {
+  cursor: grabbing;
+}
+
+/* Keep elevation and the selection ring stable while React Flow toggles its drag class. */
+.graph-canvas .react-flow__node.dragging .rino-node {
+  transition: none;
+  animation-play-state: paused;
+}
+
+.graph-canvas[data-performance-profile="efficiency"]
+  .rino-node:not([data-runtime="running"]) {
+  animation: none;
+}
+
+.graph-canvas__grid--minor {
+  color: var(--border);
+  opacity: 0.5;
+}
+
+.graph-canvas__grid--major {
+  color: var(--border-strong);
+  opacity: 0.35;
+}
+
+.graph-canvas .react-flow__selection {
+  border: var(--focus-ring-width) solid var(--accent);
+  border-radius: var(--radius-small);
+  background: var(--accent-subtle);
+  opacity: 0.35;
+}
+
+.graph-canvas__drop-preview {
+  position: absolute;
+  inset: 0 auto auto 0;
+  z-index: 5;
+  border: var(--focus-ring-width) dashed var(--accent);
+  border-radius: var(--radius-node);
+  background: var(--accent-subtle);
+  opacity: 0.7;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.graph-canvas__variable-drop-menu {
+  position: absolute;
+  z-index: 20;
+  display: grid;
+  width: min(176px, calc(100% - 16px));
+  gap: 2px;
+  padding: var(--space-half);
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: var(--radius-standard);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-floating);
+  color: var(--text-primary);
+}
+
+.graph-canvas__variable-drop-action {
+  display: flex;
+  min-width: 0;
+  min-height: 30px;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-half) var(--space-1);
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--node-font-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.graph-canvas__variable-drop-action:hover,
+.graph-canvas__variable-drop-action:focus-visible {
+  background: var(--surface-interactive-hover);
+}
+
+.graph-canvas__variable-drop-action:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: -1px;
+}
+
+.graph-canvas__variable-drop-action .product-icon {
+  flex: none;
+  color: var(--accent);
+}
+
+.rino-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 220px;
+  border: var(--border-width) solid var(--node-idle);
+  border-radius: var(--radius-node);
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  transform-origin: center;
+  transition:
+    border-color var(--duration-micro) var(--ease-standard),
+    background-color var(--duration-micro) var(--ease-standard);
+  animation: rino-node-enter var(--duration-standard) var(--ease-standard);
+}
+
+.rino-repeat-hint {
+  display: flex;
+  width: 220px;
+  min-height: 58px;
+  gap: var(--space-1);
+  align-items: flex-start;
+  padding: var(--space-1);
+  border: var(--border-width) solid var(--category-vision);
+  border-radius: var(--radius-node);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-raised);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+}
+
+.rino-repeat-hint[data-selected="true"] {
+  box-shadow:
+    var(--shadow-raised),
+    0 0 0 1px var(--node-selected);
+}
+
+.rino-repeat-hint:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.rino-repeat-hint__copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  line-height: 1.35;
+}
+
+.rino-repeat-hint__copy strong {
+  font-size: var(--node-font-body);
+}
+
+.rino-repeat-hint__copy span {
+  color: var(--text-secondary);
+  font-size: var(--node-font-secondary);
+}
+
+.rino-repeat-hint__remove {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  min-height: 24px;
+  margin-left: auto;
+  padding: 0;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.rino-repeat-hint__remove:hover {
+  background: var(--surface-interactive-hover);
+  color: var(--text-primary);
+}
+
+.rino-repeat-hint__remove:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.rino-node__floating-alias {
+  position: absolute;
+  bottom: calc(100% + var(--space-1));
+  left: 50%;
+  z-index: 3;
+  width: max-content;
+  min-width: 160px;
+  max-width: 280px;
+  max-height: 96px;
+  overflow: auto;
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: var(--radius-standard);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-raised);
+  color: var(--text-primary);
+  font-size: var(--node-font-body);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.rino-node[data-workflow-group] {
+  width: 300px;
+  border-color: color-mix(
+    in srgb,
+    var(--category-vision) 48%,
+    var(--node-idle)
+  );
+}
+
+.rino-node[data-type-key="core.diagnostic.log"] {
+  width: 300px;
+}
+
+.rino-node-properties,
+.rino-log-control,
+.rino-recognition-delay {
+  display: grid;
+  gap: var(--space-half);
+}
+
+.rino-node-properties,
+.rino-log-control,
+.rino-node__coordinate-pick {
+  padding: var(--space-1);
+  background: var(--surface-subtle, var(--surface));
+}
+
+.rino-node-property,
+.rino-recognition-delay .rino-workflow-parameter,
+.rino-log-control > label,
+.rino-workflow-group__selector,
+.rino-touch-action label {
+  display: grid;
+  grid-template-columns: minmax(84px, 38%) minmax(0, 1fr);
+  gap: var(--space-half) var(--space-1);
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: var(--node-font-body);
+}
+
+.rino-node-property > span,
+.rino-workflow-parameter > span,
+.rino-workflow-group__selector > span,
+.rino-touch-action label > span,
+.rino-log-control > label > span,
+.rino-node-property > [data-described-label="true"],
+.rino-workflow-parameter > [data-described-label="true"],
+.rino-workflow-group__selector > [data-described-label="true"] {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-described-label="true"] {
+  cursor: help;
+}
+
+[data-described-label="true"]:focus-visible {
+  border-radius: var(--radius-small);
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.rino-described-label__content {
+  display: block;
+  max-width: var(--tooltip-max-width);
+}
+
+.rino-node-properties details > summary {
+  color: var(--text-secondary);
+  font-size: var(--node-font-body);
+  cursor: pointer;
+}
+
+.rino-node-properties .ui-select__trigger,
+.rino-recognition-delay .ui-select__trigger,
+.rino-log-control .ui-select__trigger {
+  width: 100%;
+  min-width: 0;
+  height: 26px;
+}
+
+.rino-log-control__segments {
+  display: grid;
+  gap: 2px;
+}
+
+.rino-log-control__segment {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 26px;
+  gap: 2px;
+}
+
+.rino-log-control button,
+.rino-node__coordinate-pick {
+  display: inline-flex;
+  gap: var(--space-half);
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-interactive);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--node-font-body);
+  cursor: pointer;
+}
+
+.rino-log-control button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rino-node:hover {
+  border-color: var(--node-hovered);
+  background: var(--surface-elevated);
+}
+
+@keyframes rino-node-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.rino-node[data-selected="true"] {
+  border-color: var(--node-selected);
+  box-shadow:
+    var(--shadow-raised),
+    0 0 0 1px var(--node-selected);
+}
+
+.rino-node[data-disabled="true"] {
+  opacity: 0.62;
+}
+
+.rino-node[data-unresolved="true"] {
+  border-color: var(--danger);
+  border-style: dashed;
+}
+
+.rino-node[data-runtime="running"] {
+  border-color: var(--node-running);
+  box-shadow:
+    var(--shadow-raised),
+    0 0 0 1px var(--node-running);
+  animation: rino-node-running 1.2s var(--ease-standard) infinite alternate;
+}
+
+.rino-node[data-runtime="succeeded"] {
+  animation: rino-node-succeeded 180ms var(--ease-standard) 1;
+}
+
+.rino-node[data-runtime="failed"] {
+  border-color: var(--node-failed);
+  box-shadow:
+    var(--shadow-raised),
+    0 0 0 1px var(--node-failed);
+}
+
+/* A virtualized node can mount while the viewport is moving. Cancelling its entrance
+   animation keeps it out of the transparent first frame that previously looked like a
+   black flash; the active runtime animation is paused and resumes after movement. */
+.graph-canvas[data-panning="true"] .rino-node,
+.graph-canvas[data-zooming="true"] .rino-node,
+.graph-canvas[data-viewport-moving="true"] .rino-node {
+  transition: none;
+}
+
+.graph-canvas[data-panning="true"] .rino-node:not([data-runtime="running"]),
+.graph-canvas[data-zooming="true"] .rino-node:not([data-runtime="running"]),
+.graph-canvas[data-viewport-moving="true"]
+  .rino-node:not([data-runtime="running"]) {
+  animation: none;
+}
+
+.graph-canvas[data-panning="true"] .rino-node[data-runtime="running"],
+.graph-canvas[data-zooming="true"] .rino-node[data-runtime="running"],
+.graph-canvas[data-viewport-moving="true"] .rino-node[data-runtime="running"] {
+  animation-play-state: paused;
+}
+
+@keyframes rino-node-running {
+  from {
+    box-shadow:
+      var(--shadow-raised),
+      0 0 0 1px var(--node-running);
+  }
+
+  to {
+    box-shadow:
+      var(--shadow-raised),
+      0 0 0 3px var(--accent-subtle);
+  }
+}
+
+@keyframes rino-node-succeeded {
+  from {
+    border-color: var(--node-succeeded);
+    box-shadow:
+      var(--shadow-raised),
+      0 0 0 2px var(--success-subtle);
+  }
+
+  to {
+    border-color: var(--node-idle);
+    box-shadow: var(--shadow-raised);
+  }
+}
+
+.rino-node__header {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  min-height: 30px;
+  padding: 0 var(--space-1);
+  border-bottom: var(--border-width) solid var(--border);
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  background: var(--surface-interactive);
+}
+
+.rino-node[data-detail="overview"] {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.rino-node[data-detail="overview"]:hover,
+.rino-node[data-detail="overview"][data-selected="true"],
+.rino-node[data-detail="overview"][data-runtime="running"],
+.rino-node[data-detail="overview"][data-runtime="failed"] {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rino-node[data-detail="overview"] .rino-node__header {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 10px;
+  border: var(--border-width) solid var(--node-idle);
+  border-radius: var(--radius-node);
+  background: var(--surface-interactive);
+  pointer-events: auto;
+}
+
+.rino-node[data-detail="overview"][data-selected="true"] .rino-node__header {
+  border-color: var(--node-selected);
+  box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+.rino-node[data-detail="overview"][data-runtime="running"] .rino-node__header {
+  border-color: var(--node-running);
+}
+
+.rino-node[data-detail="overview"][data-runtime="failed"] .rino-node__header {
+  border-color: var(--node-failed);
+}
+
+.rino-node__overview-names {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  line-height: 1.05;
+}
+
+.rino-node__overview-title,
+.rino-node__overview-alias {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rino-node__overview-title {
+  font-size: 28px;
+  font-weight: 650;
+}
+
+.rino-node__overview-alias {
+  color: var(--text-secondary);
+  font-size: 20px;
+  font-weight: 550;
+}
+
+.rino-node__overview-handle {
+  top: 32px;
+  width: 10px;
+  min-width: 10px;
+  height: 10px;
+  min-height: 10px;
+  border: 2px solid var(--surface-interactive);
+  background: var(--port-color);
+  pointer-events: none;
+}
+
+/* The category tint is a thin left edge rather than a filled header, so a dense graph
+   stays readable and no large surface carries a saturated colour. */
+.rino-node__header::before {
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--category-diagnostics);
+  content: "";
+}
+
+.rino-node[data-category="flow"] .rino-node__header::before {
+  background: var(--category-flow);
+}
+
+.rino-node[data-category="logic"] .rino-node__header::before {
+  background: var(--category-logic);
+}
+
+.rino-node[data-category="values"] .rino-node__header::before {
+  background: var(--category-values);
+}
+
+.rino-node[data-category="text"] .rino-node__header::before {
+  background: var(--category-text);
+}
+
+.rino-node[data-category="vision"] .rino-node__header::before {
+  background: var(--category-vision);
+}
+
+.rino-node[data-category="device"] .rino-node__header::before {
+  background: var(--category-device);
+}
+
+.rino-node[data-category="timing"] .rino-node__header::before {
+  background: var(--category-timing);
+}
+
+.rino-node__icon {
+  color: var(--text-secondary);
+}
+
+.rino-node__group-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.rino-node__group-toggle:hover {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+.rino-node__group-toggle:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+/* The two names share the header's flexible column. `min-width: 0` is what lets a longer
+   translation shrink and truncate instead of pushing the state markers out of the node. */
+.rino-node__names {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  border-radius: var(--radius-small);
+  cursor: text;
+}
+
+.rino-node__names:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.rino-node__primary-title-line {
+  display: flex;
+  gap: var(--space-half);
+  align-items: center;
+  min-width: 0;
+}
+
+.rino-node__title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--node-font-title);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rino-node__secondary-title {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--node-font-secondary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rino-node__marker--breakpoint {
+  color: var(--node-breakpoint);
+}
+
+.rino-node__marker--disabled {
+  color: var(--node-disabled);
+}
+
+.rino-node__runtime-state {
+  display: inline-flex;
+  gap: var(--space-half);
+  align-items: center;
+}
+
+.rino-node__sequence {
+  min-width: 18px;
+  padding: 1px 4px;
+  border-radius: 999px;
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  font-size: var(--node-font-metadata);
+  line-height: 16px;
+  text-align: center;
+}
+
+.rino-node[data-runtime="running"] .rino-node__marker--runtime {
+  color: var(--node-running);
+}
+
+.rino-node[data-runtime="succeeded"] .rino-node__marker--runtime {
+  color: var(--node-succeeded);
+}
+
+.rino-node[data-runtime="failed"] .rino-node__marker--runtime {
+  color: var(--node-failed);
+}
+
+.rino-node__alias {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  padding-left: var(--space-half);
+  border-left: var(--border-width) solid var(--border-strong);
+  color: var(--text-primary);
+  font-size: var(--node-font-title);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rino-node__alias-input {
+  flex: 1 1 96px;
+  width: 96px;
+  min-width: 48px;
+  height: 24px;
+  padding: 0 var(--space-half);
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: var(--radius-small);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--node-font-title);
+}
+
+.rino-node__alias-input:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.rino-node__notice {
+  margin: 0;
+  padding: var(--space-1);
+  color: var(--danger);
+  font-size: var(--node-font-body);
+}
+
+.rino-workflow-group__steps {
+  min-width: 0;
+  padding: 2px var(--space-half) var(--space-half);
+  background: var(--surface-subtle, var(--surface));
+}
+
+.rino-node__workflow-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rino-node__workflow-body > .rino-node__ports {
+  border-top: var(--border-width) solid var(--border);
+  background: var(--surface-subtle, var(--surface));
+}
+
+.rino-workflow-group__selector .ui-select__trigger {
+  width: 100%;
+  max-width: 96px;
+  min-width: 0;
+  height: 28px;
+  border-radius: var(--radius-small);
+  padding: 0 var(--space-1);
+  background: var(--surface-interactive);
+  font-size: var(--node-font-secondary);
+}
+
+.rino-workflow-group__selector .ui-select__trigger:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.rino-touch-action {
+  display: grid;
+  gap: var(--space-half);
+  padding: var(--space-1);
+  background: var(--surface-subtle, var(--surface));
+}
+
+.rino-touch-action label {
+  font-size: var(--node-font-body);
+}
+
+.rino-touch-action .ui-select__trigger {
+  width: 100%;
+  max-width: 96px;
+  min-width: 0;
+  height: 28px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-small);
+  background: var(--surface-interactive);
+  font-size: var(--node-font-secondary);
+}
+
+.rino-touch-action small {
+  color: var(--text-tertiary);
+  font-size: var(--node-font-metadata);
+  line-height: 1.45;
+}
+
+.rino-touch-action .ui-select__trigger:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.rino-workflow-parameters {
+  display: grid;
+  gap: var(--space-half);
+  margin-top: var(--space-half);
+  padding-top: var(--space-half);
+}
+
+.rino-workflow-parameter {
+  gap: var(--space-half) var(--space-1);
+  font-size: var(--node-font-secondary);
+}
+
+.rino-workflow-parameter .ui-select__trigger,
+.rino-workflow-parameter input[type="number"],
+.rino-workflow-region input[type="number"] {
+  min-width: 0;
+  max-width: 96px;
+  height: 26px;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-interactive);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.rino-workflow-parameter .ui-select__trigger {
+  width: 100%;
+  padding: 0 var(--space-1);
+}
+
+.rino-workflow-parameter input[type="number"] {
+  width: 100%;
+  padding: 0 var(--space-half);
+  font-family: var(--font-code);
+  font-variant-numeric: tabular-nums;
+}
+
+.rino-workflow-parameter small,
+.rino-workflow-region > small {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+  font-size: var(--node-font-metadata);
+  line-height: 1.35;
+}
+
+.rino-workflow-region {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  padding: 2px var(--space-half) var(--space-half);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-small);
+}
+
+.rino-workflow-region legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-half);
+  width: 100%;
+  padding: 0;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-secondary);
+  font-size: var(--node-font-secondary);
+}
+
+.rino-workflow-region legend label,
+.rino-workflow-region legend button {
+  display: inline-flex;
+  gap: var(--space-half);
+  align-items: center;
+}
+
+.rino-workflow-region legend button {
+  margin-left: auto;
+  min-height: 24px;
+  padding: 0 var(--space-1);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-interactive);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--node-font-metadata);
+  white-space: nowrap;
+}
+
+.rino-workflow-region__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-half);
+}
+
+.rino-workflow-region__details,
+.rino-workflow-group__step-details {
+  color: var(--text-muted);
+  font-size: var(--node-font-metadata);
+}
+
+.rino-workflow-region__details > summary,
+.rino-workflow-group__step-details > summary {
+  min-height: 22px;
+  padding: 3px var(--space-half);
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  user-select: none;
+}
+
+.rino-workflow-region__details > summary:hover,
+.rino-workflow-group__step-details > summary:hover {
+  background: var(--surface-interactive);
+  color: var(--text-secondary);
+}
+
+.rino-workflow-region__details[open] > summary,
+.rino-workflow-group__step-details[open] > summary {
+  margin-bottom: var(--space-half);
+}
+
+.rino-workflow-region__grid label {
+  display: grid;
+  gap: 2px;
+  color: var(--text-muted);
+  font-size: var(--node-font-metadata);
+}
+
+.rino-workflow-region input[type="number"] {
+  width: 100%;
+  padding: 0 var(--space-half);
+  font-family: var(--font-code);
+  font-variant-numeric: tabular-nums;
+}
+
+.rino-workflow-parameter .ui-select__trigger:focus-visible,
+.rino-workflow-parameter input:focus-visible,
+.rino-workflow-region input:focus-visible,
+.rino-workflow-region button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.rino-workflow-parameter .ui-select__trigger:disabled,
+.rino-workflow-parameter input:disabled,
+.rino-workflow-region input:disabled,
+.rino-workflow-region button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rino-workflow-group__steps ol {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rino-workflow-step {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: var(--space-half);
+  align-items: center;
+  min-height: 24px;
+  padding: 0 var(--space-half);
+  border-radius: var(--radius-small);
+  color: var(--text-secondary);
+  font-size: var(--node-font-secondary);
+}
+
+.rino-workflow-step[data-runtime="running"] {
+  background: var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+.rino-workflow-step[data-runtime="succeeded"] {
+  color: var(--node-succeeded);
+}
+
+.rino-workflow-step[data-runtime="failed"] {
+  color: var(--node-failed);
+}
+
+.rino-workflow-step__state {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.rino-node__ports {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-half);
+  padding: var(--space-half) 0;
+}
+
+.rino-node__ports:not([data-has-inputs]) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.rino-node__ports[data-port-section="execution"] {
+  padding: var(--space-half) 0;
+  background: var(--surface-subtle, var(--surface));
+}
+
+.rino-node__ports[data-port-section="execution"] .rino-port {
+  min-height: 22px;
+  font-weight: 600;
+}
+
+.rino-node__column {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rino-node__column--outputs {
+  align-items: flex-end;
+}
+
+.rino-node__collection-outputs {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+  padding-top: var(--space-half);
+  border-top: var(--border-width) solid var(--border);
+}
+
+.rino-node__dynamic-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  margin-left: var(--space-half);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.rino-node__dynamic-remove:hover {
+  background: var(--surface-interactive-hover);
+  color: var(--danger);
+}
+
+.rino-node__dynamic-remove:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.rino-node__port-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: var(--space-1);
+}
+
+.rino-node__port-actions button {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  min-height: 24px;
+  width: 100%;
+  max-width: none;
+  justify-content: center;
+  padding: 0 var(--space-1);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-interactive);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--node-font-metadata);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rino-node__port-actions button:hover {
+  background: var(--surface-interactive-hover);
+  color: var(--text-primary);
+}
+
+.rino-node__port-actions button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.rino-node__port-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rino-node__port-actions .rino-node__add-step {
+  min-height: 32px;
+}
+
+.rino-node__sequence-order-actions {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.rino-node__sequence-order-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-small, 6px);
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.rino-node__sequence-order-actions button:hover {
+  color: var(--text-primary);
+  background: var(--surface-interactive-hover);
+}
+
+.rino-node__sequence-order-actions button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.rino-node__sequence-order-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.rino-node__sequence-order-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-half);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.rino-node__sequence-order-row {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+  gap: var(--space-1);
+}
+
+.rino-port {
+  position: relative;
+  display: flex;
+  gap: var(--space-half);
+  align-items: center;
+  min-height: 19px;
+  padding: 0 6px;
+  font-size: var(--node-font-body);
+}
+
+.rino-port[data-side="output"] {
+  flex-direction: row-reverse;
+}
+
+.rino-port__label {
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rino-port__connection-note {
+  max-width: 96px;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--node-font-metadata);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rino-port__required {
+  color: var(--danger);
+}
+
+/* Shown only for ports whose colour stands for a family of types, so the type is readable
+   without relying on the hue. */
+.rino-port__type {
+  max-width: 76px;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--node-font-secondary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rino-port__literal {
+  max-width: 88px;
+  overflow: hidden;
+  padding: 0 var(--space-half);
+  border-radius: var(--radius-small);
+  background: var(--surface-interactive);
+  color: var(--text-primary);
+  font-size: var(--node-font-secondary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.graph-canvas .react-flow__handle.rino-port__handle {
+  width: var(--port-visible-size);
+  height: var(--port-visible-size);
+  min-width: 0;
+  min-height: 0;
+  border: var(--border-width) solid var(--port-color);
+  border-radius: 50%;
+  background: var(--surface);
+  transition:
+    border-color var(--duration-micro) var(--ease-standard),
+    box-shadow var(--duration-micro) var(--ease-standard),
+    background-color var(--duration-micro) var(--ease-standard);
+}
+
+.graph-canvas .react-flow__handle.rino-port__handle::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--port-hit-size);
+  height: var(--port-hit-size);
+  transform: translate(-50%, -50%);
+  content: "";
+}
+
+.rino-port[data-shape="execution"] .rino-port__handle {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  background: transparent;
+}
+
+.rino-port[data-shape="execution"] .rino-port__handle::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 15px;
+  height: 15px;
+  transform: translate(-50%, -50%);
+  border-radius: 2px;
+  background: var(--port-color);
+  clip-path: polygon(0 0, 62% 0, 100% 50%, 62% 100%, 0 100%);
+  content: "";
+}
+
+.rino-port[data-shape="execution"] .rino-port__handle::after {
+  width: 32px;
+  height: 32px;
+}
+
+.rino-port[data-shape="execution"] .rino-port__handle:hover {
+  box-shadow: none;
+}
+
+.rino-port[data-shape="execution"] .rino-port__handle:hover::before,
+.rino-port[data-shape="execution"]
+  .rino-port__handle.connectionindicator:hover::before {
+  outline: 3px solid var(--accent-subtle);
+  outline-offset: 1px;
+}
+
+.rino-port[data-shape="collection"] .rino-port__handle,
+.rino-port[data-shape="optionalCollection"] .rino-port__handle {
+  border-radius: 2px;
+  background: var(--port-color);
+}
+
+.rino-port[data-shape="optionalValue"] .rino-port__handle,
+.rino-port[data-shape="optionalCollection"] .rino-port__handle {
+  border-style: dashed;
+}
+
+.rino-port[data-shape="value"] .rino-port__handle {
+  background: var(--port-color);
+}
+
+.rino-port__handle:hover,
+.rino-port__handle.connectionindicator:hover {
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+/* A port the connection being dragged may land on. The ring is static: a highlight that
+   pulsed would put continuous motion on every candidate port of a large graph. */
+.rino-port[data-connection="compatible"] .rino-port__handle {
+  box-shadow: 0 0 0 3px var(--success-subtle);
+  outline: var(--border-width) solid var(--success);
+  outline-offset: 1px;
+}
+
+.rino-port[data-connection="compatible"] .rino-port__label {
+  color: var(--text-primary);
+}
+
+.graph-canvas .react-flow__handle-valid {
+  box-shadow: 0 0 0 3px var(--success-subtle);
+}
+
+.graph-canvas .react-flow__handle-connecting:not(.react-flow__handle-valid) {
+  box-shadow: 0 0 0 3px var(--danger-subtle);
+}
+
+.graph-canvas__connection-rejection {
+  position: absolute;
+  z-index: 6;
+  max-width: 15rem;
+  margin: 0;
+  padding: var(--space-half) var(--space-1);
+  transform: translate(-50%, calc(-100% - 12px));
+  border: var(--border-width) solid var(--danger);
+  border-radius: var(--radius-small);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-floating);
+  color: var(--danger);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.rino-edge {
+  stroke: var(--edge-color);
+  stroke-width: 1.5;
+  transition:
+    stroke var(--duration-micro) var(--ease-standard),
+    stroke-width var(--duration-micro) var(--ease-standard),
+    stroke-opacity var(--duration-micro) var(--ease-standard);
+}
+
+.graph-canvas[data-panning="true"] .rino-edge,
+.graph-canvas[data-zooming="true"] .rino-edge,
+.graph-canvas[data-viewport-moving="true"] .rino-edge {
+  transition: none;
+}
+
+.rino-edge--execution {
+  stroke-width: 2;
+}
+
+.rino-edge--loopback {
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* A path an earlier step already took. It stays static so a finished run reads as
+   history rather than as work still in progress. */
+.rino-edge--traversed {
+  stroke: var(--node-succeeded);
+  stroke-width: 2;
+  stroke-opacity: 0.7;
+}
+
+/* The only connection state allowed ongoing motion, and only while a run is on it.
+   Reduced motion leaves the dashes static, which still separates it from every other
+   edge. */
+.rino-edge--active {
+  stroke: var(--node-running);
+  stroke-width: 2.5;
+  stroke-dasharray: 6 6;
+  animation: rino-edge-travel 900ms linear infinite;
+}
+
+@keyframes rino-edge-travel {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rino-node[data-runtime="running"],
+  .rino-node[data-runtime="succeeded"],
+  .rino-node,
+  .rino-edge,
+  .rino-edge--active {
+    animation: none;
+    transition: none;
+  }
+}
+
+.rino-edge--selected {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+.graph-canvas .react-flow__connectionline .react-flow__connection-path {
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+}

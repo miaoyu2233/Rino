@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+
+repository_root=$(git rev-parse --show-toplevel)
+checked_revisions="|"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    case "$local_sha" in
+        0000000000000000000000000000000000000000)
+            continue
+            ;;
+    esac
+
+    case "$checked_revisions" in
+        *"|$local_sha|"*)
+            continue
+            ;;
+    esac
+
+    pwsh -NoProfile -File "$repository_root/tools/check-publication.ps1" -Revision "$local_sha"
+    checked_revisions="$checked_revisions$local_sha|"
+done

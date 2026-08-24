@@ -1,0 +1,106 @@
+.field-control {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-half);
+}
+
+.field-control__row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.field-control__input,
+.field-control__select {
+  width: 100%;
+  min-width: 0;
+  height: var(--control-height-compact);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-small);
+  padding: 0 var(--space-1);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font-size: 12px;
+  transition: border-color var(--duration-micro) var(--ease-standard);
+}
+
+.field-control__input:hover:not(:disabled),
+.field-control__select:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+
+.field-control__input:disabled,
+.field-control__select:disabled {
+  background: var(--surface-interactive);
+  color: var(--text-muted);
+}
+
+.field-control__checkbox {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  accent-color: var(--accent);
+}
+
+.field-control__unit {
+  flex: none;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+/* Two signals, not one: the border colour is accompanied by the written reason below the
+   control, so a validation failure is never carried by colour alone. */
+.field-control[data-invalid="true"] .field-control__input,
+.field-control[data-invalid="true"] .field-control__select {
+  border-color: var(--danger);
+}
+
+.field-control__error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.field-control__readonly {
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-small);
+  padding: 4px var(--space-1);
+  background: var(--surface-interactive);
+  color: var(--text-secondary);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-control__note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* The compact form drawn inside a node body, sized to sit in a port row without changing
+   the node's width. */
+.field-control[data-variant="inline"] {
+  max-width: 96px;
+  flex: none;
+}
+
+.field-control[data-variant="inline"] .field-control__input,
+.field-control[data-variant="inline"] .field-control__select {
+  height: 20px;
+  padding: 0 var(--space-half);
+  font-family: var(--font-code);
+  font-size: 11px;
+}
+
+/* The reason stays visible on the node as well: a red border alone would leave the
+   failure to colour, and the value the user typed has not been stored yet. */
+.field-control[data-variant="inline"] .field-control__error {
+  white-space: normal;
+}

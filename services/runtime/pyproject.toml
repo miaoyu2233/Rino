@@ -1,0 +1,50 @@
+[project]
+name = "rino-runtime"
+version = "0.0.0"
+description = "Authoritative graph runtime service for Rino"
+license = "AGPL-3.0-only"
+requires-python = "==3.13.*"
+dependencies = [
+    "MaaFw==5.10.5",
+    "jsonschema==4.26.0",
+    "numpy==2.5.1",
+    "pydantic==2.13.4",
+]
+
+[build-system]
+requires = ["uv-build==0.11.32"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "datamodel-code-generator==0.70.0",
+    "hypothesis==6.161.2",
+    "pyright==1.1.411",
+    "pytest==9.1.1",
+    "pytest-asyncio==1.4.0",
+    "ruff==0.16.0",
+]
+
+[tool.pyright]
+include = ["src", "tests"]
+pythonVersion = "3.13"
+typeCheckingMode = "strict"
+reportMissingTypeStubs = "error"
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["ANN", "B", "E", "F", "I", "RUF", "SIM", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# The generator runs with --no-use-union-operator because the pinned version emits a
+# runtime-invalid recursive forward reference when PEP 604 unions are enabled. The two
+# union rules are therefore unfixable in generated output until that upgrade passes its
+# compatibility gate. E501 covers the embedded canonical schema text.
+"src/rino_runtime/contracts/generated/*.py" = ["E501", "UP007", "UP045"]

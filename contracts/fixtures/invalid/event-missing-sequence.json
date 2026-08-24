@@ -1,0 +1,7 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "system.ready",
+  "eventId": "3c2b1a09-8f7e-4d6c-b5a4-938271605af0",
+  "payload": { "state": "ready" }
+}

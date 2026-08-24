@@ -1,0 +1,10 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "response",
+  "messageType": "system.handshake",
+  "requestId": "9ec174d2-c543-4c22-a8fc-f38efeb48c4b",
+  "result": {
+    "accepted": true,
+    "runtimeVersion": "0.0.0-spike"
+  }
+}

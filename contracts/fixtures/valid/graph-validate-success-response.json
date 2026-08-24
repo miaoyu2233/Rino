@@ -1,0 +1,13 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "response",
+  "messageType": "graph.validate",
+  "requestId": "90000000-0000-4000-8000-000000000002",
+  "result": {
+    "executable": false,
+    "report": {
+      "schemaVersion": 1,
+      "diagnostics": []
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "documentId": "0a1b2c3d-4e5f-4061-8273-8495a6b7c8d9",
+  "metadata": {
+    "name": "新建项目",
+    "createdAt": "2026-07-26T09:00:00Z",
+    "updatedAt": "2026-07-26T09:00:00Z"
+  },
+  "entryGraphId": "1b2c3d4e-5f60-4172-8384-95a6b7c8d9ea",
+  "graphs": [
+    {
+      "graphId": "1b2c3d4e-5f60-4172-8384-95a6b7c8d9ea",
+      "name": "主图",
+      "kind": "entry",
+      "nodes": [
+        {
+          "nodeId": "3d2f6e5c-7081-4c9d-8eb0-2a3b4c5d6e7f",
+          "typeKey": "CoreFlowStart",
+          "typeVersion": 1,
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "properties": {},
+          "inputValues": {}
+        }
+      ],
+      "edges": []
+    }
+  ],
+  "assets": [],
+  "requiredCapabilities": []
+}

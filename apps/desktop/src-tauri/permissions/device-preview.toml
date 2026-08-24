@@ -1,0 +1,8 @@
+[[permission]]
+identifier = "device-preview"
+description = "Allows the device-preview child window to read the restricted preview snapshot and token-backed image, then close itself."
+commands.allow = [
+  "runtime_preview_read",
+  "device_preview_current",
+  "device_preview_close"
+]

@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main-local",
+  "description": "Local main-window boundary limited to reading window metrics and subscribing to window events.",
+  "local": true,
+  "windows": ["main"],
+  "permissions": [
+    "main-commands",
+    "core:window:allow-inner-size",
+    "core:window:allow-scale-factor",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten"
+  ]
+}

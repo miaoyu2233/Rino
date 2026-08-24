@@ -1,0 +1,357 @@
+@import "tailwindcss";
+@import "./components/ui/ui.css";
+@import "./diagnostics/diagnostics.css";
+@import "./device-preview/device-preview-window.css";
+
+@font-face {
+  font-family: "Inter Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("@fontsource-variable/inter/files/inter-latin-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Inter Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "JetBrains Mono Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "JetBrains Mono Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-ext-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-interactive: var(--surface-interactive);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-code);
+  --radius-sm: var(--radius-small);
+  --radius-md: var(--radius-standard);
+  --radius-lg: var(--radius-node);
+  --radius-xl: var(--radius-dialog);
+}
+
+:root {
+  color-scheme: light;
+  --font-ui:
+    "Inter Variable", "Segoe UI Variable Text", "Segoe UI",
+    "Microsoft YaHei UI", system-ui, sans-serif;
+  --font-code:
+    "JetBrains Mono Variable", "Cascadia Mono", Consolas, ui-monospace,
+    monospace;
+
+  --background: oklch(0.965 0.006 76);
+  --surface: oklch(0.985 0.004 76);
+  --surface-elevated: oklch(0.995 0.002 76);
+  --surface-interactive: oklch(0.945 0.008 76);
+  --surface-interactive-hover: oklch(0.925 0.012 76);
+  --border: oklch(0.86 0.012 76);
+  --border-strong: oklch(0.61 0.038 278);
+  --text-primary: oklch(0.235 0.014 265);
+  --text-secondary: oklch(0.43 0.018 265);
+  --text-muted: oklch(0.5 0.014 265);
+  --accent: oklch(0.56 0.15 282);
+  --accent-hover: oklch(0.5 0.16 282);
+  --accent-subtle: oklch(0.91 0.035 282);
+  --accent-foreground: oklch(0.985 0.004 76);
+  --focus-ring: oklch(0.59 0.16 282);
+  --success: oklch(0.51 0.12 151);
+  --success-subtle: oklch(0.92 0.035 151);
+  --warning: oklch(0.61 0.13 72);
+  --warning-subtle: oklch(0.93 0.045 72);
+  --danger: oklch(0.55 0.17 26);
+  --danger-subtle: oklch(0.92 0.045 26);
+  --info: oklch(0.53 0.12 244);
+  --info-subtle: oklch(0.92 0.035 244);
+
+  --port-exec: oklch(0.46 0.014 265);
+  --port-boolean: oklch(0.56 0.18 25);
+  --port-number: oklch(0.55 0.12 211);
+  --port-string: oklch(0.57 0.15 300);
+  --port-image: oklch(0.62 0.14 75);
+  --port-spatial: oklch(0.53 0.13 150);
+  --port-recognition: oklch(0.56 0.14 335);
+  --port-collection: oklch(0.53 0.13 250);
+  --port-unknown: oklch(0.52 0.012 265);
+
+  --category-flow: oklch(0.56 0.11 262);
+  --category-logic: oklch(0.57 0.13 295);
+  --category-values: oklch(0.53 0.12 151);
+  --category-text: oklch(0.56 0.13 340);
+  --category-vision: oklch(0.56 0.12 211);
+  --category-device: oklch(0.57 0.13 32);
+  --category-timing: oklch(0.58 0.12 85);
+  --category-diagnostics: oklch(0.53 0.02 265);
+
+  --node-idle: var(--border);
+  --node-hovered: var(--border-strong);
+  --node-selected: var(--accent);
+  --node-running: var(--info);
+  --node-succeeded: var(--success);
+  --node-failed: var(--danger);
+  --node-disabled: var(--text-muted);
+  --node-breakpoint: var(--warning);
+
+  --space-half: 0.25rem;
+  --space-1: 0.5rem;
+  --space-1-half: 0.75rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --control-height-compact: 2rem;
+  --control-height-standard: 2.25rem;
+  --icon-size-small: 0.875rem;
+  --icon-size-standard: 1rem;
+  --icon-size-large: 1.25rem;
+  --port-visible-size: 0.6875rem;
+  --port-hit-size: 1.5rem;
+  --radius-small: 0.375rem;
+  --radius-standard: 0.5rem;
+  --radius-node: 0.625rem;
+  --radius-dialog: 0.75rem;
+  --border-width: 1px;
+  --focus-ring-width: 2px;
+  --shadow-raised: 0 1px 2px oklch(0.22 0.014 265 / 0.08);
+  --shadow-floating:
+    0 8px 24px oklch(0.22 0.014 265 / 0.1),
+    0 2px 6px oklch(0.22 0.014 265 / 0.06);
+  --tooltip-delay-brief: 300ms;
+  --tooltip-delay-standard: 500ms;
+  --tooltip-delay-detailed: 700ms;
+  --tooltip-max-width: 20rem;
+  --duration-micro: 120ms;
+  --duration-standard: 190ms;
+  --duration-panel: 250ms;
+  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.19 0.009 265);
+  --surface: oklch(0.225 0.01 265);
+  --surface-elevated: oklch(0.255 0.011 265);
+  --surface-interactive: oklch(0.275 0.012 265);
+  --surface-interactive-hover: oklch(0.31 0.015 265);
+  --border: oklch(0.34 0.014 265);
+  --border-strong: oklch(0.59 0.055 282);
+  --text-primary: oklch(0.93 0.008 76);
+  --text-secondary: oklch(0.76 0.012 76);
+  --text-muted: oklch(0.68 0.012 265);
+  --accent: oklch(0.69 0.13 282);
+  --accent-hover: oklch(0.75 0.12 282);
+  --accent-subtle: oklch(0.31 0.055 282);
+  --accent-foreground: oklch(0.18 0.012 265);
+  --focus-ring: oklch(0.72 0.13 282);
+  --success: oklch(0.7 0.12 151);
+  --success-subtle: oklch(0.29 0.045 151);
+  --warning: oklch(0.75 0.13 78);
+  --warning-subtle: oklch(0.3 0.05 78);
+  --danger: oklch(0.69 0.15 25);
+  --danger-subtle: oklch(0.3 0.055 25);
+  --info: oklch(0.7 0.11 244);
+  --info-subtle: oklch(0.3 0.045 244);
+
+  --port-exec: oklch(0.78 0.012 265);
+  --port-boolean: oklch(0.69 0.16 25);
+  --port-number: oklch(0.71 0.11 211);
+  --port-string: oklch(0.71 0.13 300);
+  --port-image: oklch(0.74 0.13 75);
+  --port-spatial: oklch(0.69 0.12 150);
+  --port-recognition: oklch(0.72 0.13 335);
+  --port-collection: oklch(0.69 0.12 250);
+  --port-unknown: oklch(0.64 0.012 265);
+
+  --category-flow: oklch(0.69 0.1 262);
+  --category-logic: oklch(0.7 0.11 295);
+  --category-values: oklch(0.68 0.1 151);
+  --category-text: oklch(0.7 0.11 340);
+  --category-vision: oklch(0.7 0.1 211);
+  --category-device: oklch(0.7 0.11 32);
+  --category-timing: oklch(0.71 0.1 85);
+  --category-diagnostics: oklch(0.65 0.018 265);
+
+  --shadow-raised: 0 1px 2px oklch(0.08 0.01 265 / 0.28);
+  --shadow-floating:
+    0 10px 28px oklch(0.08 0.01 265 / 0.34),
+    0 2px 8px oklch(0.08 0.01 265 / 0.22);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root,
+.application-root {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+/* The root font size stays at the browser default so the rem-based sizing tokens resolve
+   to their authored pixel values. Base UI text size is set on the body instead. */
+html {
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 100%;
+  font-synthesis: none;
+  font-variant-numeric: tabular-nums;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--background);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+button,
+input,
+select,
+textarea {
+  color: inherit;
+  font: inherit;
+}
+
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.font-code {
+  font-family: var(--font-code);
+  font-variant-ligatures: none;
+}
+
+.product-icon {
+  display: inline-block;
+  flex: none;
+  shape-rendering: geometricprecision;
+}
+
+.product-icon--small {
+  width: var(--icon-size-small);
+  height: var(--icon-size-small);
+}
+
+.product-icon--standard {
+  width: var(--icon-size-standard);
+  height: var(--icon-size-standard);
+}
+
+.product-icon--large {
+  width: var(--icon-size-large);
+  height: var(--icon-size-large);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-micro: 0ms;
+    --duration-standard: 0ms;
+    --duration-panel: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Global slim scrollbars for all native scrollable containers */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--border-strong) 45%, transparent)
+    transparent;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--border-strong) 45%, transparent);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

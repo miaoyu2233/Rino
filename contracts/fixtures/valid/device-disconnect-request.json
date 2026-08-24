@@ -1,0 +1,9 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "device.disconnect",
+  "requestId": "82000000-0000-4000-8000-000000000003",
+  "payload": {
+    "deviceKey": "device-opaque-1"
+  }
+}

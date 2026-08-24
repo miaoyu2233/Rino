@@ -1,0 +1,23 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "run.stateChanged",
+  "eventId": "90000000-0000-4000-8000-000000000017",
+  "sequence": 12,
+  "runId": "90000000-0000-4000-8000-000000000006",
+  "payload": {
+    "state": "succeeded",
+    "graphId": "90000000-0000-4000-8000-000000000004",
+    "persistentVariableUpdates": [
+      {
+        "variableId": "90000000-0000-4000-8000-000000000010",
+        "valueKind": "point",
+        "value": {
+          "x": 1,
+          "y": 2,
+          "coordinateSpaceId": "private-space"
+        }
+      }
+    ]
+  }
+}

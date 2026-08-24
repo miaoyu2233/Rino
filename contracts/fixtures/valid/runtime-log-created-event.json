@@ -1,0 +1,15 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "event",
+  "messageType": "runtime.logCreated",
+  "eventId": "90000000-0000-4000-8000-000000000013",
+  "sequence": 10,
+  "runId": "90000000-0000-4000-8000-000000000006",
+  "nodeId": "90000000-0000-4000-8000-000000000010",
+  "payload": {
+    "logSequence": 1,
+    "activationId": 2,
+    "level": "info",
+    "message": "Fixture log message"
+  }
+}

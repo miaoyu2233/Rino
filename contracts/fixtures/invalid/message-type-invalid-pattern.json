@@ -1,0 +1,7 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "request",
+  "messageType": "SystemHandshake",
+  "requestId": "0b9d4a77-6c3f-4d2e-8a1b-2c3d4e5f6a70",
+  "payload": {}
+}

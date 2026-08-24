@@ -1,0 +1,13 @@
+{
+  "protocolVersion": 1,
+  "messageKind": "response",
+  "messageType": "registry.get",
+  "requestId": "90000000-0000-4000-8000-000000000001",
+  "result": {
+    "registry": {
+      "schemaVersion": 1,
+      "registryVersion": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "definitions": []
+    }
+  }
+}

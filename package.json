@@ -1,0 +1,32 @@
+{
+  "name": "rino-workspace",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=24.0.0 <25.0.0",
+    "pnpm": "11.9.0"
+  },
+  "scripts": {
+    "build": "pnpm --filter @rino/desktop build",
+    "check": "pwsh -NoProfile -File tools/check-workspace.ps1",
+    "privacy:check": "pwsh -NoProfile -File tools/check-publication.ps1",
+    "contracts:generate": "uv run --frozen --project services/runtime python tools/contracts/generate.py",
+    "format": "prettier --write package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs apps/desktop/index.html apps/desktop/package.json apps/desktop/tsconfig*.json apps/desktop/vite.config.ts apps/desktop/src/**/*.{css,ts,tsx} apps/desktop/src-tauri/tauri.conf.json apps/desktop/src-tauri/capabilities/*.json contracts/**/*.json packages/contracts-ts/package.json packages/contracts-ts/tsconfig.json packages/contracts-ts/src/**/*.ts",
+    "format:check": "prettier --check package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.mjs apps/desktop/index.html apps/desktop/package.json apps/desktop/tsconfig*.json apps/desktop/vite.config.ts apps/desktop/src/**/*.{css,ts,tsx} apps/desktop/src-tauri/tauri.conf.json apps/desktop/src-tauri/capabilities/*.json contracts/**/*.json packages/contracts-ts/package.json packages/contracts-ts/tsconfig.json packages/contracts-ts/src/**/*.ts",
+    "lint": "eslint apps/desktop packages/contracts-ts --max-warnings 0",
+    "tauri": "pnpm --filter @rino/desktop tauri",
+    "test": "pnpm --recursive --filter \"./apps/**\" --filter \"./packages/**\" test",
+    "typecheck": "pnpm --recursive --filter \"./apps/**\" --filter \"./packages/**\" typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.7.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.3",
+    "prettier": "3.9.6",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.65.0"
+  }
+}

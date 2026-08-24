@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Rino Sidecar Transport Spike",
+  "version": "0.0.0",
+  "identifier": "local.rino.sidecar-spike",
+  "build": {
+    "frontendDist": "frontend-placeholder"
+  },
+  "app": {
+    "security": {
+      "capabilities": ["main"]
+    }
+  },
+  "bundle": {
+    "active": false,
+    "externalBin": ["binaries/rino-runtime-sidecar"],
+    "resources": ["binaries/rino-runtime-sidecar-support/"]
+  }
+}

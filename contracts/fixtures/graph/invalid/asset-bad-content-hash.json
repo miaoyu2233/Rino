@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "documentId": "0a1b2c3d-4e5f-4061-8273-8495a6b7c8d9",
+  "metadata": {
+    "name": "新建项目",
+    "createdAt": "2026-07-26T09:00:00Z",
+    "updatedAt": "2026-07-26T09:00:00Z"
+  },
+  "entryGraphId": "1b2c3d4e-5f60-4172-8384-95a6b7c8d9ea",
+  "graphs": [
+    {
+      "graphId": "1b2c3d4e-5f60-4172-8384-95a6b7c8d9ea",
+      "name": "主图",
+      "kind": "entry",
+      "nodes": [],
+      "edges": []
+    }
+  ],
+  "assets": [
+    {
+      "assetId": "bfa1e0d4-f809-4415-8038-0213245f6071",
+      "displayName": "capture-20260726-100500-001",
+      "contentHash": "NOTAHASH",
+      "mediaType": "image/png",
+      "byteLength": 1,
+      "coordinateSpace": {
+        "spaceId": "device.main",
+        "width": 1080,
+        "height": 2400
+      },
+      "sourceKind": "deviceCapture",
+      "createdAt": "2026-07-26T10:05:00Z"
+    }
+  ],
+  "requiredCapabilities": []
+}
