@@ -35,6 +35,17 @@ try {
     $resolvedRevision = ([string]$resolvedRevisionLines[0]).Trim()
     $paths = @(Invoke-GitLines -Arguments @("ls-tree", "-r", "--name-only", $resolvedRevision))
     $violations = [System.Collections.Generic.List[string]]::new()
+    $commitEmails = @(
+        Invoke-GitLines -Arguments @("show", "-s", "--format=%ae%n%ce", $resolvedRevision)
+    )
+    foreach ($commitEmail in $commitEmails) {
+        if (
+            [string]::IsNullOrWhiteSpace($commitEmail) -or
+            $commitEmail -notmatch "^[0-9]+\+[^@]+@users\.noreply\.github\.com$"
+        ) {
+            $violations.Add("commit metadata [author and committer emails must use GitHub noreply]")
+        }
+    }
 
     $pathRules = @(
         @{
@@ -104,7 +115,14 @@ try {
         $contentRules.Add(@{ Name = "private Git author email"; Pattern = [regex]::Escape($configuredEmail.Trim()) })
     }
 
+    $commitMessage = (
+        Invoke-GitLines -Arguments @("show", "-s", "--format=%B", $resolvedRevision)
+    ) -join [Environment]::NewLine
     foreach ($rule in $contentRules) {
+        if ($commitMessage -match $rule.Pattern) {
+            $violations.Add("commit message [$($rule.Name)]")
+        }
+
         $matches = @(
             Invoke-GitLines -Arguments @("grep", "-I", "-l", "-E", "-e", $rule.Pattern, $resolvedRevision, "--") -AllowedExitCodes @(0, 1)
         )

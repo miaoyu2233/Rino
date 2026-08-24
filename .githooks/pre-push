@@ -11,12 +11,22 @@ while read -r local_ref local_sha remote_ref remote_sha; do
             ;;
     esac
 
-    case "$checked_revisions" in
-        *"|$local_sha|"*)
-            continue
-            ;;
-    esac
+    if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+        revision_range="$local_sha"
+    elif git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
+        revision_range="$remote_sha..$local_sha"
+    else
+        revision_range="$local_sha"
+    fi
 
-    pwsh -NoProfile -File "$repository_root/tools/check-publication.ps1" -Revision "$local_sha"
-    checked_revisions="$checked_revisions$local_sha|"
+    for revision in $(git rev-list "$revision_range"); do
+        case "$checked_revisions" in
+            *"|$revision|"*)
+                continue
+                ;;
+        esac
+
+        pwsh -NoProfile -File "$repository_root/tools/check-publication.ps1" -Revision "$revision"
+        checked_revisions="$checked_revisions$revision|"
+    done
 done
