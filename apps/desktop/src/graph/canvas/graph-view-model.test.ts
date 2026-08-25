@@ -1116,6 +1116,10 @@ describe("node projection", () => {
     expect(proxy?.data.outputs.map((item) => item.portId)).toContain(
       "recognizer:result",
     );
+    expect(
+      proxy?.data.outputs.find((item) => item.portId === "recognizer:result")
+        ?.connected,
+    ).toBe(true);
     expect(boundary).toMatchObject({
       source: "workflow-group:recognition-group",
       sourceHandle: "recognizer:result",
@@ -1156,7 +1160,7 @@ describe("projection stability", () => {
     expect(second[2]).toBe(first[2]);
   });
 
-  it("rebuilds a node when a connection reaches one of its inputs", () => {
+  it("rebuilds both endpoint nodes when their connection changes", () => {
     const projection = new GraphProjection();
     const connected = baseGraph();
     const first = projection.projectNodes(connected, registry);
@@ -1164,9 +1168,24 @@ describe("projection stability", () => {
     const disconnected: GraphV1 = { ...connected, edges: [] };
     const second = projection.projectNodes(disconnected, registry);
 
+    const literalBefore = first.find((item) => item.id === LITERAL);
     const compareBefore = first.find((item) => item.id === COMPARE);
+    const literalAfter = second.find((item) => item.id === LITERAL);
     const compareAfter = second.find((item) => item.id === COMPARE);
+    expect(literalAfter).not.toBe(literalBefore);
     expect(compareAfter).not.toBe(compareBefore);
+    expect(
+      literalBefore?.data.outputs.find((port) => port.portId === "value")
+        ?.connected,
+    ).toBe(true);
+    expect(
+      literalAfter?.data.outputs.find((port) => port.portId === "value")
+        ?.connected,
+    ).toBe(false);
+    expect(
+      compareBefore?.data.inputs.find((port) => port.portId === "left")
+        ?.connected,
+    ).toBe(true);
     expect(
       compareAfter?.data.inputs.find((port) => port.portId === "left")
         ?.connected,

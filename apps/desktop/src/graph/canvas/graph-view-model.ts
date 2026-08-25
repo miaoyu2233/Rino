@@ -273,7 +273,7 @@ function buildPortViews(
   definition: CanvasNodeDefinition,
   node: NodeV1,
   direction: "input" | "output",
-  connectedInputs: ReadonlySet<string>,
+  connectedPorts: ReadonlySet<string>,
 ): CanvasPortView[] {
   const views: CanvasPortView[] = [];
   for (const port of definition.ports.values()) {
@@ -281,7 +281,7 @@ function buildPortViews(
       continue;
     }
     const appearance = portAppearance(port.type);
-    const connected = direction === "input" && connectedInputs.has(port.portId);
+    const connected = connectedPorts.has(port.portId);
     const labelOverride =
       caseCatalogPortLabel(node, port.portId) ??
       ("portLabels" in definition
@@ -450,7 +450,7 @@ function buildWorkflowGroupPortView(
   graph: GraphV1,
   index: NodeRegistryIndex,
   groupPort: WorkflowGroupV1["exposedPorts"][number],
-  connectedInputs: ReadonlyMap<string, ConnectedInputs>,
+  connectedPorts: ReadonlyMap<string, ConnectedPorts>,
 ): CanvasPortView | undefined {
   const node = graph.nodes.find(
     (candidate) => candidate.nodeId === groupPort.nodeId,
@@ -461,9 +461,11 @@ function buildWorkflowGroupPortView(
     return undefined;
   }
   const appearance = portAppearance(port.type);
+  const nodeConnections = connectedPorts.get(node.nodeId) ?? NO_CONNECTED_PORTS;
   const connected =
-    port.direction === "input" &&
-    (connectedInputs.get(node.nodeId)?.set.has(port.portId) ?? false);
+    port.direction === "input"
+      ? nodeConnections.inputs.has(port.portId)
+      : nodeConnections.outputs.has(port.portId);
   return {
     portId: groupPort.proxyPortId,
     domainNodeId: node.nodeId,
@@ -689,8 +691,9 @@ function workflowGroupVisiblePorts(
   return [...ports.values()];
 }
 
-interface ConnectedInputs {
-  set: ReadonlySet<string>;
+interface ConnectedPorts {
+  inputs: ReadonlySet<string>;
+  outputs: ReadonlySet<string>;
   signature: string;
 }
 
@@ -698,34 +701,47 @@ interface ConnectedInputs {
  * this character, so two different sets of ports cannot produce the same signature. */
 const PORT_SIGNATURE_SEPARATOR = "\u0000";
 
-const NO_CONNECTED_INPUTS: ConnectedInputs = {
-  set: new Set<string>(),
+const NO_CONNECTED_PORTS: ConnectedPorts = {
+  inputs: new Set<string>(),
+  outputs: new Set<string>(),
   signature: "",
 };
 
-/** Which input ports of each node already carry an edge.
+/** Which input and output ports of each node already carry an edge.
  *
  * Built once per projection pass rather than once per node. Asking every node to scan the
  * edge list would cost one pass over every edge for every node, which is quadratic in a
  * graph the persisted format allows to hold five thousand nodes and ten thousand edges.
  */
-function connectedInputsByNode(graph: GraphV1): Map<string, ConnectedInputs> {
-  const portsByNode = new Map<string, string[]>();
+function connectedPortsByNode(graph: GraphV1): Map<string, ConnectedPorts> {
+  const inputsByNode = new Map<string, string[]>();
+  const outputsByNode = new Map<string, string[]>();
   for (const edge of graph.edges) {
-    const existing = portsByNode.get(edge.targetNodeId);
-    if (existing === undefined) {
-      portsByNode.set(edge.targetNodeId, [edge.targetPortId]);
+    const existingInputs = inputsByNode.get(edge.targetNodeId);
+    if (existingInputs === undefined) {
+      inputsByNode.set(edge.targetNodeId, [edge.targetPortId]);
     } else {
-      existing.push(edge.targetPortId);
+      existingInputs.push(edge.targetPortId);
+    }
+    const existingOutputs = outputsByNode.get(edge.sourceNodeId);
+    if (existingOutputs === undefined) {
+      outputsByNode.set(edge.sourceNodeId, [edge.sourcePortId]);
+    } else {
+      existingOutputs.push(edge.sourcePortId);
     }
   }
 
-  const connected = new Map<string, ConnectedInputs>();
-  for (const [nodeId, portIds] of portsByNode) {
-    portIds.sort();
+  const connected = new Map<string, ConnectedPorts>();
+  const nodeIds = new Set([...inputsByNode.keys(), ...outputsByNode.keys()]);
+  for (const nodeId of nodeIds) {
+    const inputPortIds = inputsByNode.get(nodeId) ?? [];
+    const outputPortIds = outputsByNode.get(nodeId) ?? [];
+    inputPortIds.sort();
+    outputPortIds.sort();
     connected.set(nodeId, {
-      set: new Set(portIds),
-      signature: portIds.join(PORT_SIGNATURE_SEPARATOR),
+      inputs: new Set(inputPortIds),
+      outputs: new Set(outputPortIds),
+      signature: `${inputPortIds.join(PORT_SIGNATURE_SEPARATOR)}${PORT_SIGNATURE_SEPARATOR}${PORT_SIGNATURE_SEPARATOR}${outputPortIds.join(PORT_SIGNATURE_SEPARATOR)}`,
     });
   }
   return connected;
@@ -824,7 +840,7 @@ export class GraphProjection {
   ): RinoFlowNode[] {
     this.prepareGraph(graph, document);
     const index = this.indexFor(registry);
-    const connectedInputs = connectedInputsByNode(graph);
+    const connectedPorts = connectedPortsByNode(graph);
     const legacyStepCounts = legacySequenceStepCounts(graph);
     const collapsedGroups = workflowGroups(graph).filter(
       (group) => group.collapsed,
@@ -853,7 +869,7 @@ export class GraphProjection {
         document,
       );
       const titleOverride = this.titleOverrideFor(node, document);
-      const connected = connectedInputs.get(node.nodeId) ?? NO_CONNECTED_INPUTS;
+      const connected = connectedPorts.get(node.nodeId) ?? NO_CONNECTED_PORTS;
       const visibleSequenceStepCount =
         node.typeKey === "core.flow.sequence"
           ? (sequenceStepCount(node) ??
@@ -897,10 +913,10 @@ export class GraphProjection {
         iconKey: definition?.definition.iconKey ?? "node.unknown",
         category: definition?.definition.category ?? "unknown",
         inputs: definition
-          ? buildPortViews(definition, node, "input", connected.set)
+          ? buildPortViews(definition, node, "input", connected.inputs)
           : [],
         outputs: definition
-          ? buildPortViews(definition, node, "output", connected.set)
+          ? buildPortViews(definition, node, "output", connected.outputs)
           : [],
         disabled: node.disabled === true,
         breakpoint: node.breakpoint === true,
@@ -1037,7 +1053,7 @@ export class GraphProjection {
             graph,
             index,
             groupPort,
-            connectedInputs,
+            connectedPorts,
           );
           return view === undefined ? [] : [view];
         },
