@@ -13,6 +13,7 @@ import {
   buildAddFunctionParameterCommand,
   buildChangeFunctionParameterKindCommand,
   buildCreateFunctionGraphCommand,
+  buildDeleteFunctionGraphCommand,
   buildInsertFunctionCallCommand,
   buildRemoveFunctionParameterCommand,
   buildRenameFunctionParameterCommand,
@@ -228,6 +229,51 @@ describe("function graph authoring", () => {
       properties: { functionGraphId: FUNCTION_ID },
       inputValues: {},
     });
+  });
+
+  it("deletes a function and its call nodes as one undoable action", () => {
+    const original = baseDocument();
+    const entry = graphOf(original, ENTRY_ID);
+    const callNode = node(identifier(230), "core.function.call", {
+      properties: { functionGraphId: FUNCTION_ID },
+    });
+    const document: RinoProjectDocumentV1 = {
+      ...original,
+      graphs: [
+        {
+          ...entry,
+          nodes: [...entry.nodes, callNode],
+          edges: [
+            edge(
+              identifier(231),
+              START_NODE_ID,
+              "next",
+              callNode.nodeId,
+              "run",
+              "execution",
+            ),
+          ],
+        },
+        ...original.graphs.slice(1),
+      ],
+    };
+
+    const built = buildDeleteFunctionGraphCommand(document, FUNCTION_ID);
+
+    expect(built.ok).toBe(true);
+    if (!built.ok) return;
+    expect(built.value.removedCallCount).toBe(1);
+    const applied = applySuccess(document, built.value.command);
+    expect(
+      applied.document.graphs.some((graph) => graph.graphId === FUNCTION_ID),
+    ).toBe(false);
+    expect(graphOf(applied.document, ENTRY_ID).nodes).toEqual([
+      expect.objectContaining({ nodeId: START_NODE_ID }),
+    ]);
+    expect(graphOf(applied.document, ENTRY_ID).edges).toEqual([]);
+
+    const undone = applySuccess(applied.document, applied.inverse);
+    expect(undone.document).toEqual(document);
   });
 
   it("adds and renames a parameter while preserving both identifiers", () => {

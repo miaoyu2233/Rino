@@ -3070,6 +3070,21 @@ kbd {
   gap: 2px;
 }
 
+.function-library__delete:not(:disabled),
+.variable-library__delete:not(:disabled) {
+  color: var(--danger);
+}
+
+.library-delete-dialog {
+  max-width: 28rem;
+}
+
+.library-delete-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-half);
+}
+
 .variable-library {
   display: grid;
   min-width: 0;
@@ -3146,11 +3161,14 @@ kbd {
 }
 
 .variable-library__editor-heading {
+  justify-content: space-between;
+  gap: var(--space-half);
   color: var(--text-primary);
   font-size: 11px;
 }
 
 .variable-library__editor-heading strong {
+  flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;

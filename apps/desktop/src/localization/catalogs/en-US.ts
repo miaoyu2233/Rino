@@ -610,6 +610,14 @@ export const enUSTranslation = {
         selfCallDisabled: "A function cannot insert a call to itself",
         edit: "Edit function",
         editFor: "Edit function {{name}}",
+        delete: "Delete function",
+        deleteFor: "Delete function {{name}}",
+        deleteTitle: "Delete function '{{name}}'?",
+        deleteDescription:
+          "This function graph will be deleted. You can undo this action.",
+        deleteDescriptionWithCalls:
+          "This function graph and {{count}} call nodes that reference it will be deleted. You can undo this action.",
+        deleteConfirm: "Delete function",
         dragHint: "Drag {{name}} to the canvas to insert a function call.",
         dragDisabled:
           "Function dragging is unavailable while the project is running or no graph is open.",
@@ -706,6 +714,10 @@ export const enUSTranslation = {
         dragDisabled:
           "Variable dragging is unavailable while the project is running or no graph is open.",
         delete: "Delete variable",
+        deleteTitle: "Delete variable '{{name}}'?",
+        deleteDescription:
+          "This shared variable will be removed from the project. You can undo this action.",
+        deleteConfirm: "Delete variable",
         insertGetter: "Insert get variable",
         insertSetter: "Insert set variable",
         insertMenuLabel: "Choose a variable node",

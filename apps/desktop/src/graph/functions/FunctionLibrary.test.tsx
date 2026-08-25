@@ -248,6 +248,50 @@ describe("function library", () => {
     ).toBeDisabled();
   });
 
+  it("confirms function deletion, removes calls, and returns to the entry graph", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await createProjectFromEmptyState();
+    act(() => {
+      openProjectDocument(functionDocument(true));
+      useEditorSessionStore.getState().setActiveGraph("function-a");
+    });
+
+    const library = await openFunctionLibrary(user);
+    await user.click(
+      within(library).getByRole("button", {
+        name: "\u5220\u9664\u51fd\u6570 \u51fd\u6570 A",
+      }),
+    );
+
+    const dialog = screen.getByRole("dialog", {
+      name: "\u5220\u9664\u51fd\u6570\u201c\u51fd\u6570 A\u201d\uff1f",
+    });
+    expect(
+      within(dialog).getByText(
+        "\u8be5\u51fd\u6570\u56fe\u53ca\u5f15\u7528\u5b83\u7684 1 \u4e2a\u8c03\u7528\u8282\u70b9\u5c06\u88ab\u5220\u9664\u3002\u6b64\u64cd\u4f5c\u53ef\u64a4\u9500\u3002",
+      ),
+    ).toBeInTheDocument();
+    await user.click(
+      within(dialog).getByRole("button", { name: "\u5220\u9664\u51fd\u6570" }),
+    );
+
+    await waitFor(() => {
+      const document = useDocumentStore.getState().history?.document;
+      expect(
+        document?.graphs.some((graph) => graph.graphId === "function-a"),
+      ).toBe(false);
+    });
+    expect(
+      useDocumentStore
+        .getState()
+        .history?.document.graphs.find(
+          (graph) => graph.graphId === "function-b",
+        )?.nodes,
+    ).toEqual([]);
+    expect(useEditorSessionStore.getState().activeGraphId).toBe("entry-graph");
+  });
+
   it("reports indirect recursion and respects the execution lock", async () => {
     const user = userEvent.setup();
     render(<App />);

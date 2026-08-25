@@ -10,6 +10,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { Button } from "../../components/ui/Button";
+import { Dialog, DialogContent } from "../../components/ui/Dialog";
 import { Input } from "../../components/ui/Input";
 import { Select, type SelectOption } from "../../components/ui/Select";
 import { ProductIcon } from "../../design-system/icons/ProductIcon";
@@ -99,6 +100,8 @@ export function VariableLibrary() {
   const [selectedVariableId, setSelectedVariableId] = useState("");
   const [draftName, setDraftName] = useState("");
   const [createName, setCreateName] = useState("");
+  const [pendingDeleteVariableId, setPendingDeleteVariableId] =
+    useState<string>();
   const [createValueKind, setCreateValueKind] =
     useState<VariableValueKind>("string");
 
@@ -109,6 +112,9 @@ export function VariableLibrary() {
     document !== undefined && selectedVariable !== undefined
       ? isVariableReferenced(document, selectedVariable.variableId)
       : false;
+  const pendingDeleteVariable = variables.find(
+    (variable) => variable.variableId === pendingDeleteVariableId,
+  );
   const canAuthor =
     document !== undefined && activeGraph !== undefined && !executionLocked;
   const canDrag = canAuthor && selectedVariable !== undefined;
@@ -268,33 +274,36 @@ export function VariableLibrary() {
     [canAuthor, selectedVariable],
   );
 
-  const deleteVariable = useCallback(() => {
-    if (selectedVariable === undefined) {
+  const deleteVariable = () => {
+    if (pendingDeleteVariable === undefined) {
       return;
     }
-    if (selectedVariableReferenced) {
+    if (
+      document !== undefined &&
+      isVariableReferenced(document, pendingDeleteVariable.variableId)
+    ) {
       notify({
         severity: "info",
         titleKey: "graph.variable.library.deleteLocked",
       });
+      setPendingDeleteVariableId(undefined);
       return;
     }
-    if (!canAuthor || !deleteProjectVariable(selectedVariable.variableId)) {
+    if (
+      !canAuthor ||
+      !deleteProjectVariable(pendingDeleteVariable.variableId)
+    ) {
       notify({
         severity: "error",
         titleKey: failureTitleKey(document, activeGraphId, executionLocked),
       });
       return;
     }
-    setSelectedVariableId("");
-  }, [
-    activeGraphId,
-    canAuthor,
-    document,
-    executionLocked,
-    selectedVariable,
-    selectedVariableReferenced,
-  ]);
+    if (selectedVariableId === pendingDeleteVariable.variableId) {
+      setSelectedVariableId("");
+    }
+    setPendingDeleteVariableId(undefined);
+  };
 
   const editorDisabled = !canAuthor || selectedVariable === undefined;
   const typeDisabled = editorDisabled || selectedVariableReferenced;
@@ -418,6 +427,23 @@ export function VariableLibrary() {
             >
               <div className="variable-library__editor-heading">
                 <strong>{selectedVariable.name}</strong>
+                <Button
+                  aria-label={t("graph.variable.library.delete")}
+                  className="variable-library__delete"
+                  disabled={editorDisabled || selectedVariableReferenced}
+                  onClick={() => {
+                    setPendingDeleteVariableId(selectedVariable.variableId);
+                  }}
+                  size="icon"
+                  title={
+                    selectedVariableReferenced
+                      ? t("graph.variable.library.deleteLocked")
+                      : t("graph.variable.library.delete")
+                  }
+                  variant="ghost"
+                >
+                  <ProductIcon icon="action.deleteTask" size="small" />
+                </Button>
               </div>
               <div className="variable-library__fields">
                 <label className="variable-library__field">
@@ -472,27 +498,39 @@ export function VariableLibrary() {
                     ? t("graph.variable.library.imagePersistentDisabled")
                     : t("graph.variable.library.sharedDescription")}
               </p>
-              <div className="variable-library__actions">
-                <Button
-                  aria-label={t("graph.variable.library.delete")}
-                  disabled={editorDisabled || selectedVariableReferenced}
-                  onClick={deleteVariable}
-                  size="compact"
-                  title={
-                    selectedVariableReferenced
-                      ? t("graph.variable.library.deleteLocked")
-                      : t("graph.variable.library.delete")
-                  }
-                  variant="destructive"
-                >
-                  <ProductIcon icon="action.deleteTask" size="small" />
-                  <span>{t("graph.variable.library.delete")}</span>
-                </Button>
-              </div>
             </article>
           )}
         </div>
       )}
+      <Dialog
+        open={pendingDeleteVariable !== undefined}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteVariableId(undefined);
+        }}
+      >
+        <DialogContent
+          className="library-delete-dialog"
+          closeLabel={t("common.actions.close")}
+          title={t("graph.variable.library.deleteTitle", {
+            name: pendingDeleteVariable?.name ?? "",
+          })}
+          description={t("graph.variable.library.deleteDescription")}
+        >
+          <div className="library-delete-dialog__actions">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setPendingDeleteVariableId(undefined);
+              }}
+            >
+              {t("common.actions.cancel")}
+            </Button>
+            <Button variant="destructive" onClick={deleteVariable}>
+              {t("graph.variable.library.deleteConfirm")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

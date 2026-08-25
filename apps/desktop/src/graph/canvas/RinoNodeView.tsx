@@ -1,7 +1,15 @@
-import { Handle, Position, useStore, type NodeProps } from "@xyflow/react";
+import {
+  Handle,
+  Position,
+  useStore,
+  useUpdateNodeInternals,
+  type NodeProps,
+} from "@xyflow/react";
 import {
   memo,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
@@ -1568,6 +1576,9 @@ function StandardRinoNodeView({
   const showNodeDetails = useStore(
     (store) => store.transform[2] >= FULL_NODE_DETAIL_MINIMUM_ZOOM,
   );
+  const updateNodeInternals = useUpdateNodeInternals();
+  const nodeRegistered = useStore((store) => store.nodeLookup.has(data.nodeId));
+  const previousShowNodeDetails = useRef(showNodeDetails);
   const execution = useNodeExecutionView(
     data.graphId,
     data.workflowGroup === undefined ? data.nodeId : "",
@@ -1613,6 +1624,16 @@ function StandardRinoNodeView({
   const overviewAlias =
     data.displayAlias ?? data.variableControl?.selectedVariableName;
 
+  useEffect(() => {
+    if (previousShowNodeDetails.current === showNodeDetails) return;
+    previousShowNodeDetails.current = showNodeDetails;
+    if (!nodeRegistered) return;
+
+    // Semantic zoom replaces the port DOM. Re-measuring after the tier changes keeps
+    // every existing edge attached to the compact handles instead of dropping its path.
+    updateNodeInternals(data.nodeId);
+  }, [data.nodeId, nodeRegistered, showNodeDetails, updateNodeInternals]);
+
   const beginAliasEditing = () => {
     setAliasDraft(data.displayAlias ?? "");
     setEditingAlias(true);
@@ -1642,7 +1663,7 @@ function StandardRinoNodeView({
         data-runtime={execution?.state}
         data-workflow-group={data.workflowGroup?.kind}
         data-type-key={data.typeKey}
-        style={{ height: `${String(measuredHeight)}px` }}
+        style={{ minHeight: `${String(measuredHeight)}px` }}
         aria-label={overviewLabel}
       >
         <OverviewNodeHandles inputs={data.inputs} outputs={data.outputs} />

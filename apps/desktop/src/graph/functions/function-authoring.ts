@@ -9,6 +9,7 @@ import type {
 } from "@rino/contracts";
 
 import type {
+  CompositeCommand,
   CommandFailureReason,
   GraphCommand,
 } from "../commands/graph-commands";
@@ -58,6 +59,12 @@ export interface BuiltFunctionGraphCommand {
 export interface BuiltFunctionCallCommand {
   command: Extract<GraphCommand, { kind: "addNode" }>;
   nodeId: string;
+}
+
+/** A reversible function deletion together with the number of call sites it removes. */
+export interface BuiltDeleteFunctionGraphCommand {
+  command: CompositeCommand;
+  removedCallCount: number;
 }
 
 export interface BuiltFunctionParameterCommand {
@@ -549,6 +556,49 @@ export function buildCreateFunctionGraphCommand(
     value: {
       command: { kind: "addGraph", graph },
       functionGraphId: graphId.value,
+    },
+  };
+}
+
+/** Builds one atomic deletion that removes a function graph and all of its call sites.
+ *
+ * Removing call nodes first lets the command preserve graph validity and restore every
+ * detached node and edge when the user undoes the action. */
+export function buildDeleteFunctionGraphCommand(
+  document: RinoProjectDocumentV1,
+  functionGraphId: string,
+): FunctionAuthoringResult<BuiltDeleteFunctionGraphCommand> {
+  const target = findGraph(document, functionGraphId);
+  if (target === undefined) return failure("graphMissing");
+  if (target.kind !== "function") return failure("notFunction");
+
+  const removeCallCommands: GraphCommand[] = document.graphs.flatMap((graph) =>
+    graph.graphId === functionGraphId
+      ? []
+      : graph.nodes
+          .filter(
+            (node) =>
+              node.typeKey === "core.function.call" &&
+              node.properties["functionGraphId"] === functionGraphId,
+          )
+          .map((node) => ({
+            kind: "removeNode" as const,
+            graphId: graph.graphId,
+            nodeId: node.nodeId,
+          })),
+  );
+  return {
+    ok: true,
+    value: {
+      command: {
+        kind: "composite",
+        label: "deleteFunction",
+        commands: [
+          ...removeCallCommands,
+          { kind: "removeGraph", graphId: functionGraphId },
+        ],
+      },
+      removedCallCount: removeCallCommands.length,
     },
   };
 }

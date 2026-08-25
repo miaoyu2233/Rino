@@ -1,7 +1,13 @@
-import { useCallback, useMemo, type DragEvent as ReactDragEvent } from "react";
+import {
+  useCallback,
+  useMemo,
+  useState,
+  type DragEvent as ReactDragEvent,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "../../components/ui/Button";
+import { Dialog, DialogContent } from "../../components/ui/Dialog";
 import { ProductIcon } from "../../design-system/icons/ProductIcon";
 import type { LocalizationKey } from "../../diagnostics/diagnostic-model";
 import { notify } from "../../diagnostics/diagnostic-store";
@@ -9,6 +15,7 @@ import { clearDragPayload, writeDragPayload } from "../canvas/canvas-drag";
 import { visibleCanvasCenter } from "../canvas/canvas-viewport-store";
 import {
   buildCreateFunctionGraphCommand,
+  buildDeleteFunctionGraphCommand,
   buildInsertFunctionCallCommand,
   type FunctionAuthoringFailureReason,
 } from "./function-authoring";
@@ -94,7 +101,12 @@ export function FunctionLibrary() {
   const executionLocked = useDocumentStore((store) => store.executionLocked);
   const runCommand = useDocumentStore((store) => store.runCommand);
   const activeGraphId = useEditorSessionStore((store) => store.activeGraphId);
+  const graphNavigationStack = useEditorSessionStore(
+    (store) => store.graphNavigationStack,
+  );
   const enterGraph = useEditorSessionStore((store) => store.enterGraph);
+  const setActiveGraph = useEditorSessionStore((store) => store.setActiveGraph);
+  const [pendingDeleteGraphId, setPendingDeleteGraphId] = useState<string>();
 
   const functions = useMemo(
     () => document?.graphs.filter((graph) => graph.kind === "function") ?? [],
@@ -103,6 +115,17 @@ export function FunctionLibrary() {
   const activeGraph = document?.graphs.find(
     (graph) => graph.graphId === activeGraphId,
   );
+  const pendingDeleteGraph = functions.find(
+    (graph) => graph.graphId === pendingDeleteGraphId,
+  );
+  const pendingDeleteCallCount = useMemo(() => {
+    if (document === undefined || pendingDeleteGraphId === undefined) return 0;
+    const built = buildDeleteFunctionGraphCommand(
+      document,
+      pendingDeleteGraphId,
+    );
+    return built.ok ? built.value.removedCallCount : 0;
+  }, [document, pendingDeleteGraphId]);
   const canDrag =
     document !== undefined && activeGraph !== undefined && !executionLocked;
   const existingNames = useMemo(
@@ -174,6 +197,43 @@ export function FunctionLibrary() {
     },
     [activeGraphId, document, runCommand],
   );
+
+  const deleteFunction = useCallback(() => {
+    if (document === undefined || pendingDeleteGraphId === undefined) return;
+    const built = buildDeleteFunctionGraphCommand(
+      document,
+      pendingDeleteGraphId,
+    );
+    if (!built.ok) {
+      notifyFunctionFailure(built.reason);
+      setPendingDeleteGraphId(undefined);
+      return;
+    }
+    const outcome = runCommand(
+      "graph.history.deleteFunction",
+      built.value.command,
+    );
+    if (!outcome.ok) {
+      notify({
+        severity: "error",
+        titleKey: "graph.function.library.errors.commandRejected",
+      });
+      return;
+    }
+    if (activeGraphId === pendingDeleteGraphId) {
+      setActiveGraph(document.entryGraphId);
+    } else if (graphNavigationStack.includes(pendingDeleteGraphId)) {
+      setActiveGraph(activeGraphId);
+    }
+    setPendingDeleteGraphId(undefined);
+  }, [
+    activeGraphId,
+    document,
+    graphNavigationStack,
+    pendingDeleteGraphId,
+    runCommand,
+    setActiveGraph,
+  ]);
 
   return (
     <section
@@ -281,12 +341,61 @@ export function FunctionLibrary() {
                   >
                     <ProductIcon icon="action.editTask" size="small" />
                   </Button>
+                  <Button
+                    className="function-library__delete"
+                    size="icon"
+                    variant="ghost"
+                    disabled={executionLocked}
+                    title={t("graph.function.library.delete")}
+                    aria-label={t("graph.function.library.deleteFor", {
+                      name: graph.name,
+                    })}
+                    onClick={() => {
+                      setPendingDeleteGraphId(graph.graphId);
+                    }}
+                  >
+                    <ProductIcon icon="action.deleteTask" size="small" />
+                  </Button>
                 </div>
               </li>
             );
           })}
         </ul>
       )}
+      <Dialog
+        open={pendingDeleteGraph !== undefined}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteGraphId(undefined);
+        }}
+      >
+        <DialogContent
+          className="library-delete-dialog"
+          closeLabel={t("common.actions.close")}
+          title={t("graph.function.library.deleteTitle", {
+            name: pendingDeleteGraph?.name ?? "",
+          })}
+          description={t(
+            pendingDeleteCallCount === 0
+              ? "graph.function.library.deleteDescription"
+              : "graph.function.library.deleteDescriptionWithCalls",
+            { count: pendingDeleteCallCount },
+          )}
+        >
+          <div className="library-delete-dialog__actions">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setPendingDeleteGraphId(undefined);
+              }}
+            >
+              {t("common.actions.cancel")}
+            </Button>
+            <Button variant="destructive" onClick={deleteFunction}>
+              {t("graph.function.library.deleteConfirm")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

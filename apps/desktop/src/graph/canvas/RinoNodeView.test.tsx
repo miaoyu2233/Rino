@@ -326,7 +326,7 @@ describe("node port placement", () => {
     );
   });
 
-  it("keeps only the node name, alias, and connected anchors below 50 percent zoom", async () => {
+  it("keeps wrapped names and connected anchors below 50 percent zoom", async () => {
     const data: CanvasNodeData = {
       graphId: "graph",
       nodeId: "node",
@@ -359,6 +359,9 @@ describe("node port placement", () => {
         "overview",
       );
     });
+    const overviewNode = container.querySelector<HTMLElement>(".rino-node");
+    expect(overviewNode?.style.minHeight).not.toBe("");
+    expect(overviewNode?.style.height).toBe("");
     expect(screen.getByText("等待节点")).toBeInTheDocument();
     expect(screen.getByText("识别后等待")).toBeInTheDocument();
     expect(container.querySelector("[data-port-section]")).toBeNull();

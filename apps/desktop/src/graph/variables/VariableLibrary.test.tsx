@@ -94,6 +94,53 @@ describe("VariableLibrary", () => {
     );
   });
 
+  it("shows a prominent delete action and confirms removal", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await createProjectFromEmptyState();
+    await user.click(
+      within(
+        screen.getByRole("complementary", {
+          name: "\u6253\u5f00\u5de5\u4f5c\u53f0",
+        }),
+      ).getByRole("button", {
+        name: "\u6574\u4e2a\u9879\u76ee\u5171\u4eab\u53d8\u91cf",
+      }),
+    );
+    const page = variableLibrary();
+
+    await user.type(
+      within(page).getByRole("textbox", {
+        name: "\u65b0\u53d8\u91cf\u540d\u79f0",
+      }),
+      "score",
+    );
+    await user.click(
+      within(page).getByRole("button", { name: "\u65b0\u5efa\u53d8\u91cf" }),
+    );
+    await user.click(
+      within(page).getByRole("button", { name: "\u5220\u9664\u53d8\u91cf" }),
+    );
+
+    const dialog = screen.getByRole("dialog", {
+      name: "\u5220\u9664\u53d8\u91cf\u201cscore\u201d\uff1f",
+    });
+    expect(
+      within(dialog).getByText(
+        "\u8be5\u5171\u4eab\u53d8\u91cf\u5c06\u4ece\u9879\u76ee\u4e2d\u5220\u9664\u3002\u6b64\u64cd\u4f5c\u53ef\u64a4\u9500\u3002",
+      ),
+    ).toBeInTheDocument();
+    await user.click(
+      within(dialog).getByRole("button", { name: "\u5220\u9664\u53d8\u91cf" }),
+    );
+
+    await waitFor(() => {
+      expect(useDocumentStore.getState().history?.document.variables).toEqual(
+        [],
+      );
+    });
+  });
+
   it("drags the selected variable and protects editor controls", async () => {
     const user = userEvent.setup();
     render(<App />);

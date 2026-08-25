@@ -610,6 +610,7 @@
 
 .rino-node__overview-names {
   display: grid;
+  width: 100%;
   min-width: 0;
   gap: 2px;
   line-height: 1.05;
@@ -617,9 +618,9 @@
 
 .rino-node__overview-title,
 .rino-node__overview-alias {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .rino-node__overview-title {
@@ -710,8 +711,8 @@
   outline-offset: 1px;
 }
 
-/* The two names share the header's flexible column. `min-width: 0` is what lets a longer
-   translation shrink and truncate instead of pushing the state markers out of the node. */
+/* The two names share the header's flexible column. Long labels wrap inside the node
+   instead of pushing state markers out of the header. */
 .rino-node__names {
   display: flex;
   flex: 1;
@@ -728,27 +729,26 @@
 
 .rino-node__primary-title-line {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-half);
-  align-items: center;
+  align-items: flex-start;
   min-width: 0;
 }
 
 .rino-node__title {
   flex: 0 1 auto;
   min-width: 0;
-  overflow: hidden;
   font-size: var(--node-font-title);
   font-weight: 600;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .rino-node__secondary-title {
-  overflow: hidden;
   color: var(--text-muted);
   font-size: var(--node-font-secondary);
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .rino-node__marker--breakpoint {
@@ -791,14 +791,13 @@
 .rino-node__alias {
   flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
   padding-left: var(--space-half);
   border-left: var(--border-width) solid var(--border-strong);
   color: var(--text-primary);
   font-size: var(--node-font-title);
   font-weight: 600;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .rino-node__alias-input {

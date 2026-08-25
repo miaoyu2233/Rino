@@ -535,6 +535,13 @@ export const zhCNTranslation = {
         selfCallDisabled: "当前函数不能插入自身调用",
         edit: "编辑函数",
         editFor: "编辑函数 {{name}}",
+        delete: "删除函数",
+        deleteFor: "删除函数 {{name}}",
+        deleteTitle: "删除函数“{{name}}”？",
+        deleteDescription: "该函数图将被删除。此操作可撤销。",
+        deleteDescriptionWithCalls:
+          "该函数图及引用它的 {{count}} 个调用节点将被删除。此操作可撤销。",
+        deleteConfirm: "删除函数",
         dragHint: "将 {{name}} 拖到画布以插入函数调用。",
         dragDisabled: "项目运行中或没有打开的图时，不能拖动函数。",
         errors: {
@@ -617,6 +624,9 @@ export const zhCNTranslation = {
         dragHint: "将 {{name}} 拖到画布以插入变量节点。",
         dragDisabled: "项目运行中或没有打开的图时，不能拖动变量。",
         delete: "删除变量",
+        deleteTitle: "删除变量“{{name}}”？",
+        deleteDescription: "该共享变量将从项目中删除。此操作可撤销。",
+        deleteConfirm: "删除变量",
         insertGetter: "插入获取变量",
         insertSetter: "插入设置变量",
         insertMenuLabel: "选择变量节点",
