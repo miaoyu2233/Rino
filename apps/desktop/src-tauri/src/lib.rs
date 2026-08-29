@@ -114,6 +114,7 @@ fn initialize_application(app: &tauri::App) -> Result<(), StartupError> {
     let preview_cache_root = directories.preview_cache_root();
     let maa_user_data_root = directories.maa_user_data_root();
     let publishing_cache_root = directories.publishing_cache_root();
+    let wfp_template_cache_root = directories.wfp_template_cache_root();
     publishing::prepare_cache(&publishing_cache_root).map_err(|error| {
         StartupError::io(
             "PUBLISHING_CACHE_CLEANUP_FAILED",
@@ -129,7 +130,10 @@ fn initialize_application(app: &tauri::App) -> Result<(), StartupError> {
     app.manage(ProjectWorkspaceState {
         workspace: Mutex::new(ProjectWorkspace::new(directories.recovery_root())),
     });
-    app.manage(publishing::PublishingState::new(publishing_cache_root));
+    app.manage(publishing::PublishingState::new(
+        publishing_cache_root,
+        wfp_template_cache_root,
+    ));
     app.manage(directories);
 
     let executable_directory = app

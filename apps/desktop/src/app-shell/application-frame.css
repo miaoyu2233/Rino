@@ -125,6 +125,70 @@
 .publishing-form__notice svg {
   flex: none;
 }
+.publishing-form__choice {
+  display: grid;
+  gap: var(--space-1-half);
+  margin: 0;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-standard);
+  padding: var(--space-2);
+  background: var(--surface-interactive);
+}
+
+.publishing-form__choice legend {
+  padding: 0 4px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.publishing-form__choice-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.publishing-form__choice-options label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-small);
+  padding: var(--space-1-half);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.publishing-form__choice-options label:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.publishing-form__choice-options input,
+.publishing-form__update-option input {
+  flex: none;
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+
+.publishing-form__choice-options span {
+  display: grid;
+  gap: 2px;
+}
+
+.publishing-form__choice-options small {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.publishing-form__update-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  color: var(--text-primary);
+  font-size: 13px;
+}
 
 .publishing-form__auth {
   display: grid;
@@ -246,6 +310,7 @@
     display: grid;
   }
 
+  .publishing-form__choice-options,
   .publishing-form__grid {
     grid-template-columns: 1fr;
   }

@@ -57,6 +57,8 @@ function initialOptions(
     licenseIdentifier: "LicenseRef-Proprietary",
     githubOwner: "",
     githubRepository: projectSlug,
+    content: "resource",
+    updateWfp: true,
   };
 }
 
@@ -113,7 +115,10 @@ function PackagePublishingDialogContent({
 
   const busy = activity !== "idle";
 
-  const update = (field: keyof typeof options, value: string) => {
+  const update = <Key extends keyof typeof options>(
+    field: Key,
+    value: (typeof options)[Key],
+  ) => {
     setOptions((current) => ({ ...current, [field]: value }));
     setError(undefined);
     setOutput(undefined);
@@ -137,10 +142,19 @@ function PackagePublishingDialogContent({
     setOutput(undefined);
     try {
       if (!(await saveBeforePublishing())) return;
+      const application = options.content === "application";
       const result = await exportPackage(
         {
-          title: t("publishing.dialog.exportTitle"),
-          fileTypeLabel: t("publishing.dialog.fileTypeLabel"),
+          title: t(
+            application
+              ? "publishing.dialog.exportApplicationTitle"
+              : "publishing.dialog.exportResourceTitle",
+          ),
+          fileTypeLabel: t(
+            application
+              ? "publishing.dialog.applicationFileTypeLabel"
+              : "publishing.dialog.resourceFileTypeLabel",
+          ),
         },
         completeOptions(),
       );
@@ -226,6 +240,63 @@ function PackagePublishingDialogContent({
             <ProductIcon icon="action.publish" />
             <span>{t("publishing.dialog.publicNotice")}</span>
           </div>
+          <fieldset className="publishing-form__choice">
+            <legend>{t("publishing.fields.content")}</legend>
+            <div className="publishing-form__choice-options">
+              <label>
+                <input
+                  type="radio"
+                  name="publishing-content"
+                  value="resource"
+                  checked={options.content === "resource"}
+                  disabled={busy}
+                  onChange={() => {
+                    update("content", "resource");
+                  }}
+                />
+                <span>
+                  <strong>{t("publishing.content.resource")}</strong>
+                  <small>{t("publishing.content.resourceDescription")}</small>
+                </span>
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="publishing-content"
+                  value="application"
+                  checked={options.content === "application"}
+                  disabled={busy}
+                  onChange={() => {
+                    update("content", "application");
+                  }}
+                />
+                <span>
+                  <strong>{t("publishing.content.application")}</strong>
+                  <small>
+                    {t("publishing.content.applicationDescription")}
+                  </small>
+                </span>
+              </label>
+            </div>
+            {options.content === "application" ? (
+              <>
+                <label className="publishing-form__update-option">
+                  <input
+                    type="checkbox"
+                    checked={options.updateWfp}
+                    disabled={busy}
+                    onChange={(event) => {
+                      update("updateWfp", event.target.checked);
+                    }}
+                  />
+                  <span>{t("publishing.fields.updateWfp")}</span>
+                </label>
+                <p className="publishing-form__field-help">
+                  {t("publishing.fields.updateWfpNotice")}
+                </p>
+              </>
+            ) : null}
+          </fieldset>
 
           <section
             className="publishing-form__auth"
@@ -396,8 +467,16 @@ function PackagePublishingDialogContent({
             <div className="publishing-form__result" role="status">
               <strong>
                 {publishOutput
-                  ? t("publishing.result.published")
-                  : t("publishing.result.exported")}
+                  ? t(
+                      options.content === "application"
+                        ? "publishing.result.applicationPublished"
+                        : "publishing.result.resourcePublished",
+                    )
+                  : t(
+                      options.content === "application"
+                        ? "publishing.result.applicationExported"
+                        : "publishing.result.resourceExported",
+                    )}
               </strong>
               <span>{output.assetName}</span>
               <span>

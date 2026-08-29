@@ -28,6 +28,8 @@ const options: PackageOptions = {
   githubOwner: "example-owner",
   githubRepository: "example-repository",
   releasedAt: "2026-08-12T12:00:00.000Z",
+  content: "application",
+  updateWfp: true,
 };
 
 describe("publishing transport", () => {

@@ -2494,9 +2494,9 @@ export const zhCNTranslation = {
     dialog: {
       title: "导出与发布项目",
       description:
-        "生成供 Rino 客户端导入的签名 .rino-package，或将它发布为 GitHub Release 资源。",
+        "可将签名项目资源或包含最新版 Rino_WFP 的可运行 Windows 应用导出到本地，也可发布为 GitHub Release 资产。",
       publicNotice:
-        "发布会把已保存的项目图、项目元数据和项目素材公开上传到 GitHub。不会上传恢复数据、日志、本机路径、凭据或编辑器设置。",
+        "发布会把已保存的项目图、项目元数据和项目素材公开上传到 GitHub；应用模式还会上传公开的 Rino_WFP 运行文件。不会上传恢复数据、日志、本机路径、凭据或编辑器设置。",
       authTitle: "GitHub CLI 授权",
       authDescription:
         "登录由官方 GitHub CLI 发起浏览器/设备授权流程。Rino 不读取、存储或显示 GitHub 账户标识或令牌，凭据由 GH CLI 管理。",
@@ -2504,10 +2504,24 @@ export const zhCNTranslation = {
         "按 GH CLI 提示打开官方浏览器授权页面；一次性代码会复制到剪贴板，按提示粘贴即可。",
       logoutWarning:
         "这只会移除本机 GH CLI 的登录配置，不会撤销远程 OAuth 令牌。确认要退出吗？",
-      exportTitle: "导出 Rino 项目包",
-      fileTypeLabel: "Rino 项目包",
+      exportResourceTitle: "选择 Rino_WFP 资源目录",
+      resourceFileTypeLabel: "RinoProject 资源目录",
+      exportApplicationTitle: "导出 Rino Windows 应用",
+      applicationFileTypeLabel: "Rino 应用 ZIP",
+    },
+    content: {
+      resource: "仅导出资源",
+      resourceDescription:
+        "本地导出会在所选目录生成签名的 RinoProject 文件夹；GitHub 发布仍使用兼容的 .rino-package。",
+      application: "导出可运行应用",
+      applicationDescription:
+        "把签名资源包放入 Rino_WFP、Sidecar、ADB 与固定 OCR 资源中，生成 Windows 应用 ZIP。",
     },
     fields: {
+      content: "导出内容",
+      updateWfp: "本地导出前同步最新 Rino_WFP",
+      updateWfpNotice:
+        "未勾选时优先使用已验证缓存；缓存不存在仍会同步。发布到 GitHub 的应用始终强制同步最新稳定版。",
       packageId: "包标识",
       version: "版本",
       summary: "项目摘要",
@@ -2524,7 +2538,8 @@ export const zhCNTranslation = {
       authenticated: "GitHub CLI 已认证",
       loginRequired:
         "GitHub CLI 尚未登录。点击登录并按官方浏览器/设备流程完成授权。",
-      cliRequired: "未找到 GitHub CLI。仍可导出本地项目包。",
+      cliRequired:
+        "未找到 GitHub CLI。仍可导出本地资源包；需要刷新 Rino_WFP 的应用导出不可用。",
     },
     actions: {
       login: "登录 GitHub CLI",
@@ -2539,8 +2554,10 @@ export const zhCNTranslation = {
       publishing: "正在发布…",
     },
     result: {
-      exported: "项目包已导出",
-      published: "项目包已发布",
+      resourceExported: "资源目录已导出",
+      resourcePublished: "资源包已发布",
+      applicationExported: "可运行应用已导出",
+      applicationPublished: "可运行应用已发布",
       keyId: "签名密钥：{{keyId}}",
       publicKey: "发布者公钥：{{publicKey}}",
     },
@@ -2552,8 +2569,14 @@ export const zhCNTranslation = {
       ASSET_UNAVAILABLE: "项目素材缺失、损坏或与登记的哈希不一致。",
       CREDENTIAL_UNAVAILABLE: "无法访问 Windows 凭据管理器中的本地签名密钥。",
       PACKAGE_WRITE_FAILED: "项目保存或项目包写入失败。",
+      APPLICATION_WRITE_FAILED: "无法生成或验证可运行应用 ZIP。",
+      WFP_TEMPLATE_UNAVAILABLE:
+        "Rino_WFP 仓库尚无可用的最新稳定模板，且本机没有已验证缓存。",
+      WFP_TEMPLATE_INVALID: "Rino_WFP 模板的清单、路径或完整性校验失败。",
+      WFP_TEMPLATE_SYNC_FAILED:
+        "无法从 miaoyu2233/Rino_WFP 同步最新稳定模板，请检查 GH CLI 与网络后重试。",
       CACHE_CLEANUP_FAILED:
-        "发布临时包未能安全清理。若刚完成上传，请不要重复发布同一版本；重新启动应用后再检查。",
+        "发布临时文件未能安全清理。若刚完成上传，请不要重复发布同一版本；重新启动应用后再检查。",
       GITHUB_CLI_UNAVAILABLE: "未找到 GitHub CLI。",
       GITHUB_AUTHENTICATION_REQUIRED:
         "GitHub CLI 尚未登录。请先在终端运行 gh auth login。",
@@ -2562,7 +2585,7 @@ export const zhCNTranslation = {
       GITHUB_LOGOUT_FAILED:
         "无法移除本机 GitHub CLI 登录配置。请运行 gh auth status 后重试。",
       PACKAGE_VERSION_EXISTS:
-        "该版本的项目包已经发布。已发布版本不可覆盖，请提升版本号后重试。",
+        "该版本的发布资产已经存在。已发布资产不可覆盖，请提升版本号后重试。",
       GITHUB_COMMAND_FAILED:
         "GitHub 仓库或 Release 操作失败。请检查权限、仓库状态和网络后重试。",
       DESKTOP_COMMAND_FAILED: "桌面发布服务不可用。",

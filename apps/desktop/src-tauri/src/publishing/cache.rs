@@ -3,6 +3,7 @@ use std::{fs, io, path::Path};
 use super::error::{PublishingError, PublishingErrorCode, PublishingResult};
 
 const PACKAGE_SUFFIX: &str = ".rino-package";
+const APPLICATION_SUFFIX: &str = ".rino-app.zip";
 const PACKAGE_ID_LENGTH: usize = 32;
 const MAXIMUM_CACHE_ENTRIES: usize = 4_096;
 
@@ -47,7 +48,7 @@ pub fn prepare(root: &Path) -> PublishingResult<()> {
     Ok(())
 }
 
-pub fn remove_package(path: &Path, completed_upload: bool) -> PublishingResult<()> {
+pub fn remove_artifact(path: &Path, completed_upload: bool) -> PublishingResult<()> {
     match fs::remove_file(path) {
         Ok(()) => Ok(()),
         Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(()),
@@ -63,7 +64,9 @@ pub fn remove_package(path: &Path, completed_upload: bool) -> PublishingResult<(
 }
 
 fn is_owned_cache_file_name(file_name: &str) -> bool {
-    is_package_file_name(file_name) || is_staging_file_name(file_name)
+    is_package_file_name(file_name)
+        || is_application_file_name(file_name)
+        || is_staging_file_name(file_name)
 }
 
 fn is_package_file_name(file_name: &str) -> bool {
@@ -76,14 +79,23 @@ fn is_package_file_name(file_name: &str) -> bool {
             .all(|character| character.is_ascii_hexdigit() && !character.is_ascii_uppercase())
 }
 
+fn is_application_file_name(file_name: &str) -> bool {
+    let Some(identifier) = file_name.strip_suffix(APPLICATION_SUFFIX) else {
+        return false;
+    };
+    identifier.len() == PACKAGE_ID_LENGTH
+        && identifier
+            .chars()
+            .all(|character| character.is_ascii_hexdigit() && !character.is_ascii_uppercase())
+}
 fn is_staging_file_name(file_name: &str) -> bool {
     let Some(rest) = file_name.strip_prefix('.') else {
         return false;
     };
-    let Some((package_name, staging_id)) = rest.split_once(".rino-staging-") else {
+    let Some((artifact_name, staging_id)) = rest.split_once(".rino-staging-") else {
         return false;
     };
-    is_package_file_name(package_name)
+    (is_package_file_name(artifact_name) || is_application_file_name(artifact_name))
         && staging_id.len() == PACKAGE_ID_LENGTH
         && staging_id
             .chars()

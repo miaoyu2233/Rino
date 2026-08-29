@@ -5,6 +5,13 @@ use super::error::{PublishingError, PublishingErrorCode, PublishingResult};
 pub const MAXIMUM_PACKAGE_BYTES: u64 = 1_073_741_824;
 const MAXIMUM_TEXT_LENGTH: usize = 2_048;
 
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum PublishingContent {
+    Resource,
+    Application,
+}
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct PackageOptions {
@@ -17,6 +24,8 @@ pub struct PackageOptions {
     pub github_owner: String,
     pub github_repository: String,
     pub released_at: String,
+    pub content: PublishingContent,
+    pub update_wfp: bool,
 }
 
 impl PackageOptions {
@@ -75,9 +84,23 @@ impl PackageOptions {
     }
 
     #[must_use]
-    pub fn asset_name(&self) -> String {
+    pub fn resource_asset_name(&self) -> String {
         let stem = self.package_id.replace('.', "-");
         format!("{stem}-{}.rino-package", self.version)
+    }
+
+    #[must_use]
+    pub fn application_asset_name(&self) -> String {
+        let stem = self.package_id.replace('.', "-");
+        format!("{stem}-{}.rino-app.zip", self.version)
+    }
+
+    #[must_use]
+    pub fn asset_name(&self) -> String {
+        match self.content {
+            PublishingContent::Resource => self.resource_asset_name(),
+            PublishingContent::Application => self.application_asset_name(),
+        }
     }
 }
 

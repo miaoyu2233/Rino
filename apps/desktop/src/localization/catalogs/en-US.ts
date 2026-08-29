@@ -2759,9 +2759,9 @@ export const enUSTranslation = {
     dialog: {
       title: "Export and publish project",
       description:
-        "Create a signed .rino-package for the Rino client, or publish it as a GitHub Release asset.",
+        "Export signed project resources or a runnable Windows application containing the latest Rino_WFP, or publish either artifact as a GitHub Release asset.",
       publicNotice:
-        "Publishing publicly uploads the saved project graphs, metadata, and project assets to GitHub. Recovery data, logs, local paths, credentials, and editor settings are never included.",
+        "Publishing publicly uploads the saved project graphs, metadata, and project assets to GitHub. Application mode also uploads the public Rino_WFP runtime files. Recovery data, logs, local paths, credentials, and editor settings are never included.",
       authTitle: "GitHub CLI authorization",
       authDescription:
         "The official GitHub CLI starts the browser/device authorization flow. Rino never reads, stores, or displays a GitHub account identifier or token; credentials are managed by GH CLI.",
@@ -2769,10 +2769,24 @@ export const enUSTranslation = {
         "Follow the GH CLI prompt to open the official browser authorization page. A one-time code is copied to the clipboard for you to paste when prompted.",
       logoutWarning:
         "This only removes the local GH CLI login configuration; it does not revoke the remote OAuth token. Confirm sign-out?",
-      exportTitle: "Export Rino package",
-      fileTypeLabel: "Rino package",
+      exportResourceTitle: "Select the Rino_WFP resource directory",
+      resourceFileTypeLabel: "RinoProject resource directory",
+      exportApplicationTitle: "Export Rino Windows application",
+      applicationFileTypeLabel: "Rino application ZIP",
+    },
+    content: {
+      resource: "Resources only",
+      resourceDescription:
+        "Local export creates a signed RinoProject folder inside the selected directory; GitHub publishing keeps the compatible .rino-package.",
+      application: "Runnable application",
+      applicationDescription:
+        "Place the signed resource package into Rino_WFP with its Sidecar, ADB, and fixed OCR resources, then create a Windows application ZIP.",
     },
     fields: {
+      content: "Export content",
+      updateWfp: "Sync the latest Rino_WFP before local export",
+      updateWfpNotice:
+        "When cleared, local export prefers the verified cache and still syncs if no cache exists. GitHub application publishing always forces the latest stable version.",
       packageId: "Package ID",
       version: "Version",
       summary: "Summary",
@@ -2790,7 +2804,7 @@ export const enUSTranslation = {
       loginRequired:
         "GitHub CLI is not signed in. Click sign in and complete the official browser/device flow.",
       cliRequired:
-        "GitHub CLI was not found. Local package export is still available.",
+        "GitHub CLI was not found. Local resource export remains available; application export cannot refresh Rino_WFP.",
     },
     actions: {
       login: "Sign in with GitHub CLI",
@@ -2805,8 +2819,10 @@ export const enUSTranslation = {
       publishing: "Publishing…",
     },
     result: {
-      exported: "Package exported",
-      published: "Package published",
+      resourceExported: "Resource directory exported",
+      resourcePublished: "Resource package published",
+      applicationExported: "Runnable application exported",
+      applicationPublished: "Runnable application published",
       keyId: "Signing key: {{keyId}}",
       publicKey: "Publisher public key: {{publicKey}}",
     },
@@ -2821,8 +2837,16 @@ export const enUSTranslation = {
       CREDENTIAL_UNAVAILABLE:
         "The local signing key in Windows Credential Manager is unavailable.",
       PACKAGE_WRITE_FAILED: "The project or package could not be written.",
+      APPLICATION_WRITE_FAILED:
+        "The runnable application ZIP could not be created or verified.",
+      WFP_TEMPLATE_UNAVAILABLE:
+        "The Rino_WFP repository has no usable latest stable template and no verified local cache is available.",
+      WFP_TEMPLATE_INVALID:
+        "The Rino_WFP template manifest, paths, or integrity check failed.",
+      WFP_TEMPLATE_SYNC_FAILED:
+        "The latest stable template could not be synchronized from miaoyu2233/Rino_WFP. Check GH CLI and the network, then retry.",
       CACHE_CLEANUP_FAILED:
-        "The private publishing package could not be cleaned up safely. If upload just completed, do not retry the same version; restart the app and inspect again.",
+        "A private publishing artifact could not be cleaned up safely. If upload just completed, do not retry the same version; restart the app and inspect again.",
       GITHUB_CLI_UNAVAILABLE: "GitHub CLI was not found.",
       GITHUB_AUTHENTICATION_REQUIRED:
         "GitHub CLI is not signed in. Run gh auth login first.",
@@ -2831,7 +2855,7 @@ export const enUSTranslation = {
       GITHUB_LOGOUT_FAILED:
         "The local GitHub CLI login configuration could not be removed. Run gh auth status and try again.",
       PACKAGE_VERSION_EXISTS:
-        "This package version is already published. Published versions cannot be replaced; increase the version and try again.",
+        "This release asset already exists. Published assets cannot be replaced; increase the version and try again.",
       GITHUB_COMMAND_FAILED:
         "The GitHub repository or Release operation failed. Check access, repository state, and network connectivity.",
       DESKTOP_COMMAND_FAILED: "The desktop publishing service is unavailable.",

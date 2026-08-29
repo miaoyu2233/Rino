@@ -111,6 +111,7 @@ secrets.json
 # Frozen application and packaging intermediates
 /.nuitka-cache/
 /wheels/
+/bin/
 **/release-local/
 
 # Project persistence intermediates
@@ -124,6 +125,12 @@ secrets.json
 *.rino-import-staging
 # Signed packages prepared for an explicit GitHub upload are short-lived private cache.
 **/publishing-cache/
+# Synced Rino_WFP templates and injected application bundles contain local build metadata
+# and unpublished user projects; they never belong to the authoring repository.
+/_WFP/
+**/wfp-template-cache/
+*.rino-app.zip.rino-staging-*
+*.rino-app.zip
 
 # Editors and operating systems
 **/.idea/

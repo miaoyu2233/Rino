@@ -3,6 +3,7 @@ use std::{
     sync::atomic::{AtomicBool, Ordering},
 };
 
+mod application;
 mod cache;
 pub mod commands;
 mod error;
@@ -13,6 +14,7 @@ mod signing;
 
 pub struct PublishingState {
     cache_root: PathBuf,
+    template_cache_root: PathBuf,
     operation_active: AtomicBool,
 }
 
@@ -26,9 +28,10 @@ impl Drop for PublishingOperation<'_> {
 
 impl PublishingState {
     #[must_use]
-    pub const fn new(cache_root: PathBuf) -> Self {
+    pub const fn new(cache_root: PathBuf, template_cache_root: PathBuf) -> Self {
         Self {
             cache_root,
+            template_cache_root,
             operation_active: AtomicBool::new(false),
         }
     }

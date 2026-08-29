@@ -10,7 +10,7 @@ use std::{
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use super::{
     error::{PublishingError, PublishingErrorCode, PublishingResult},
@@ -21,6 +21,8 @@ use super::{
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 const MAXIMUM_RELEASE_ASSETS: usize = 1_000;
 const MAXIMUM_RELEASE_ASSET_OUTPUT_BYTES: usize = 256 * 1024;
+const WFP_REPOSITORY: &str = "miaoyu2233/Rino_WFP";
+const WFP_TEMPLATE_ASSET_NAME: &str = "Rino-WFP-win-x64.zip";
 const AUTHENTICATION_STATUS_TIMEOUT: Duration = Duration::from_secs(15);
 const AUTHENTICATION_LOGIN_TIMEOUT: Duration = Duration::from_mins(10);
 const AUTHENTICATION_LOGOUT_TIMEOUT: Duration = Duration::from_secs(30);
@@ -51,6 +53,27 @@ pub struct GithubPublishOutput {
     pub repository_url: String,
     pub release_url: String,
     pub created_repository: bool,
+}
+#[derive(Clone, Debug)]
+pub struct WfpTemplateRelease {
+    pub byte_length: u64,
+    pub sha256: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ReleaseView {
+    tag_name: String,
+    is_draft: bool,
+    is_prerelease: bool,
+    assets: Vec<ReleaseAsset>,
+}
+
+#[derive(Deserialize)]
+struct ReleaseAsset {
+    name: String,
+    size: u64,
+    digest: String,
 }
 
 fn github_cli_path() -> Option<PathBuf> {
@@ -314,6 +337,116 @@ pub fn logout() -> PublishingResult<GithubStatus> {
     })
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "release metadata and the exact downloaded asset are validated in one fixed transaction"
+)]
+pub fn download_latest_wfp_template(target: &Path) -> PublishingResult<WfpTemplateRelease> {
+    let cli = github_cli_path().ok_or_else(|| {
+        PublishingError::new(PublishingErrorCode::GithubCliUnavailable, "githubCli")
+    })?;
+    if target.exists() {
+        return Err(PublishingError::new(
+            PublishingErrorCode::WfpTemplateSyncFailed,
+            "templateDownloadTarget",
+        ));
+    }
+    let view = run(
+        &cli,
+        &[
+            OsString::from("release"),
+            OsString::from("view"),
+            OsString::from("--repo"),
+            OsString::from(WFP_REPOSITORY),
+            OsString::from("--json"),
+            OsString::from("tagName,isDraft,isPrerelease,assets"),
+        ],
+    )?;
+    if !view.status.success() {
+        return Err(PublishingError::new(
+            PublishingErrorCode::WfpTemplateUnavailable,
+            "templateRelease",
+        ));
+    }
+    if view.stdout.len() > MAXIMUM_RELEASE_ASSET_OUTPUT_BYTES {
+        return Err(PublishingError::new(
+            PublishingErrorCode::WfpTemplateInvalid,
+            "templateReleaseOutput",
+        ));
+    }
+    let release: ReleaseView = serde_json::from_slice(&view.stdout).map_err(|_| {
+        PublishingError::new(
+            PublishingErrorCode::WfpTemplateInvalid,
+            "templateReleaseJson",
+        )
+    })?;
+    if release.tag_name.is_empty()
+        || release.tag_name.len() > 128
+        || release.is_draft
+        || release.is_prerelease
+    {
+        return Err(PublishingError::new(
+            PublishingErrorCode::WfpTemplateInvalid,
+            "templateReleaseFields",
+        ));
+    }
+    let mut matching = release
+        .assets
+        .into_iter()
+        .filter(|asset| asset.name == WFP_TEMPLATE_ASSET_NAME);
+    let asset = matching.next().ok_or_else(|| {
+        PublishingError::new(
+            PublishingErrorCode::WfpTemplateUnavailable,
+            "templateReleaseAsset",
+        )
+    })?;
+    if matching.next().is_some() || asset.size == 0 || asset.size > 1_073_741_824 {
+        return Err(PublishingError::new(
+            PublishingErrorCode::WfpTemplateInvalid,
+            "templateReleaseAssetFields",
+        ));
+    }
+    let sha256 = asset.digest.strip_prefix("sha256:").ok_or_else(|| {
+        PublishingError::new(
+            PublishingErrorCode::WfpTemplateInvalid,
+            "templateReleaseDigest",
+        )
+    })?;
+    if sha256.len() != 64
+        || !sha256
+            .chars()
+            .all(|character| character.is_ascii_hexdigit() && !character.is_ascii_uppercase())
+    {
+        return Err(PublishingError::new(
+            PublishingErrorCode::WfpTemplateInvalid,
+            "templateReleaseDigest",
+        ));
+    }
+    let download = run(
+        &cli,
+        &[
+            OsString::from("release"),
+            OsString::from("download"),
+            OsString::from(&release.tag_name),
+            OsString::from("--repo"),
+            OsString::from(WFP_REPOSITORY),
+            OsString::from("--pattern"),
+            OsString::from(WFP_TEMPLATE_ASSET_NAME),
+            OsString::from("--output"),
+            target.as_os_str().to_os_string(),
+        ],
+    )?;
+    if !download.status.success() {
+        return Err(PublishingError::new(
+            PublishingErrorCode::WfpTemplateSyncFailed,
+            "templateReleaseDownload",
+        ));
+    }
+    Ok(WfpTemplateRelease {
+        byte_length: asset.size,
+        sha256: sha256.to_owned(),
+    })
+}
 fn run_success(cli: &Path, arguments: &[OsString], detail: &'static str) -> PublishingResult<()> {
     let output = run(cli, arguments)?;
     if output.status.success() {
@@ -451,7 +584,8 @@ fn ensure_release_asset_available(
 }
 
 pub fn publish(
-    package_path: &Path,
+    asset_path: &Path,
+    asset_name: &str,
     options: &PackageOptions,
 ) -> PublishingResult<GithubPublishOutput> {
     options.validate()?;
@@ -498,10 +632,10 @@ pub fn publish(
     let release_assets = release_asset_names(&cli, &repository_reference, &release_tag)?;
 
     if let Some(release_assets) = release_assets {
-        ensure_release_asset_available(&release_assets, &options.asset_name())?;
+        ensure_release_asset_available(&release_assets, asset_name)?;
         run_success(
             &cli,
-            &release_upload_arguments(&repository_reference, &release_tag, package_path),
+            &release_upload_arguments(&repository_reference, &release_tag, asset_path),
             "releaseUpload",
         )?;
     } else {
@@ -511,7 +645,7 @@ pub fn publish(
                 OsString::from("release"),
                 OsString::from("create"),
                 OsString::from(&release_tag),
-                package_path.as_os_str().to_os_string(),
+                asset_path.as_os_str().to_os_string(),
                 OsString::from("--repo"),
                 OsString::from(&repository_reference),
                 OsString::from("--title"),

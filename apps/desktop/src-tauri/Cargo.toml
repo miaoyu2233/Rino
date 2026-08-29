@@ -26,7 +26,7 @@ sha2 = "=0.10.9"
 tauri = { version = "=2.11.5", default-features = false, features = ["wry"] }
 tauri-plugin-dialog = "=2.7.2"
 uuid = { version = "=1.24.0", features = ["v4", "v5"] }
-zip = { version = "=8.1.0", default-features = false }
+zip = { version = "=8.1.0", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "=0.61.2", features = [

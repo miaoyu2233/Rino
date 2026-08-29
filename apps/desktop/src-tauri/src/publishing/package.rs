@@ -787,6 +787,8 @@ mod tests {
             github_owner: "example-owner".to_owned(),
             github_repository: "example-repository".to_owned(),
             released_at: "2026-08-12T12:34:56.000Z".to_owned(),
+            content: super::super::manifest::PublishingContent::Resource,
+            update_wfp: false,
         }
     }
 }

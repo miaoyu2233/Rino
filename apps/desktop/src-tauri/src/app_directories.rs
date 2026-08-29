@@ -72,6 +72,10 @@ impl ApplicationDirectories {
         self.data.join("maa")
     }
 
+    /// The persistent cache for verified `Rino_WFP` release templates.
+    pub(crate) fn wfp_template_cache_root(&self) -> PathBuf {
+        self.cache.join("wfp-template-cache")
+    }
     /// Short-lived signed packages created immediately before an explicit upload.
     pub(crate) fn publishing_cache_root(&self) -> PathBuf {
         self.cache.join("publishing-cache")

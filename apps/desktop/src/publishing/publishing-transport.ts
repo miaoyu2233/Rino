@@ -1,5 +1,7 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 
+export type PublishingContent = "resource" | "application";
+
 export interface PackageOptions {
   packageId: string;
   version: string;
@@ -10,6 +12,8 @@ export interface PackageOptions {
   githubOwner: string;
   githubRepository: string;
   releasedAt: string;
+  content: PublishingContent;
+  updateWfp: boolean;
 }
 
 export interface PublishingDialogCaptions {
@@ -44,6 +48,10 @@ export type PublishingErrorCode =
   | "ASSET_UNAVAILABLE"
   | "CREDENTIAL_UNAVAILABLE"
   | "PACKAGE_WRITE_FAILED"
+  | "APPLICATION_WRITE_FAILED"
+  | "WFP_TEMPLATE_UNAVAILABLE"
+  | "WFP_TEMPLATE_INVALID"
+  | "WFP_TEMPLATE_SYNC_FAILED"
   | "CACHE_CLEANUP_FAILED"
   | "GITHUB_CLI_UNAVAILABLE"
   | "GITHUB_AUTHENTICATION_REQUIRED"
@@ -71,6 +79,10 @@ const ERROR_CODES = new Set<PublishingErrorCode>([
   "ASSET_UNAVAILABLE",
   "CREDENTIAL_UNAVAILABLE",
   "PACKAGE_WRITE_FAILED",
+  "APPLICATION_WRITE_FAILED",
+  "WFP_TEMPLATE_UNAVAILABLE",
+  "WFP_TEMPLATE_INVALID",
+  "WFP_TEMPLATE_SYNC_FAILED",
   "CACHE_CLEANUP_FAILED",
   "GITHUB_CLI_UNAVAILABLE",
   "GITHUB_AUTHENTICATION_REQUIRED",

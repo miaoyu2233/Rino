@@ -64,7 +64,7 @@ describe("PackagePublishingDialog", () => {
     });
     mocks.saveProject.mockResolvedValue({ status: "completed" });
     mocks.exportPackage.mockResolvedValue({
-      assetName: "example.rino-package",
+      assetName: "RinoProject",
       byteLength: 100,
       sha256: "a".repeat(64),
       keyId: "example-key",
@@ -88,10 +88,41 @@ describe("PackagePublishingDialog", () => {
 
     expect(mocks.saveProject).toHaveBeenCalledOnce();
     expect(mocks.exportPackage).toHaveBeenCalledOnce();
-    expect(screen.getByText("项目包已导出")).toBeInTheDocument();
+    expect(screen.getByText("资源目录已导出")).toBeInTheDocument();
     expect(screen.getByText("发布者公钥：public-key")).toBeInTheDocument();
   });
 
+  it("exports an application with the selected WFP update policy", async () => {
+    const user = userEvent.setup();
+    mocks.exportPackage.mockResolvedValue({
+      assetName: "example.rino-app.zip",
+      byteLength: 200,
+      sha256: "b".repeat(64),
+      keyId: "example-key",
+      publicKeyBase64: "public-key",
+    });
+    render(<PackagePublishingDialog open onOpenChange={vi.fn()} />);
+
+    await user.click(screen.getByRole("radio", { name: /导出可运行应用/ }));
+    expect(
+      screen.getByRole("checkbox", {
+        name: "本地导出前同步最新 Rino_WFP",
+      }),
+    ).toBeChecked();
+    await user.click(screen.getByRole("button", { name: "导出到本地" }));
+
+    expect(mocks.exportPackage).toHaveBeenCalledWith(
+      {
+        title: "导出 Rino Windows 应用",
+        fileTypeLabel: "Rino 应用 ZIP",
+      },
+      expect.objectContaining({
+        content: "application",
+        updateWfp: true,
+      }),
+    );
+    expect(screen.getByText("可运行应用已导出")).toBeInTheDocument();
+  });
   it("runs the official CLI login flow and reflects its returned status", async () => {
     const user = userEvent.setup();
     mocks.readGithubStatus.mockResolvedValue({
