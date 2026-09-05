@@ -7,6 +7,7 @@ const active = {
   userPaused: false,
   surfaceVisible: true,
   windowActive: true,
+  windowInteracting: false,
   deviceBusy: false,
   graphInteracting: false,
   runActive: false,
@@ -19,6 +20,7 @@ describe("device preview refresh policy", () => {
     [{ ...active, userPaused: true }, "userPaused"],
     [{ ...active, surfaceVisible: false }, "surfaceHidden"],
     [{ ...active, windowActive: false }, "windowInactive"],
+    [{ ...active, windowInteracting: true }, "windowInteracting"],
   ] as const)("pauses when acquisition should stop", (context, reason) => {
     expect(choosePreviewRefreshPolicy(context)).toEqual({
       mode: "paused",

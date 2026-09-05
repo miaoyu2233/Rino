@@ -9,6 +9,7 @@ const activeOptions = {
   userPaused: false,
   surfaceVisible: true,
   windowActive: true,
+  windowInteracting: false,
   deviceBusy: false,
   graphInteracting: false,
   runActive: false,
@@ -105,5 +106,58 @@ describe("preview refresh scheduling", () => {
     });
 
     expect(refreshPreview).not.toHaveBeenCalled();
+  });
+
+  it("does not capture or queue work while the window is interacting", async () => {
+    let finish: ((captured: boolean) => void) | undefined;
+    const refreshPreview = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const { rerender } = renderHook(
+      ({ windowInteracting }) =>
+        usePreviewRefresh({
+          ...activeOptions,
+          windowInteracting,
+          refreshPreview,
+          now: () => 0,
+        }),
+      { initialProps: { windowInteracting: true } },
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000);
+    });
+    expect(refreshPreview).not.toHaveBeenCalled();
+
+    rerender({ windowInteracting: false });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(199);
+    });
+    expect(refreshPreview).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
+    });
+    expect(refreshPreview).toHaveBeenCalledOnce();
+
+    rerender({ windowInteracting: true });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000);
+    });
+    expect(refreshPreview).toHaveBeenCalledOnce();
+
+    await act(async () => {
+      finish?.(true);
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    rerender({ windowInteracting: false });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
+    expect(refreshPreview).toHaveBeenCalledTimes(2);
   });
 });

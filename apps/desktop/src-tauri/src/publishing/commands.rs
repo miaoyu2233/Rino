@@ -96,8 +96,9 @@ fn write_package_to(
         .workspace
         .lock()
         .unwrap_or_else(PoisonError::into_inner);
+    let publisher = super::github::authenticated_identity()?;
     let signing_key = PublisherSigningKey::load_or_create()?;
-    super::package::write_package(target, &workspace, options, &signing_key)
+    super::package::write_package(target, &workspace, options, &publisher, &signing_key)
 }
 
 fn temporary_package_path(cache_root: &Path) -> PathBuf {
@@ -105,18 +106,39 @@ fn temporary_package_path(cache_root: &Path) -> PathBuf {
 }
 
 fn temporary_application_path(cache_root: &Path) -> PathBuf {
-    cache_root.join(format!("{}.rino-app.zip", Uuid::new_v4().simple()))
+    cache_root.join(format!("{}.exe", Uuid::new_v4().simple()))
 }
 
 fn ensure_application_suffix(target: &mut PathBuf) {
-    let expected = ".rino-app.zip";
     let matches = target
-        .file_name()
-        .and_then(|name| name.to_str())
-        .is_some_and(|name| name.to_ascii_lowercase().ends_with(expected));
+        .extension()
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("exe"));
     if !matches {
-        target.set_extension(expected.trim_start_matches('.'));
+        target.set_extension("exe");
     }
+}
+
+fn installer_compiler_root() -> PublishingResult<PathBuf> {
+    #[cfg(debug_assertions)]
+    if let Some(root) = std::env::var_os("RINO_INNO_COMPILER_ROOT") {
+        return Ok(PathBuf::from(root));
+    }
+    let executable = std::env::current_exe().map_err(|error| {
+        PublishingError::from_io(
+            PublishingErrorCode::ApplicationWriteFailed,
+            "applicationExecutable",
+            &error,
+        )
+    })?;
+    executable
+        .parent()
+        .map(|parent| parent.join("installer-compiler"))
+        .ok_or_else(|| {
+            PublishingError::new(
+                PublishingErrorCode::ApplicationWriteFailed,
+                "installerCompilerRoot",
+            )
+        })
 }
 
 fn write_local_resources(
@@ -147,10 +169,18 @@ fn write_local_application(
 ) -> PublishingResult<PackageOutput> {
     super::cache::prepare(package_cache_root)?;
     let template = super::application::resolve_template(template_cache_root, options.update_wfp)?;
+    let compiler_root = installer_compiler_root()?;
     let package_path = temporary_package_path(package_cache_root);
     let result = (|| {
         let package = write_package_to(app, &package_path, options)?;
-        super::application::write_application(target, &template, &package_path, &package, options)
+        super::application::write_installer(
+            target,
+            &template,
+            &package_path,
+            &package,
+            options,
+            &compiler_root,
+        )
     })();
     let cleanup = super::cache::remove_artifact(&package_path, result.is_ok());
     match (result, cleanup) {
@@ -166,11 +196,12 @@ pub async fn publishing_status() -> GithubStatus {
         .unwrap_or(GithubStatus {
             available: false,
             authenticated: false,
+            publisher: None,
         })
 }
 
 #[tauri::command]
-/// Starts the fixed GitHub CLI browser authentication flow without returning account data.
+/// Starts the fixed GitHub CLI browser authentication flow and returns only the public identity.
 ///
 /// # Errors
 ///
@@ -222,7 +253,7 @@ pub async fn publishing_logout(
 /// # Errors
 ///
 /// Returns a structured failure for invalid metadata, unavailable credentials or assets,
-/// a failed dialog, an unavailable WFP template, or an archive write that cannot complete safely.
+/// a failed dialog, an unavailable WFP template, or an installer write that cannot complete safely.
 pub async fn publishing_export(
     app: AppHandle,
     state: State<'_, PublishingState>,
@@ -233,7 +264,7 @@ pub async fn publishing_export(
     let selected = match options.content {
         PublishingContent::Resource => await_directory_selection(&app, captions).await?,
         PublishingContent::Application => {
-            await_save_selection(&app, captions, &options.asset_name(), "zip").await?
+            await_save_selection(&app, captions, &options.asset_name(), "exe").await?
         }
     };
     let Some(selected) = selected else {
@@ -285,7 +316,7 @@ pub struct PublishOutput {
 /// Creates the selected artifact and publishes it through the authenticated GitHub CLI.
 ///
 /// Application publishing always synchronizes the newest stable `Rino_WFP` template and uploads
-/// only the runnable application archive. Resource publishing uploads only the signed package.
+/// only the compiled Windows installer. Resource publishing uploads only the signed package.
 ///
 /// # Errors
 ///
@@ -316,12 +347,14 @@ pub async fn publishing_publish(
                 PublishingContent::Application => {
                     let template =
                         super::application::resolve_template(&template_cache_root, true)?;
-                    let application = super::application::write_application(
+                    let compiler_root = installer_compiler_root()?;
+                    let application = super::application::write_installer(
                         &application_path,
                         &template,
                         &package_path,
                         &package,
                         &options,
+                        &compiler_root,
                     )?;
                     (application_path.as_path(), application)
                 }

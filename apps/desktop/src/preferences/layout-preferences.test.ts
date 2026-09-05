@@ -40,7 +40,7 @@ describe("layout preferences", () => {
     );
 
     expect(document.layout).toMatchObject({
-      paletteWidth: 180,
+      paletteWidth: 156,
       rightWidth: 520,
       debugHeight: 300,
       previewRatio: 0.6,
@@ -192,7 +192,7 @@ describe("layout preferences", () => {
       }),
     );
 
-    expect(migrated.layout.paletteWidth).toBe(180);
+    expect(migrated.layout.paletteWidth).toBe(156);
     expect(migrated.layout.rightWidth).toBe(328);
     expect(customized.layout.paletteWidth).toBe(280);
     expect(customized.layout.rightWidth).toBe(400);

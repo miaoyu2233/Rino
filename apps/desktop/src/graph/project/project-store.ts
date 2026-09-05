@@ -17,6 +17,8 @@ interface ProjectStoreState {
   graphFileNames: ReadonlyMap<string, string>;
   /** The exact text last committed, so an unchanged project is never rewritten. */
   lastWritten: SerializedProject | undefined;
+  /** Whether the opened project still needs an explicit save to migrate its format. */
+  pendingMigration: boolean;
   activity: ProjectActivity;
   /** Unsaved work found in the recovery slot, awaiting the user's decision. */
   recovery: ProjectFileSet | undefined;
@@ -24,6 +26,7 @@ interface ProjectStoreState {
   recordCommit: (
     location: ProjectLocation,
     committed: SerializedProject,
+    pendingMigration?: boolean,
   ) => void;
   offerRecovery: (recovery: ProjectFileSet | undefined) => void;
   forgetProject: () => void;
@@ -35,16 +38,18 @@ export const useProjectStore = create<ProjectStoreState>((set) => ({
   location: undefined,
   graphFileNames: NO_GRAPH_FILE_NAMES,
   lastWritten: undefined,
+  pendingMigration: false,
   activity: "idle",
   recovery: undefined,
   setActivity: (activity) => {
     set({ activity });
   },
-  recordCommit: (location, committed) => {
+  recordCommit: (location, committed, pendingMigration = false) => {
     set({
       location,
       graphFileNames: committed.graphFileNames,
       lastWritten: committed,
+      pendingMigration,
     });
   },
   offerRecovery: (recovery) => {
@@ -55,6 +60,7 @@ export const useProjectStore = create<ProjectStoreState>((set) => ({
       location: undefined,
       graphFileNames: NO_GRAPH_FILE_NAMES,
       lastWritten: undefined,
+      pendingMigration: false,
       recovery: undefined,
       activity: "idle",
     });

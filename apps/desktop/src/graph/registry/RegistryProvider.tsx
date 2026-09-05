@@ -42,6 +42,9 @@ export function RegistryProvider({ children }: RegistryProviderProps) {
   const runtimeGeneration = useRuntimeStore(
     (store) => store.status?.generation,
   );
+  const runtimeInitializationState = useRuntimeStore(
+    (store) => store.initializationState,
+  );
 
   useEffect(() => {
     installDevelopmentRegistryWhenAvailable();
@@ -55,6 +58,9 @@ export function RegistryProvider({ children }: RegistryProviderProps) {
     ) {
       useRegistryStore.getState().clearRuntimeSnapshot();
       installDevelopmentRegistryWhenAvailable();
+      if (runtimeInitializationState !== "pending") {
+        useRegistryStore.getState().setInitializationState("failed");
+      }
       return;
     }
 
@@ -66,6 +72,7 @@ export function RegistryProvider({ children }: RegistryProviderProps) {
       return;
     }
     registry.clearRuntimeSnapshot();
+    registry.setInitializationState("pending");
     installDevelopmentRegistryWhenAvailable();
 
     let active = true;
@@ -86,22 +93,25 @@ export function RegistryProvider({ children }: RegistryProviderProps) {
               "The runtime registry does not match the graph registry contract.",
             ),
           );
+          useRegistryStore.getState().setInitializationState("failed");
           return;
         }
         useRegistryStore
           .getState()
           .installSnapshot(result.registry, "runtime", runtimeGeneration);
+        useRegistryStore.getState().setInitializationState("succeeded");
       })
       .catch((cause: unknown) => {
         if (active) {
           reportRegistryLoadFailure(cause);
+          useRegistryStore.getState().setInitializationState("failed");
         }
       });
 
     return () => {
       active = false;
     };
-  }, [runtime, runtimeGeneration, runtimeState]);
+  }, [runtime, runtimeGeneration, runtimeInitializationState, runtimeState]);
 
   return children;
 }

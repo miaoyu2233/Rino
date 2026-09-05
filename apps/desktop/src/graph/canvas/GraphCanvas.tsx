@@ -13,7 +13,9 @@ import {
   ReactFlowProvider,
   SelectionMode,
   useReactFlow,
+  useStore,
   useStoreApi,
+  useUpdateNodeInternals,
   type Connection,
   type EdgeChange,
   type FinalConnectionState,
@@ -99,6 +101,7 @@ import { useEditorSessionStore } from "../store/editor-session-store";
 import {
   resolveWorkflowGroupEndpoint,
   workflowGroupIdFromNodeId,
+  workflowGroupNodeId,
   workflowGroupOrigin,
   workflowGroups,
 } from "../workflow-groups";
@@ -108,6 +111,10 @@ import {
   readDragKinds,
   readDragPayload,
 } from "./canvas-drag";
+import {
+  FULL_CANVAS_DETAIL_MINIMUM_ZOOM,
+  shouldVirtualizeCanvasElements,
+} from "./canvas-detail";
 import {
   connectionIndexFor,
   useConnectionDragStore,
@@ -120,9 +127,7 @@ import {
 } from "./canvas-viewport-store";
 import {
   acceleratedPanDelta,
-  stepViewportSpring,
   zoomViewportAtPointer,
-  type CanvasViewportVelocity,
 } from "./canvas-interaction";
 import {
   canvasToScreenPosition,
@@ -150,6 +155,7 @@ import {
   applyTransientNodeChanges,
   filterNoOpNodeSelectionChanges,
   nodeRectangle,
+  shouldDeferNodeChange,
 } from "./graph-canvas-helpers";
 import {
   hasNodeOverlap,
@@ -185,10 +191,6 @@ const MINOR_GRID_GAP = 16;
 const MAJOR_GRID_GAP = 96;
 const MINIMUM_CANVAS_ZOOM = 0.2;
 const MAXIMUM_CANVAS_ZOOM = 2;
-const RESPONSIVE_WHEEL_SMOOTHING_RATE = 30;
-const BALANCED_WHEEL_SMOOTHING_RATE = 24;
-const EFFICIENCY_WHEEL_SMOOTHING_RATE = 36;
-const FRAME_DURATION_MILLISECONDS = 1000 / 60;
 const MIDDLE_MOUSE_BUTTON = 1;
 const RIGHT_MOUSE_BUTTON = 2;
 const PAN_START_DISTANCE_PIXELS = 4;
@@ -645,6 +647,28 @@ function revealCenter(
   };
 }
 
+/** Re-measures node geometry only when semantic detail changes; both tiers stay in the
+ * same React Flow scene so viewport interaction never swaps renderers. */
+function CanvasDetailInternalsSynchronizer({
+  fullDetail,
+}: {
+  fullDetail: boolean;
+}) {
+  const reactFlowStore = useStoreApi<RinoFlowNode, RinoFlowEdge>();
+  const updateNodeInternals = useUpdateNodeInternals();
+  const previousFullDetailRef = useRef(fullDetail);
+
+  useEffect(() => {
+    if (previousFullDetailRef.current === fullDetail) {
+      return;
+    }
+    previousFullDetailRef.current = fullDetail;
+    updateNodeInternals([...reactFlowStore.getState().nodeLookup.keys()]);
+  }, [fullDetail, reactFlowStore, updateNodeInternals]);
+
+  return null;
+}
+
 function GraphCanvasSurface() {
   const { t } = useTranslation();
   const surfaceRef = useRef<HTMLDivElement>(null);
@@ -689,20 +713,16 @@ function GraphCanvasSurface() {
   );
   const pendingDropPreviewRef = useRef<CSSProperties | undefined>(undefined);
   const dropPreviewFrameRef = useRef<number | undefined>(undefined);
+  const pendingCanvasGeometryRef = useRef<
+    { width: number; height: number } | undefined
+  >(undefined);
+  const canvasGeometryFrameRef = useRef<number | undefined>(undefined);
   const pendingWheelZoomRef = useRef<PendingWheelZoom | undefined>(undefined);
   const wheelZoomInputFrameRef = useRef<number | undefined>(undefined);
-  const wheelZoomAnimationFrameRef = useRef<number | undefined>(undefined);
-  const wheelZoomTargetRef = useRef<CanvasViewport | undefined>(undefined);
-  const wheelZoomCurrentRef = useRef<CanvasViewport | undefined>(undefined);
-  const wheelZoomVelocityRef = useRef<CanvasViewportVelocity>({
-    x: 0,
-    y: 0,
-    zoom: 0,
-  });
-  const wheelZoomLastTimestampRef = useRef<number | undefined>(undefined);
   const panGestureRef = useRef<PanGesture | undefined>(undefined);
   const suppressNextContextMenuRef = useRef(false);
   const pendingNodeChangesRef = useRef<NodeChange<RinoFlowNode>[]>([]);
+  const pendingNodeChangesRequireRenderRef = useRef(false);
   const nodeChangeFrameRef = useRef<number | undefined>(undefined);
   const commentDrawGestureRef = useRef<CommentDrawGesture | undefined>(
     undefined,
@@ -762,14 +782,21 @@ function GraphCanvasSurface() {
     ) {
       return;
     }
-    setVariableDropRequest(undefined);
-    setVariableDropActionIndex(0);
-    notify({
-      severity: "warning",
-      titleKey: locked
-        ? "shell.tasks.errors.executionLocked"
-        : "graph.variable.library.insertFailed",
+    // An external graph update invalidates this menu. Close it outside the effect
+    // commit to avoid another synchronous render cascade through the canvas.
+    const frameId = window.requestAnimationFrame(() => {
+      setVariableDropRequest(undefined);
+      setVariableDropActionIndex(0);
+      notify({
+        severity: "warning",
+        titleKey: locked
+          ? "shell.tasks.errors.executionLocked"
+          : "graph.variable.library.insertFailed",
+      });
     });
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
   }, [
     activeDocument,
     activeGraphId,
@@ -1314,23 +1341,30 @@ function GraphCanvasSurface() {
   const flushNodeChanges = useCallback(() => {
     nodeChangeFrameRef.current = undefined;
     const changes = pendingNodeChangesRef.current;
+    const requireRender = pendingNodeChangesRequireRenderRef.current;
     pendingNodeChangesRef.current = [];
+    pendingNodeChangesRequireRenderRef.current = false;
     if (changes.length === 0) {
       return;
     }
     applyTransientNodeChanges(changes, flowNodesRef.current, (nextNodes) => {
       flowNodesRef.current = nextNodes;
       reactFlowStore.getState().setNodes(nextNodes);
+      if (requireRender) {
+        setRenderState((current) => ({ ...current, nodes: nextNodes }));
+      }
     });
   }, [reactFlowStore]);
 
   const queueNodeChanges = useCallback(
-    (changes: NodeChange<RinoFlowNode>[]) => {
+    (changes: NodeChange<RinoFlowNode>[], requireRender = false) => {
       if (changes.length === 0) {
         return;
       }
       pendingNodeChangesRef.current.push(...changes);
-      nodeChangeFrameRef.current ??= requestUiAnimationFrame(flushNodeChanges);
+      pendingNodeChangesRequireRenderRef.current ||= requireRender;
+      nodeChangeFrameRef.current ??=
+        window.requestAnimationFrame(flushNodeChanges);
     },
     [flushNodeChanges],
   );
@@ -1377,18 +1411,19 @@ function GraphCanvasSurface() {
         flowNodesRef.current,
         getViewport().zoom,
       );
-      const transientChanges = alignedChanges.filter(
-        (change) => change.type === "position" && change.dragging === true,
-      );
+      const transientChanges = alignedChanges.filter(shouldDeferNodeChange);
       const immediateChanges = alignedChanges.filter(
         (change) => !transientChanges.includes(change),
       );
       if (transientChanges.length > 0) {
-        queueNodeChanges(transientChanges);
+        queueNodeChanges(
+          transientChanges,
+          transientChanges.some((change) => change.type === "dimensions"),
+        );
       }
       if (immediateChanges.length > 0) {
         if (nodeChangeFrameRef.current !== undefined) {
-          cancelUiAnimationFrame(nodeChangeFrameRef.current);
+          window.cancelAnimationFrame(nodeChangeFrameRef.current);
         }
         flushNodeChanges();
         const nextNodes = applyNodeChanges(immediateChanges, [
@@ -1671,6 +1706,69 @@ function GraphCanvasSurface() {
 
   const handleNodeDoubleClick = useCallback<NodeMouseHandler<RinoFlowNode>>(
     (_event, node) => {
+      const repeatHintId = repeatHintIdFromNodeId(node.id);
+      if (repeatHintId !== undefined) {
+        const editedGraph = currentGraph();
+        const hint = editedGraph?.editorMetadata?.repeatHints?.find(
+          (candidate) => candidate.hintId === repeatHintId,
+        );
+        const edge = editedGraph?.edges.find(
+          (candidate) => candidate.edgeId === hint?.edgeId,
+        );
+        if (editedGraph === undefined || edge === undefined) {
+          return;
+        }
+        const targetGroup = workflowGroups(editedGraph).find((group) =>
+          group.members.some((member) => member.nodeId === edge.targetNodeId),
+        );
+        const targetNodeId =
+          targetGroup?.collapsed === true
+            ? workflowGroupNodeId(targetGroup.groupId)
+            : (targetGroup?.exposedPorts.find(
+                (port) => port.proxyPortId === "run",
+              )?.nodeId ?? edge.targetNodeId);
+        const targetNode = flowNodesRef.current.find(
+          (candidate) => candidate.id === targetNodeId,
+        );
+        if (targetNode === undefined) {
+          return;
+        }
+        const nextNodes = flowNodesRef.current.map((candidate) =>
+          candidate.selected === (candidate.id === targetNodeId)
+            ? candidate
+            : { ...candidate, selected: candidate.id === targetNodeId },
+        );
+        setRenderState({
+          nodes: nextNodes,
+          edges: flowEdgesRef.current.map((candidate) =>
+            candidate.selected === false
+              ? candidate
+              : { ...candidate, selected: false },
+          ),
+        });
+        setSelection(
+          targetGroup?.collapsed === true
+            ? targetGroup.members.map((member) => member.nodeId)
+            : [targetNodeId],
+          [],
+        );
+        void setCenter(
+          targetNode.position.x +
+            (targetNode.measured?.width ?? targetNode.width ?? NODE_WIDTH) / 2,
+          targetNode.position.y +
+            (targetNode.measured?.height ??
+              targetNode.height ??
+              NODE_HEADER_HEIGHT) /
+              2,
+          {
+            zoom: getViewport().zoom,
+            duration: prefersReducedMotion()
+              ? 0
+              : motionDurations.panel * MILLISECONDS_PER_SECOND,
+          },
+        );
+        return;
+      }
       if (
         node.data.typeKey !== "core.function.call" ||
         isGraphRunActive(useRuntimeExecutionStore.getState().run?.state) ||
@@ -1690,7 +1788,7 @@ function GraphCanvasSurface() {
       }
       enterGraph(targetGraph.graphId);
     },
-    [enterGraph],
+    [enterGraph, getViewport, setCenter, setSelection],
   );
 
   const handleSelectionChange = useCallback(
@@ -1736,18 +1834,6 @@ function GraphCanvasSurface() {
     [getViewport, readBounds],
   );
 
-  const handleViewportMove = useCallback(
-    (_event: unknown, viewport: CanvasViewport) => {
-      // During a wheel animation the local presentation ref is authoritative. React Flow
-      // may deliver an older store snapshot after setViewport; accepting that snapshot
-      // would make the next frame step backwards and feel like a hitch.
-      if (wheelZoomTargetRef.current === undefined) {
-        wheelZoomCurrentRef.current = viewport;
-      }
-    },
-    [],
-  );
-
   const handleViewportMoveStart = useCallback(() => {
     if (surfaceRef.current !== null) {
       surfaceRef.current.dataset["viewportMoving"] = "true";
@@ -1757,75 +1843,39 @@ function GraphCanvasSurface() {
   const handleViewportMoveEnd = useCallback(
     (_event: unknown, viewport: CanvasViewport) => {
       surfaceRef.current?.removeAttribute("data-viewport-moving");
-      if (wheelZoomTargetRef.current === undefined) {
-        wheelZoomCurrentRef.current = viewport;
-      }
       useCanvasViewportStore.getState().reportViewport(viewport);
     },
     [],
   );
 
-  const reportCanvasGeometry = useCallback(() => {
-    const bounds = readBounds();
-    const viewport = getViewport();
-    if (wheelZoomTargetRef.current === undefined) {
-      wheelZoomCurrentRef.current = viewport;
-    }
-    useCanvasViewportStore
-      .getState()
-      .reportGeometry(viewport, bounds.width, bounds.height);
-  }, [getViewport, readBounds]);
-
-  const wheelZoomSmoothingRate =
-    performanceProfile === "responsive"
-      ? RESPONSIVE_WHEEL_SMOOTHING_RATE
-      : performanceProfile === "balanced"
-        ? BALANCED_WHEEL_SMOOTHING_RATE
-        : EFFICIENCY_WHEEL_SMOOTHING_RATE;
-
-  const animateWheelZoom = useCallback(
-    function animate(timestamp: number) {
-      const target = wheelZoomTargetRef.current;
-      if (target === undefined) {
-        wheelZoomAnimationFrameRef.current = undefined;
-        wheelZoomVelocityRef.current = { x: 0, y: 0, zoom: 0 };
-        wheelZoomLastTimestampRef.current = undefined;
-        surfaceRef.current?.removeAttribute("data-zooming");
-        return;
-      }
-
-      const previousTimestamp = wheelZoomLastTimestampRef.current;
-      wheelZoomLastTimestampRef.current = timestamp;
-      const elapsed =
-        previousTimestamp === undefined
-          ? FRAME_DURATION_MILLISECONDS / MILLISECONDS_PER_SECOND
-          : (timestamp - previousTimestamp) / MILLISECONDS_PER_SECOND;
-      const current = wheelZoomCurrentRef.current ?? getViewport();
-      const { viewport, velocity, settled } = stepViewportSpring(
-        current,
-        target,
-        wheelZoomVelocityRef.current,
-        elapsed,
-        wheelZoomSmoothingRate,
-      );
-      wheelZoomCurrentRef.current = viewport;
-      wheelZoomVelocityRef.current = velocity;
-      void setViewport(viewport, { duration: 0 });
-
-      if (settled) {
-        wheelZoomCurrentRef.current = target;
-        wheelZoomTargetRef.current = undefined;
-        wheelZoomVelocityRef.current = { x: 0, y: 0, zoom: 0 };
-        wheelZoomAnimationFrameRef.current = undefined;
-        wheelZoomLastTimestampRef.current = undefined;
-        surfaceRef.current?.removeAttribute("data-zooming");
-        return;
-      }
-      wheelZoomAnimationFrameRef.current = requestUiAnimationFrame(animate);
+  const reportCanvasGeometry = useCallback(
+    (measuredSize?: { width: number; height: number }) => {
+      const size = measuredSize ?? readBounds();
+      const viewport = getViewport();
+      useCanvasViewportStore
+        .getState()
+        .reportGeometry(viewport, size.width, size.height);
     },
-    [getViewport, setViewport, wheelZoomSmoothingRate],
+    [getViewport, readBounds],
   );
 
+  const scheduleCanvasGeometryReport = useCallback(
+    (size: { width: number; height: number }) => {
+      pendingCanvasGeometryRef.current = size;
+      canvasGeometryFrameRef.current ??= requestUiAnimationFrame(() => {
+        canvasGeometryFrameRef.current = undefined;
+        const pendingSize = pendingCanvasGeometryRef.current;
+        pendingCanvasGeometryRef.current = undefined;
+        if (pendingSize !== undefined) {
+          reportCanvasGeometry(pendingSize);
+        }
+      });
+    },
+    [reportCanvasGeometry],
+  );
+
+  // Direct manipulation reaches its target on the next display frame. A second
+  // animation queue would add latency and keep painting after input has stopped.
   const flushWheelZoom = useCallback(() => {
     wheelZoomInputFrameRef.current = undefined;
     const pending = pendingWheelZoomRef.current;
@@ -1833,10 +1883,7 @@ function GraphCanvasSurface() {
     if (pending === undefined) {
       return;
     }
-    const current =
-      wheelZoomTargetRef.current ??
-      wheelZoomCurrentRef.current ??
-      getViewport();
+    const current = getViewport();
     const next = zoomViewportAtPointer(
       current,
       pending,
@@ -1848,28 +1895,9 @@ function GraphCanvasSurface() {
       canvasPerformance.wheelZoomSensitivity,
     );
     if (next !== current) {
-      if (prefersReducedMotion()) {
-        if (wheelZoomAnimationFrameRef.current !== undefined) {
-          cancelUiAnimationFrame(wheelZoomAnimationFrameRef.current);
-          wheelZoomAnimationFrameRef.current = undefined;
-        }
-        wheelZoomTargetRef.current = undefined;
-        wheelZoomCurrentRef.current = next;
-        wheelZoomVelocityRef.current = { x: 0, y: 0, zoom: 0 };
-        wheelZoomLastTimestampRef.current = undefined;
-        surfaceRef.current?.removeAttribute("data-zooming");
-        void setViewport(next, { duration: 0 });
-        return;
-      }
-      wheelZoomTargetRef.current = next;
-      if (surfaceRef.current !== null) {
-        surfaceRef.current.dataset["zooming"] = "true";
-      }
-      wheelZoomAnimationFrameRef.current ??=
-        requestUiAnimationFrame(animateWheelZoom);
+      void setViewport(next, { duration: 0 });
     }
   }, [
-    animateWheelZoom,
     canvasPerformance.wheelZoomSensitivity,
     getViewport,
     readBounds,
@@ -1897,26 +1925,17 @@ function GraphCanvasSurface() {
         clientY: event.clientY,
       };
       wheelZoomInputFrameRef.current ??=
-        requestUiAnimationFrame(flushWheelZoom);
+        window.requestAnimationFrame(flushWheelZoom);
     },
     [flushWheelZoom],
   );
 
   const cancelWheelZoom = useCallback(() => {
     if (wheelZoomInputFrameRef.current !== undefined) {
-      cancelUiAnimationFrame(wheelZoomInputFrameRef.current);
+      window.cancelAnimationFrame(wheelZoomInputFrameRef.current);
       wheelZoomInputFrameRef.current = undefined;
     }
-    if (wheelZoomAnimationFrameRef.current !== undefined) {
-      cancelUiAnimationFrame(wheelZoomAnimationFrameRef.current);
-      wheelZoomAnimationFrameRef.current = undefined;
-    }
     pendingWheelZoomRef.current = undefined;
-    wheelZoomTargetRef.current = undefined;
-    wheelZoomCurrentRef.current = undefined;
-    wheelZoomVelocityRef.current = { x: 0, y: 0, zoom: 0 };
-    wheelZoomLastTimestampRef.current = undefined;
-    surfaceRef.current?.removeAttribute("data-zooming");
   }, []);
 
   const flushPan = useCallback(() => {
@@ -2080,7 +2099,7 @@ function GraphCanvasSurface() {
       gesture.pendingY += event.clientY - gesture.lastClientY;
       gesture.lastClientX = event.clientX;
       gesture.lastClientY = event.clientY;
-      gesture.frameId ??= requestUiAnimationFrame(flushPan);
+      gesture.frameId ??= window.requestAnimationFrame(flushPan);
     },
     [flushPan, pointerGraphPosition],
   );
@@ -2168,7 +2187,7 @@ function GraphCanvasSurface() {
       event.preventDefault();
       event.stopPropagation();
       if (gesture.frameId !== undefined) {
-        cancelUiAnimationFrame(gesture.frameId);
+        window.cancelAnimationFrame(gesture.frameId);
         gesture.frameId = undefined;
       }
       flushPan();
@@ -2199,12 +2218,25 @@ function GraphCanvasSurface() {
       return;
     }
     reportCanvasGeometry();
-    const observer = new ResizeObserver(reportCanvasGeometry);
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry === undefined) {
+        return;
+      }
+      scheduleCanvasGeometryReport({
+        width: entry.contentRect.width,
+        height: entry.contentRect.height,
+      });
+    });
     observer.observe(surface);
     return () => {
       observer.disconnect();
+      pendingCanvasGeometryRef.current = undefined;
+      if (canvasGeometryFrameRef.current !== undefined) {
+        cancelUiAnimationFrame(canvasGeometryFrameRef.current);
+        canvasGeometryFrameRef.current = undefined;
+      }
     };
-  }, [reportCanvasGeometry]);
+  }, [reportCanvasGeometry, scheduleCanvasGeometryReport]);
 
   /** Records geometry as soon as React Flow is ready. The resize observer keeps it
    * current after later panel or window changes. */
@@ -2259,19 +2291,17 @@ function GraphCanvasSurface() {
         cancelUiAnimationFrame(dropPreviewFrameRef.current);
       }
       if (wheelZoomInputFrameRef.current !== undefined) {
-        cancelUiAnimationFrame(wheelZoomInputFrameRef.current);
-      }
-      if (wheelZoomAnimationFrameRef.current !== undefined) {
-        cancelUiAnimationFrame(wheelZoomAnimationFrameRef.current);
+        window.cancelAnimationFrame(wheelZoomInputFrameRef.current);
       }
       const panGesture = panGestureRef.current;
       if (panGesture?.frameId !== undefined) {
-        cancelUiAnimationFrame(panGesture.frameId);
+        window.cancelAnimationFrame(panGesture.frameId);
       }
       if (nodeChangeFrameRef.current !== undefined) {
-        cancelUiAnimationFrame(nodeChangeFrameRef.current);
+        window.cancelAnimationFrame(nodeChangeFrameRef.current);
       }
       pendingNodeChangesRef.current = [];
+      pendingNodeChangesRequireRenderRef.current = false;
     },
     [],
   );
@@ -2882,6 +2912,14 @@ function GraphCanvasSurface() {
     [apply, getViewport, readBounds],
   );
 
+  const fullCanvasDetail = useStore(
+    (state) => state.transform[2] >= FULL_CANVAS_DETAIL_MINIMUM_ZOOM,
+  );
+  const virtualizeCanvasElements = shouldVirtualizeCanvasElements(
+    flowNodes.length + flowEdges.length,
+    canvasPerformance.visibleElementThreshold,
+  );
+
   return (
     <CanvasContextMenu
       toGraphPosition={pointerGraphPosition}
@@ -2946,7 +2984,6 @@ function GraphCanvasSurface() {
           onReconnectStart={handleReconnectStart}
           onReconnectEnd={handleReconnectEnd}
           onMoveStart={handleViewportMoveStart}
-          onMove={handleViewportMove}
           onMoveEnd={handleViewportMoveEnd}
           onInit={handleInit}
           isValidConnection={isValidConnection}
@@ -2962,12 +2999,11 @@ function GraphCanvasSurface() {
           maxZoom={MAXIMUM_CANVAS_ZOOM}
           zoomOnScroll={false}
           zoomOnPinch={false}
-          onlyRenderVisibleElements={
-            flowNodes.length >= canvasPerformance.visibleElementThreshold
-          }
+          onlyRenderVisibleElements={virtualizeCanvasElements}
           proOptions={PRO_OPTIONS}
           aria-label={t("graph.canvas.label")}
         >
+          <CanvasDetailInternalsSynchronizer fullDetail={fullCanvasDetail} />
           <Background
             id="minor"
             variant={BackgroundVariant.Dots}

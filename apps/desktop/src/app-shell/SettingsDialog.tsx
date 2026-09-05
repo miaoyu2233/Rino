@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "../components/ui/Button";
@@ -13,7 +13,14 @@ import {
 } from "../components/ui/Tabs";
 import { ProductIcon } from "../design-system/icons/ProductIcon";
 import type { ProductIconKey } from "../design-system/icons/product-icons";
-import { useActiveDocument } from "../graph/store/document-store";
+import {
+  DEFAULT_PROJECT_LICENSE,
+  normalizeProjectLicense,
+} from "../graph/project-license";
+import {
+  useActiveDocument,
+  useDocumentStore,
+} from "../graph/store/document-store";
 import { useApplicationDataStore } from "../preferences/application-data-store";
 import {
   checkShortcutConflict,
@@ -473,7 +480,86 @@ function ApplicationDataSettingsContent() {
   );
 }
 
-type SettingsSection = "appearance" | "performance" | "shortcuts" | "data";
+function ProjectSettings() {
+  const { t } = useTranslation();
+  const document = useActiveDocument();
+  const executionLocked = useDocumentStore((state) => state.executionLocked);
+  const currentLicense =
+    document?.metadata.licenseIdentifier ?? DEFAULT_PROJECT_LICENSE;
+  const [licenseIdentifier, setLicenseIdentifier] = useState(currentLicense);
+  const [invalid, setInvalid] = useState(false);
+
+  useEffect(() => {
+    setLicenseIdentifier(currentLicense);
+    setInvalid(false);
+  }, [currentLicense, document?.documentId]);
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const normalized = normalizeProjectLicense(licenseIdentifier);
+    if (normalized === undefined || document === undefined) {
+      setInvalid(true);
+      return;
+    }
+    const outcome = useDocumentStore.getState().runCommand("project.license", {
+      kind: "setProjectLicense",
+      licenseIdentifier: normalized,
+    });
+    setInvalid(!outcome.ok);
+  };
+
+  return (
+    <section
+      className="project-settings"
+      aria-labelledby="project-settings-title"
+    >
+      <div className="settings-page__intro">
+        <h3 id="project-settings-title">{t("shell.settings.projectTitle")}</h3>
+        <p>{t("shell.settings.projectDescription")}</p>
+      </div>
+      {document ? (
+        <form className="project-settings__form" onSubmit={submit}>
+          <label>
+            <span>{t("shell.settings.projectLicense")}</span>
+            <Input
+              required
+              maxLength={128}
+              value={licenseIdentifier}
+              disabled={executionLocked}
+              aria-invalid={invalid}
+              onChange={(event) => {
+                setLicenseIdentifier(event.target.value);
+                setInvalid(false);
+              }}
+            />
+          </label>
+          <p>{t("shell.settings.projectLicenseDescription")}</p>
+          {invalid ? (
+            <p className="project-settings__error" role="alert">
+              {t("shell.settings.projectLicenseInvalid")}
+            </p>
+          ) : null}
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={
+              executionLocked || licenseIdentifier.trim() === currentLicense
+            }
+          >
+            {t("common.actions.save")}
+          </Button>
+        </form>
+      ) : (
+        <p className="project-settings__empty">
+          {t("shell.settings.projectUnavailable")}
+        </p>
+      )}
+    </section>
+  );
+}
+
+type SettingsSection =
+  "appearance" | "performance" | "shortcuts" | "project" | "data";
 
 const SETTINGS_SECTIONS: readonly {
   id: SettingsSection;
@@ -482,6 +568,7 @@ const SETTINGS_SECTIONS: readonly {
   { id: "appearance", icon: "recognition.color" },
   { id: "performance", icon: "panel.inspector" },
   { id: "shortcuts", icon: "action.keyboardReference" },
+  { id: "project", icon: "category.data" },
   { id: "data", icon: "category.data" },
 ];
 
@@ -701,6 +788,10 @@ export function SettingsDialog({
                   </div>
                 )}
               </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="project" className="settings-page">
+              <ProjectSettings />
             </TabsContent>
 
             <TabsContent value="data" className="settings-page">

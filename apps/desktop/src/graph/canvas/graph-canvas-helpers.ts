@@ -134,6 +134,18 @@ export function filterNoOpNodeSelectionChanges(
   });
 }
 
+/** Node measurements originate inside ResizeObserver callbacks. Applying them during
+ * the callback can synchronously resize a controlled node and start another delivery
+ * loop, so measurements share the existing next-frame path with active drags. */
+export function shouldDeferNodeChange(
+  change: NodeChange<RinoFlowNode>,
+): boolean {
+  return (
+    change.type === "dimensions" ||
+    (change.type === "position" && change.dragging === true)
+  );
+}
+
 export function applyTransientNodeChanges(
   changes: readonly NodeChange<RinoFlowNode>[],
   nodes: readonly RinoFlowNode[],

@@ -15,6 +15,10 @@ import type {
 } from "../connection-rules";
 import { evaluateConnection } from "../connection-rules";
 import { initialDynamicPortState } from "../sequence-node";
+import {
+  DEFAULT_RECOGNITION_REPEAT_DELAY_MILLISECONDS,
+  RECOGNITION_REPEAT_DELAY_ROLE,
+} from "../workflow-groups";
 import type { CompositeCommand, GraphCommand } from "./graph-commands";
 
 /** Produces fresh identifiers. Injected so tests are deterministic and so identifier
@@ -261,6 +265,63 @@ export function buildTemplateInsertCommand(
     });
   }
 
+  let recognitionRepeat:
+    | {
+        delayNodeId: string;
+        repeatEdgeId: string;
+        sourceNodeId: string;
+        sourcePortId: string;
+        targetNodeId: string;
+        targetPortId: string;
+      }
+    | undefined;
+  if (
+    template.workflowGroup?.kind === "imageRecognition" ||
+    template.workflowGroup?.kind === "textRecognition"
+  ) {
+    const noMatchPort = template.workflowGroup.exposedPorts.find(
+      (port) => port.proxyPortId === "noMatch",
+    );
+    const runPort = template.workflowGroup.exposedPorts.find(
+      (port) => port.proxyPortId === "run",
+    );
+    if (noMatchPort !== undefined && runPort !== undefined) {
+      const delayDefinition = definitions.get("core.time.delay");
+      if (delayDefinition === undefined) {
+        return { ok: false, reason: "definitionUnknown" };
+      }
+      const sourceNodeId = nodeIdByPlaceholder.get(noMatchPort.placeholderId);
+      const targetNodeId = nodeIdByPlaceholder.get(runPort.placeholderId);
+      if (sourceNodeId === undefined || targetNodeId === undefined) {
+        return { ok: false, reason: "placeholderUnknown" };
+      }
+      const delayNodeId = createIdentifier();
+      const repeatEdgeId = createIdentifier();
+      recognitionRepeat = {
+        delayNodeId,
+        repeatEdgeId,
+        sourceNodeId,
+        sourcePortId: noMatchPort.portId,
+        targetNodeId,
+        targetPortId: runPort.portId,
+      };
+      commands.push({
+        kind: "addNode",
+        graphId,
+        node: {
+          nodeId: delayNodeId,
+          typeKey: delayDefinition.typeKey,
+          typeVersion: delayDefinition.typeVersion,
+          position: { x: origin.x + 320, y: origin.y + 240 },
+          properties: { ...(delayDefinition.propertyDefaults ?? {}) },
+          inputValues: {
+            durationMilliseconds: DEFAULT_RECOGNITION_REPEAT_DELAY_MILLISECONDS,
+          },
+        },
+      });
+    }
+  }
+
   for (const templateEdge of template.edges ?? []) {
     const sourceNodeId = nodeIdByPlaceholder.get(
       templateEdge.sourcePlaceholderId,
@@ -283,6 +344,35 @@ export function buildTemplateInsertCommand(
         targetPortId: templateEdge.targetPortId,
       },
     });
+  }
+
+  if (recognitionRepeat !== undefined) {
+    commands.push(
+      {
+        kind: "addEdge",
+        graphId,
+        edge: {
+          edgeId: recognitionRepeat.repeatEdgeId,
+          edgeKind: "execution",
+          sourceNodeId: recognitionRepeat.sourceNodeId,
+          sourcePortId: recognitionRepeat.sourcePortId,
+          targetNodeId: recognitionRepeat.delayNodeId,
+          targetPortId: "run",
+        },
+      },
+      {
+        kind: "addEdge",
+        graphId,
+        edge: {
+          edgeId: createIdentifier(),
+          edgeKind: "execution",
+          sourceNodeId: recognitionRepeat.delayNodeId,
+          sourcePortId: "next",
+          targetNodeId: recognitionRepeat.targetNodeId,
+          targetPortId: recognitionRepeat.targetPortId,
+        },
+      },
+    );
   }
 
   const templateExposedPorts = [
@@ -308,10 +398,20 @@ export function buildTemplateInsertCommand(
   }
 
   if (template.workflowGroup !== undefined) {
-    const members = template.workflowGroup.members.flatMap((member) => {
+    const templateMembers = template.workflowGroup.members.flatMap((member) => {
       const nodeId = nodeIdByPlaceholder.get(member.placeholderId);
       return nodeId === undefined ? [] : [{ role: member.role, nodeId }];
     });
+    const members =
+      recognitionRepeat === undefined
+        ? templateMembers
+        : [
+            ...templateMembers,
+            {
+              role: RECOGNITION_REPEAT_DELAY_ROLE,
+              nodeId: recognitionRepeat.delayNodeId,
+            },
+          ];
     const exposedPorts = template.workflowGroup.exposedPorts.flatMap((port) => {
       const nodeId = nodeIdByPlaceholder.get(port.placeholderId);
       return nodeId === undefined
@@ -326,7 +426,7 @@ export function buildTemplateInsertCommand(
           ];
     });
     if (
-      members.length !== template.workflowGroup.members.length ||
+      templateMembers.length !== template.workflowGroup.members.length ||
       exposedPorts.length !== template.workflowGroup.exposedPorts.length ||
       members.length === 0
     ) {

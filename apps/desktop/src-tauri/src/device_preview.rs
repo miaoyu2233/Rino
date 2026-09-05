@@ -15,7 +15,7 @@ pub const DEVICE_PREVIEW_WINDOW_LABEL: &str = "device-preview";
 pub const MAIN_WINDOW_LABEL: &str = "main";
 pub const DEVICE_PREVIEW_EVENT_NAME: &str = "rino://device-preview-snapshot";
 
-const DEVICE_PREVIEW_URL: &str = "index.html?window=device-preview";
+const DEVICE_PREVIEW_URL: &str = "index.html";
 const DEFAULT_PREVIEW_WIDTH: f64 = 960.0;
 const DEFAULT_PREVIEW_HEIGHT: f64 = 720.0;
 const MINIMUM_PREVIEW_WIDTH: f64 = 640.0;
@@ -88,11 +88,12 @@ pub struct DevicePreviewState {
 }
 
 impl DevicePreviewState {
-    pub(crate) fn publish(&self, snapshot: DevicePreviewSnapshot) {
+    pub(crate) fn publish(&self, snapshot: DevicePreviewSnapshot) -> bool {
         *self
             .snapshot
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(snapshot);
+        self.visible.load(Ordering::Acquire)
     }
 
     pub(crate) fn current(&self) -> Option<DevicePreviewSnapshot> {
@@ -119,9 +120,9 @@ impl DevicePreviewState {
 /// Opens the single native preview window from the main window.
 ///
 /// Existing windows are shown and focused instead of creating a second session. The
-/// query parameter selects the child-window route while keeping the same local bundle.
+/// child uses the same local bundle and is identified by its native window label.
 #[tauri::command]
-pub fn device_preview_open(
+pub async fn device_preview_open(
     window: WebviewWindow,
     app: AppHandle,
     state: State<'_, DevicePreviewState>,
@@ -174,12 +175,13 @@ pub fn device_preview_publish(
 ) -> Result<(), CommandError> {
     ensure_main_window(&window)?;
     snapshot.validate()?;
-    state.publish(snapshot.clone());
-    let _ignored = app.emit_to(
-        DEVICE_PREVIEW_WINDOW_LABEL,
-        DEVICE_PREVIEW_EVENT_NAME,
-        snapshot,
-    );
+    if state.publish(snapshot.clone()) {
+        let _ignored = app.emit_to(
+            DEVICE_PREVIEW_WINDOW_LABEL,
+            DEVICE_PREVIEW_EVENT_NAME,
+            snapshot,
+        );
+    }
     Ok(())
 }
 
@@ -377,9 +379,10 @@ mod tests {
     #[test]
     fn state_retains_snapshot_but_clears_only_visibility_on_close() {
         let state = DevicePreviewState::default();
-        state.publish(snapshot());
+        assert!(!state.publish(snapshot()));
         state.mark_visible();
         assert!(state.is_visible());
+        assert!(state.publish(snapshot()));
         state.mark_closed();
         assert!(!state.is_visible());
         assert_eq!(state.current(), Some(snapshot()));

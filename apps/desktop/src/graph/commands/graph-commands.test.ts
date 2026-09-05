@@ -131,6 +131,31 @@ function graphOf(document: RinoProjectDocumentV1) {
   return graph;
 }
 
+describe("project license commands", () => {
+  it("updates and restores the project-owned license", () => {
+    const original = baseDocument();
+    const updated = expectSuccess(original, {
+      kind: "setProjectLicense",
+      licenseIdentifier: "MIT",
+    });
+    expect(updated.document.metadata.licenseIdentifier).toBe("MIT");
+
+    const restored = expectSuccess(updated.document, updated.inverse);
+    expect(restored.document.metadata.licenseIdentifier).toBe(
+      "LicenseRef-Proprietary",
+    );
+  });
+
+  it("rejects invalid license identifiers", () => {
+    expect(
+      applyCommand(baseDocument(), {
+        kind: "setProjectLicense",
+        licenseIdentifier: "not a license",
+      }),
+    ).toEqual({ ok: false, reason: "projectLicenseInvalid" });
+  });
+});
+
 describe("node commands", () => {
   it("adds a node and removes it again", () => {
     const applied = expectRoundTrip({

@@ -6,9 +6,7 @@ export interface PackageOptions {
   packageId: string;
   version: string;
   summary: string;
-  publisherId: string;
-  publisherDisplayName: string;
-  licenseIdentifier: string;
+  applicationName: string;
   githubOwner: string;
   githubRepository: string;
   releasedAt: string;
@@ -21,9 +19,15 @@ export interface PublishingDialogCaptions {
   fileTypeLabel: string;
 }
 
+export interface PublisherIdentity {
+  publisherId: string;
+  displayName: string;
+}
+
 export interface GithubStatus {
   available: boolean;
   authenticated: boolean;
+  publisher: PublisherIdentity | null;
 }
 
 export interface PackageOutput {
@@ -32,6 +36,7 @@ export interface PackageOutput {
   sha256: string;
   keyId: string;
   publicKeyBase64: string;
+  publisherDisplayName: string;
 }
 
 export interface PublishOutput extends PackageOutput {

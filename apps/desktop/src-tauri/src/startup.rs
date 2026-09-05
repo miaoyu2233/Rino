@@ -12,6 +12,7 @@ const DIAGNOSTIC_SERIALIZE_FAILURE: &str = r#"{"schemaVersion":1,"application":"
 
 #[derive(Clone, Copy, Debug)]
 pub enum StartupStage {
+    RegisterApplicationInstance,
     BuildDesktopRuntime,
     ResolveAppData,
     ResolveAppCache,
@@ -27,6 +28,7 @@ pub enum StartupStage {
 impl StartupStage {
     const fn as_str(self) -> &'static str {
         match self {
+            Self::RegisterApplicationInstance => "registerApplicationInstance",
             Self::BuildDesktopRuntime => "buildDesktopRuntime",
             Self::ResolveAppData => "resolveAppData",
             Self::ResolveAppCache => "resolveAppCache",

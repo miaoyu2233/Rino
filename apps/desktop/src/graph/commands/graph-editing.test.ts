@@ -560,6 +560,56 @@ describe("workflow template insertion", () => {
     );
   });
 
+  it("configures default self-repeat without adding a repeat card", () => {
+    const expansion = buildTemplateInsertCommand(
+      GRAPH_ID,
+      "template.textRecognition",
+      registrySnapshot,
+      { x: 600, y: 400 },
+      createIdentifierFactory(),
+    );
+    if (!expansion.ok) {
+      throw new Error(
+        `The recognition template should expand: ${expansion.reason}`,
+      );
+    }
+
+    const inserted = applyOrThrow(baseDocument(), expansion.command);
+    const graph = inserted.graphs[0];
+    const group = graph?.editorMetadata?.workflowGroups?.[0];
+    const retryMember = group?.members.find(
+      (member) => member.role === "retryDelay",
+    );
+    const retryNode = graph?.nodes.find(
+      (item) => item.nodeId === retryMember?.nodeId,
+    );
+    const noMatch = group?.exposedPorts.find(
+      (port) => port.proxyPortId === "noMatch",
+    );
+    const run = group?.exposedPorts.find((port) => port.proxyPortId === "run");
+    const repeatEdge = graph?.edges.find(
+      (edge) =>
+        edge.sourceNodeId === noMatch?.nodeId &&
+        edge.sourcePortId === noMatch.portId &&
+        edge.targetNodeId === retryNode?.nodeId,
+    );
+
+    expect(retryNode).toMatchObject({
+      typeKey: "core.time.delay",
+      inputValues: { durationMilliseconds: 1_000 },
+    });
+    expect(graph?.edges).toContainEqual(
+      expect.objectContaining({
+        sourceNodeId: retryNode?.nodeId,
+        sourcePortId: "next",
+        targetNodeId: run?.nodeId,
+        targetPortId: run?.portId,
+      }),
+    );
+    expect(repeatEdge).toBeDefined();
+    expect(graph?.editorMetadata?.repeatHints).toBeUndefined();
+    expect(isValidProjectDocument(inserted)).toBe(true);
+  });
   it("is undone as a single step", () => {
     const original = baseDocument();
     const expansion = buildTemplateInsertCommand(

@@ -146,7 +146,10 @@ export function CanvasContextMenu({
       >
         {children}
       </ContextMenuTrigger>
-      <ContextMenuContent aria-label={t("graph.contextMenu.label")}>
+      <ContextMenuContent
+        className="graph-canvas-menu"
+        aria-label={t("graph.contextMenu.label")}
+      >
         <div
           className="canvas-context-menu__search"
           onKeyDown={(e) => {

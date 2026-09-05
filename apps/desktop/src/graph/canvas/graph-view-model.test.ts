@@ -448,7 +448,13 @@ describe("node projection", () => {
       ],
     };
 
-    const nodes = new GraphProjection().projectNodes(source, registry);
+    const projection = new GraphProjection();
+    const nodes = projection.projectNodes(source, registry);
+    const edges = projection.projectEdges(
+      source,
+      registry,
+      EMPTY_EDGE_ACTIVITY,
+    );
     const hint = nodes.find((item) =>
       item.id.startsWith("editor-repeat-hint:"),
     );
@@ -462,6 +468,13 @@ describe("node projection", () => {
     expect(
       nodes.filter((item) => item.id.startsWith("editor-repeat-hint:")),
     ).toHaveLength(1);
+    expect(edges.find((edge) => edge.id === "valid-repeat-edge")).toMatchObject(
+      {
+        target: repeatHintNodeId("10000000-0000-4000-8000-000000000001"),
+        targetHandle: "repeat",
+        reconnectable: false,
+      },
+    );
   });
 
   it("keeps ordinary node view references stable when only repeat metadata changes", () => {

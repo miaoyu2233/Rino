@@ -44,6 +44,8 @@ import {
 import {
   collapsedWorkflowGroupByMember,
   groupPortForDomainEndpoint,
+  recognitionRepeatState,
+  RECOGNITION_REPEAT_DELAY_ROLE,
   workflowGroupMemberIds,
   workflowGroupNodeId,
   workflowGroupOrigin,
@@ -177,6 +179,10 @@ export type CanvasNodeData = {
   workflowGroup?: {
     groupId: string;
     kind: WorkflowGroupV1["kind"];
+    recognitionRepeat?: {
+      enabled: boolean;
+      delayMilliseconds: number;
+    };
     steps: readonly {
       role: string;
       nodeId: string;
@@ -496,6 +502,7 @@ function workflowGroupSteps(
   const nodes = new Map(graph.nodes.map((node) => [node.nodeId, node]));
   return group.members.flatMap((member) => {
     if (
+      member.role === RECOGNITION_REPEAT_DELAY_ROLE ||
       (group.kind === "imageRecognition" &&
         (member.role === "templateAsset" || member.role === "roi")) ||
       (group.kind === "textRecognition" &&
@@ -714,30 +721,28 @@ const NO_CONNECTED_PORTS: ConnectedPorts = {
  * graph the persisted format allows to hold five thousand nodes and ten thousand edges.
  */
 function connectedPortsByNode(graph: GraphV1): Map<string, ConnectedPorts> {
-  const inputsByNode = new Map<string, string[]>();
-  const outputsByNode = new Map<string, string[]>();
+  const inputsByNode = new Map<string, Set<string>>();
+  const outputsByNode = new Map<string, Set<string>>();
   for (const edge of graph.edges) {
     const existingInputs = inputsByNode.get(edge.targetNodeId);
     if (existingInputs === undefined) {
-      inputsByNode.set(edge.targetNodeId, [edge.targetPortId]);
+      inputsByNode.set(edge.targetNodeId, new Set([edge.targetPortId]));
     } else {
-      existingInputs.push(edge.targetPortId);
+      existingInputs.add(edge.targetPortId);
     }
     const existingOutputs = outputsByNode.get(edge.sourceNodeId);
     if (existingOutputs === undefined) {
-      outputsByNode.set(edge.sourceNodeId, [edge.sourcePortId]);
+      outputsByNode.set(edge.sourceNodeId, new Set([edge.sourcePortId]));
     } else {
-      existingOutputs.push(edge.sourcePortId);
+      existingOutputs.add(edge.sourcePortId);
     }
   }
 
   const connected = new Map<string, ConnectedPorts>();
   const nodeIds = new Set([...inputsByNode.keys(), ...outputsByNode.keys()]);
   for (const nodeId of nodeIds) {
-    const inputPortIds = inputsByNode.get(nodeId) ?? [];
-    const outputPortIds = outputsByNode.get(nodeId) ?? [];
-    inputPortIds.sort();
-    outputPortIds.sort();
+    const inputPortIds = [...(inputsByNode.get(nodeId) ?? [])].sort();
+    const outputPortIds = [...(outputsByNode.get(nodeId) ?? [])].sort();
     connected.set(nodeId, {
       inputs: new Set(inputPortIds),
       outputs: new Set(outputPortIds),
@@ -775,6 +780,7 @@ interface EdgeCacheEntry {
   sourceDefinitionKey: string;
   targetDefinitionKey: string;
   activity: EdgeActivity;
+  repeatHintId: string | undefined;
   flowEdge: RinoFlowEdge;
 }
 
@@ -794,6 +800,18 @@ export class GraphProjection {
   private registrySource: RinoNodeRegistrySnapshotV1 | undefined;
   private workflowGroupsSource: readonly WorkflowGroupV1[] | undefined;
   private variablesSource: RinoProjectDocumentV1["variables"] | undefined;
+  private nodeIndexSource: GraphV1["nodes"] | undefined;
+  private nodeIndex = new Map<string, NodeV1>();
+
+  private nodeIndexFor(graph: GraphV1): ReadonlyMap<string, NodeV1> {
+    if (this.nodeIndexSource !== graph.nodes) {
+      this.nodeIndexSource = graph.nodes;
+      this.nodeIndex = new Map(
+        graph.nodes.map((node) => [node.nodeId, node] as const),
+      );
+    }
+    return this.nodeIndex;
+  }
 
   private indexFor(registry: RinoNodeRegistrySnapshotV1): NodeRegistryIndex {
     if (this.registrySource !== registry || !this.registryIndex) {
@@ -1060,6 +1078,7 @@ export class GraphProjection {
       );
       const recognitionParameters = imageRecognitionParameters(graph, group);
       const textParameters = textRecognitionParameters(graph, group);
+      const repeat = recognitionRepeatState(graph, group);
       const data: CanvasNodeData = {
         graphId: graph.graphId,
         nodeId: virtualNodeId,
@@ -1097,6 +1116,17 @@ export class GraphProjection {
         workflowGroup: {
           groupId: group.groupId,
           kind: group.kind,
+          ...(repeat.delayNode === undefined
+            ? {}
+            : {
+                recognitionRepeat: {
+                  enabled: repeat.enabled,
+                  delayMilliseconds: numericInput(
+                    repeat.delayNode,
+                    "durationMilliseconds",
+                  ),
+                },
+              }),
           steps,
           ...(recognitionParameters === undefined
             ? {}
@@ -1178,16 +1208,38 @@ export class GraphProjection {
   ): RinoFlowEdge[] {
     this.prepareGraph(graph, document);
     const index = this.indexFor(registry);
+    const nodeById = this.nodeIndexFor(graph);
     const collapsedByMember = collapsedWorkflowGroupByMember(graph);
+    const repeatHintByEdgeId = new Map(
+      (graph.editorMetadata?.repeatHints ?? []).map((hint) => [
+        hint.edgeId,
+        hint,
+      ]),
+    );
+    const definitionKeys = new Map<string, string>();
+    const definitionKeyFor = (node: NodeV1 | undefined): string => {
+      if (node === undefined) {
+        return "missing";
+      }
+      const existing = definitionKeys.get(node.nodeId);
+      if (existing !== undefined) {
+        return existing;
+      }
+      const key = functionNodeDefinitionCacheKey(node, graph, document);
+      definitionKeys.set(node.nodeId, key);
+      return key;
+    };
     const live = new Set<string>();
     const edges: RinoFlowEdge[] = [];
 
     for (const edge of graph.edges) {
       const sourceGroup = collapsedByMember.get(edge.sourceNodeId);
       const targetGroup = collapsedByMember.get(edge.targetNodeId);
+      const repeatHint = repeatHintByEdgeId.get(edge.edgeId);
       if (
         sourceGroup !== undefined &&
-        sourceGroup.groupId === targetGroup?.groupId
+        sourceGroup.groupId === targetGroup?.groupId &&
+        repeatHint === undefined
       ) {
         continue;
       }
@@ -1195,34 +1247,25 @@ export class GraphProjection {
       const activity = edgeActivity.get(edge.edgeId) ?? "idle";
       const cached = this.edgeCache.get(edge.edgeId);
 
-      const sourceNode = graph.nodes.find(
-        (node) => node.nodeId === edge.sourceNodeId,
-      );
-      const targetNode = graph.nodes.find(
-        (node) => node.nodeId === edge.targetNodeId,
-      );
+      const sourceNode = nodeById.get(edge.sourceNodeId);
+      const targetNode = nodeById.get(edge.targetNodeId);
+      const sourceDefinitionKey = definitionKeyFor(sourceNode);
+      const targetDefinitionKey = definitionKeyFor(targetNode);
+      if (
+        cached?.source === edge &&
+        cached.activity === activity &&
+        cached.sourceDefinitionKey === sourceDefinitionKey &&
+        cached.targetDefinitionKey === targetDefinitionKey &&
+        cached.repeatHintId === repeatHint?.hintId
+      ) {
+        edges.push(cached.flowEdge);
+        continue;
+      }
       const sourceDefinition =
         sourceNode === undefined
           ? undefined
           : this.definitionFor(graph, sourceNode, index, document);
       const sourcePort = sourceDefinition?.ports.get(edge.sourcePortId);
-      const sourceDefinitionKey =
-        sourceNode === undefined
-          ? "missing"
-          : functionNodeDefinitionCacheKey(sourceNode, graph, document);
-      const targetDefinitionKey =
-        targetNode === undefined
-          ? "missing"
-          : functionNodeDefinitionCacheKey(targetNode, graph, document);
-      if (
-        cached?.source === edge &&
-        cached.activity === activity &&
-        cached.sourceDefinitionKey === sourceDefinitionKey &&
-        cached.targetDefinitionKey === targetDefinitionKey
-      ) {
-        edges.push(cached.flowEdge);
-        continue;
-      }
       const appearance = sourcePort
         ? portAppearance(sourcePort.type)
         : { colorRole: "unknown" as const };
@@ -1243,17 +1286,22 @@ export class GraphProjection {
                 edge.sourcePortId,
               ).proxyPortId,
         target:
-          targetGroup === undefined
-            ? edge.targetNodeId
-            : workflowGroupNodeId(targetGroup.groupId),
+          repeatHint === undefined
+            ? targetGroup === undefined
+              ? edge.targetNodeId
+              : workflowGroupNodeId(targetGroup.groupId)
+            : repeatHintNodeId(repeatHint.hintId),
         targetHandle:
-          targetGroup === undefined
-            ? edge.targetPortId
-            : groupPortForDomainEndpoint(
-                targetGroup,
-                edge.targetNodeId,
-                edge.targetPortId,
-              ).proxyPortId,
+          repeatHint === undefined
+            ? targetGroup === undefined
+              ? edge.targetPortId
+              : groupPortForDomainEndpoint(
+                  targetGroup,
+                  edge.targetNodeId,
+                  edge.targetPortId,
+                ).proxyPortId
+            : "repeat",
+        reconnectable: repeatHint === undefined,
         ...(edge.edgeKind === "execution"
           ? {
               markerEnd: {
@@ -1276,6 +1324,7 @@ export class GraphProjection {
         sourceDefinitionKey,
         targetDefinitionKey,
         activity,
+        repeatHintId: repeatHint?.hintId,
         flowEdge,
       });
       edges.push(flowEdge);
@@ -1307,6 +1356,8 @@ export class GraphProjection {
     this.graphId = graph.graphId;
     this.workflowGroupsSource = workflowGroups;
     this.variablesSource = variables;
+    this.nodeIndexSource = undefined;
+    this.nodeIndex.clear();
     this.nodeCache.clear();
     this.repeatHintCache.clear();
     this.edgeCache.clear();

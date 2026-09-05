@@ -1,17 +1,23 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { App } from "../../app/App";
 import { applicationI18n } from "../../localization/i18n";
 import { LOCALE_STORAGE_KEY } from "../../localization/locale-state";
-import { NODE_TYPE_DRAG_FORMAT } from "../canvas/canvas-drag";
-import { useDocumentStore } from "../store/document-store";
-import { closeProjectDocument } from "../store/project-lifecycle";
 import {
   createProjectFromEmptyState,
   installInMemoryProjectService,
 } from "../../test/project-transport-double";
+import { NODE_TYPE_DRAG_FORMAT } from "../canvas/canvas-drag";
+import { useDocumentStore } from "../store/document-store";
+import { closeProjectDocument } from "../store/project-lifecycle";
 
 /** A stand-in for the drag payload, which jsdom does not implement. */
 function createTransferStub() {
@@ -48,6 +54,14 @@ function paletteRegion(): HTMLElement {
   return screen.getByRole("complementary", { name: "节点库" });
 }
 
+function openCategory(buttonName: RegExp, categoryName: string): HTMLElement {
+  const heading = within(paletteRegion()).getByRole("button", {
+    name: buttonName,
+  });
+  fireEvent.pointerEnter(heading);
+  return screen.getByRole("region", { name: categoryName });
+}
+
 describe("node palette", () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -58,7 +72,7 @@ describe("node palette", () => {
     setViewport(1280);
   });
 
-  it("lists the development definitions grouped by category", () => {
+  it("shows categories first and opens their nodes in a separate hover flyout", () => {
     render(<App />);
     const palette = paletteRegion();
 
@@ -68,40 +82,76 @@ describe("node palette", () => {
     expect(
       within(palette).getByRole("button", { name: /工作流模板/ }),
     ).toBeInTheDocument();
-    expect(within(palette).getByText("开始")).toBeInTheDocument();
-    expect(within(palette).getAllByText("顺序执行").length).toBeGreaterThan(0);
-    expect(within(palette).getAllByText("同时执行").length).toBeGreaterThan(0);
-    expect(within(palette).getAllByText("数值运算").length).toBeGreaterThan(0);
-    expect(within(palette).getAllByText("输出数值").length).toBeGreaterThan(0);
-    expect(within(palette).queryByText("函数库")).not.toBeInTheDocument();
-    expect(within(palette).queryByText("获取数值变量")).not.toBeInTheDocument();
-    expect(within(palette).queryByText("读取文本")).not.toBeInTheDocument();
-    expect(within(palette).queryByText("读取数值")).not.toBeInTheDocument();
-    expect(within(palette).getAllByText("图像识别模板").length).toBeGreaterThan(
+    expect(within(palette).queryByText("开始")).not.toBeInTheDocument();
+
+    const flowFlyout = openCategory(/流程/, "流程");
+    expect(within(flowFlyout).getByText("开始")).toBeInTheDocument();
+    expect(within(flowFlyout).getAllByText("顺序执行").length).toBeGreaterThan(
       0,
     );
-    expect(
-      within(palette).queryByText("图像识别并点击模板"),
-    ).not.toBeInTheDocument();
-    expect(within(palette).getAllByText("文字识别模板").length).toBeGreaterThan(
+    expect(within(flowFlyout).getAllByText("同时执行").length).toBeGreaterThan(
       0,
     );
+    const timingFlyout = openCategory(/时间/, "时间");
+    expect(within(timingFlyout).getByText("限时重复尝试")).toBeInTheDocument();
     expect(
-      within(palette).queryByText("文字识别并点击模板"),
+      applicationI18n.t("node.core.flow.boundedRetry.description"),
+    ).toContain("开始尝试");
+
+    const visionFlyout = openCategory(/视觉识别/, "视觉识别");
+    expect(
+      within(visionFlyout).getAllByText("图像识别模板").length,
+    ).toBeGreaterThan(0);
+    expect(
+      within(visionFlyout).queryByText("图像识别并点击模板"),
     ).not.toBeInTheDocument();
-    const templateBadges = within(palette).getAllByText("模板");
-    expect(templateBadges.length).toBeGreaterThan(0);
-    const startButton = within(palette).getByText("开始").closest("button");
-    if (!startButton) {
-      throw new Error("Start button not found");
-    }
-    expect(within(startButton).queryByText("模板")).not.toBeInTheDocument();
+    expect(
+      within(visionFlyout).getAllByText("文字识别模板").length,
+    ).toBeGreaterThan(0);
+    expect(
+      within(visionFlyout).queryByText("文字识别并点击模板"),
+    ).not.toBeInTheDocument();
+
+    const templateFlyout = openCategory(/工作流模板/, "工作流模板");
+    expect(
+      within(templateFlyout).getByText("识别数值并分支"),
+    ).toBeInTheDocument();
+    expect(within(templateFlyout).getAllByText("模板").length).toBeGreaterThan(
+      0,
+    );
+  });
+
+  it("opens a category from the keyboard and returns focus with Escape", async () => {
+    render(<App />);
+    const heading = within(paletteRegion()).getByRole("button", {
+      name: /流程/,
+    });
+
+    expect(heading).toHaveAttribute("aria-expanded", "false");
+    heading.focus();
+    fireEvent.keyDown(heading, { key: "ArrowRight" });
+
+    const flyout = screen.getByRole("region", { name: "流程" });
+    const firstEntry = within(flyout).getAllByRole("button")[0];
+    await waitFor(() => {
+      expect(firstEntry).toHaveFocus();
+    });
+    expect(heading).toHaveAttribute("aria-expanded", "true");
+
+    fireEvent.keyDown(flyout, { key: "Escape" });
+
+    expect(
+      screen.queryByRole("region", { name: "流程" }),
+    ).not.toBeInTheDocument();
+    expect(heading).toHaveFocus();
   });
 
   it("shows the English name beside the Chinese one", () => {
     render(<App />);
 
-    expect(within(paletteRegion()).getByText("Compare numbers")).toBeVisible();
+    expect(
+      within(openCategory(/逻辑/, "逻辑")).getByText("Compare numbers"),
+    ).toBeVisible();
   });
 
   it("finds a node by an English term while the interface is Chinese", async () => {
@@ -156,28 +206,12 @@ describe("node palette", () => {
     expect(screen.getByText("没有匹配的节点")).toBeInTheDocument();
   });
 
-  it("collapses and expands a category", async () => {
-    render(<App />);
-    const heading = within(paletteRegion()).getByRole("button", {
-      name: /流程/,
-    });
-
-    expect(heading).toHaveAttribute("aria-expanded", "true");
-    await userEvent.click(heading);
-
-    expect(heading).toHaveAttribute("aria-expanded", "false");
-    expect(within(paletteRegion()).queryByText("开始")).not.toBeInTheDocument();
-  });
-
   it("marks a node whose capability the backend has not reported", () => {
     render(<App />);
 
-    // No runtime is connected, so the OCR node's capability is unknown rather than
-    // unavailable, and the palette says so instead of guessing.
-    const textRecognitionEntries = within(paletteRegion()).getAllByRole(
-      "button",
-      { name: /文字识别模板/ },
-    );
+    const textRecognitionEntries = within(
+      openCategory(/视觉识别/, "视觉识别"),
+    ).getAllByRole("button", { name: /文字识别模板/ });
     expect(textRecognitionEntries.length).toBeGreaterThan(0);
     for (const entry of textRecognitionEntries) {
       expect(entry).toHaveAttribute("data-capability", "unknown");
@@ -186,7 +220,7 @@ describe("node palette", () => {
 
   it("hides project variable and generic function entries", () => {
     render(<App />);
-    const palette = paletteRegion();
+    const valueFlyout = openCategory(/数值/, "数值");
 
     for (const title of [
       "获取布尔变量",
@@ -203,14 +237,16 @@ describe("node palette", () => {
       "设置图像变量",
       "函数调用",
     ]) {
-      expect(within(palette).queryByText(title)).not.toBeInTheDocument();
+      expect(within(valueFlyout).queryByText(title)).not.toBeInTheDocument();
     }
   });
 
   it("carries the node type in a Rino-specific drag format", async () => {
     render(<App />);
     await createProjectFromEmptyState();
-    const item = within(paletteRegion()).getByText("开始").closest("button");
+    const item = within(openCategory(/流程/, "流程"))
+      .getByText("开始")
+      .closest("button");
     if (!item) {
       throw new Error("The palette item must be a button.");
     }
@@ -227,14 +263,18 @@ describe("node palette", () => {
     await createProjectFromEmptyState();
 
     await userEvent.click(
-      within(paletteRegion()).getByText("开始").closest("button") ??
-        document.body,
+      within(openCategory(/流程/, "流程"))
+        .getByText("开始")
+        .closest("button") ?? document.body,
     );
 
     const nodes =
       useDocumentStore.getState().history?.document.graphs[0]?.nodes ?? [];
     expect(nodes).toHaveLength(1);
     expect(nodes[0]?.typeKey).toBe("core.flow.start");
+    expect(
+      screen.queryByRole("region", { name: "流程" }),
+    ).not.toBeInTheDocument();
   });
 
   it("explains and blocks node insertion while no project is open", async () => {
@@ -242,7 +282,7 @@ describe("node palette", () => {
     render(<App />);
 
     expect(screen.getByText(/尚未打开项目/)).toBeInTheDocument();
-    const startButton = within(paletteRegion())
+    const startButton = within(openCategory(/流程/, "流程"))
       .getByText("开始")
       .closest("button");
     if (!startButton) {

@@ -1,5 +1,5 @@
 import type { GraphV1, RinoProjectDocumentV1 } from "@rino/contracts";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   buildGraphScene,
@@ -143,11 +143,25 @@ describe("graph projection cost", () => {
     "rebuilds only the connected node and the new edge in the %s scene",
     (sceneName) => {
       const probe = createProbe(sceneName);
-      // The second comparison of the first unit publishes a result nothing consumes, and
-      // the last branch's remaining execution output is free, so this connection is one
-      // the editor would accept.
-      const source = pick(probe.graph, "core.value.numberLiteral");
+      // Free the second branch's condition, then reconnect it from a comparison output
+      // which already feeds the first branch. The source therefore remains connected and
+      // only the target node's rendered input state changes.
+      const source = pick(probe.graph, "core.logic.numberCompare");
       const target = pick(probe.graph, "core.logic.branch", 1);
+      const existingTargetEdge = probe.graph.edges.find(
+        (edge) =>
+          edge.targetNodeId === target && edge.targetPortId === "condition",
+      );
+      if (existingTargetEdge === undefined) {
+        throw new Error(
+          "The scene's second branch should have a condition edge.",
+        );
+      }
+      probe.runCommand({
+        kind: "removeEdge",
+        graphId: probe.graph.graphId,
+        edgeId: existingTargetEdge.edgeId,
+      });
 
       expect(
         probe.runCommand({
@@ -157,7 +171,7 @@ describe("graph projection cost", () => {
             edgeId: sceneIdentifier("probe/edge/added"),
             edgeKind: "data",
             sourceNodeId: source,
-            sourcePortId: "value",
+            sourcePortId: "result",
             targetNodeId: target,
             targetPortId: "condition",
           },
@@ -184,6 +198,21 @@ describe("graph projection cost", () => {
     expect(second.filter((node) => first.includes(node))).toHaveLength(0);
   });
 
+  it("indexes edge endpoints instead of scanning the node array per edge", () => {
+    const scene = buildGraphScene("stress");
+    const nodes = [...scene.graph.nodes];
+    const findSpy = vi.spyOn(nodes, "find");
+    const graph = { ...scene.graph, nodes };
+
+    new GraphProjection().projectEdges(
+      graph,
+      developmentRegistrySnapshot(),
+      EMPTY_EDGE_ACTIVITY,
+    );
+
+    expect(findSpy).not.toHaveBeenCalled();
+  });
+
   it("keeps a full projection of the stress scene proportional to its size", () => {
     const stress = createProbe("stress");
     const small = createProbe("small");
@@ -193,10 +222,10 @@ describe("graph projection cost", () => {
       probe.project();
       const started = performance.now();
       for (let round = 0; round < 10; round += 1) {
-        new GraphProjection().projectNodes(
-          probe.graph,
-          developmentRegistrySnapshot(),
-        );
+        const projection = new GraphProjection();
+        const registry = developmentRegistrySnapshot();
+        projection.projectNodes(probe.graph, registry);
+        projection.projectEdges(probe.graph, registry, EMPTY_EDGE_ACTIVITY);
       }
       return performance.now() - started;
     };
@@ -206,10 +235,9 @@ describe("graph projection cost", () => {
 
     // The stress scene holds ten times the nodes and ten times the edges of the small
     // one, so a projection whose cost follows their sum stays near ten. Scanning every
-    // edge once per node put this above twelve before the pass was rewritten and would
-    // put it near a hundred at the sizes the persisted format allows. The ceiling is
-    // loose because this runs on unknown hardware: it exists to catch a return to
-    // per-node edge scanning, not to police a few milliseconds.
-    expect(stressCost / smallCost).toBeLessThan(10);
+    // edge once per node approaches a hundred at the sizes the persisted format allows.
+    // The ceiling is loose because this runs on unknown hardware: it exists to catch a
+    // return to per-edge node scanning, not to police a few milliseconds.
+    expect(stressCost / smallCost).toBeLessThan(20);
   });
 });

@@ -608,6 +608,10 @@ export interface ProjectManifestV1 {
 }
 export interface ProjectMetadataV1 {
   name: string;
+  /**
+   * The project-wide SPDX expression or LicenseRef identifier inherited by every exported package.
+   */
+  licenseIdentifier?: string;
   createdAt: string;
   updatedAt: string;
 }

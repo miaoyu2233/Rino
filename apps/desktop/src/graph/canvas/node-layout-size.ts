@@ -25,6 +25,9 @@ export interface NodeLayoutSizeData {
   };
   workflowGroup?: {
     steps: readonly unknown[];
+    recognitionRepeat?: {
+      enabled: boolean;
+    };
     imageRecognitionParameters?: unknown;
     textRecognitionParameters?: unknown;
   };
@@ -63,6 +66,9 @@ function workflowParameterRows(
   }
   if (workflowGroup.textRecognitionParameters !== undefined) {
     rows += 5;
+  }
+  if (workflowGroup.recognitionRepeat !== undefined) {
+    rows += workflowGroup.recognitionRepeat.enabled ? 2 : 1;
   }
   return rows;
 }

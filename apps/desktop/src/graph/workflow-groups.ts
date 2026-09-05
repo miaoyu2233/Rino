@@ -1,10 +1,24 @@
 import type {
+  EdgeV1,
   GraphV1,
+  NodeV1,
+  RepeatHintV1,
   WorkflowGroupV1,
   WorkflowGroupPortV1,
 } from "@rino/contracts";
 
 const WORKFLOW_GROUP_NODE_PREFIX = "workflow-group:";
+
+export const RECOGNITION_REPEAT_DELAY_ROLE = "retryDelay";
+export const DEFAULT_RECOGNITION_REPEAT_DELAY_MILLISECONDS = 1_000;
+
+export interface RecognitionRepeatState {
+  delayNode: NodeV1 | undefined;
+  repeatEdge: EdgeV1 | undefined;
+  returnEdge: EdgeV1 | undefined;
+  hint: RepeatHintV1 | undefined;
+  enabled: boolean;
+}
 
 export function workflowGroups(graph: GraphV1): readonly WorkflowGroupV1[] {
   return graph.editorMetadata?.workflowGroups ?? [];
@@ -54,6 +68,65 @@ export function workflowGroupOrigin(
     x: Math.min(...positions.map((position) => position.x)),
     y: Math.min(...positions.map((position) => position.y)),
   };
+}
+
+export function recognitionRepeatState(
+  graph: GraphV1,
+  group: WorkflowGroupV1,
+): RecognitionRepeatState {
+  const delayNodeId = group.members.find(
+    (member) => member.role === RECOGNITION_REPEAT_DELAY_ROLE,
+  )?.nodeId;
+  const delayNode = graph.nodes.find((node) => node.nodeId === delayNodeId);
+  const noMatch = group.exposedPorts.find(
+    (port) => port.proxyPortId === "noMatch",
+  );
+  const run = group.exposedPorts.find((port) => port.proxyPortId === "run");
+  const repeatEdge =
+    delayNode === undefined || noMatch === undefined
+      ? undefined
+      : graph.edges.find(
+          (edge) =>
+            edge.edgeKind === "execution" &&
+            edge.sourceNodeId === noMatch.nodeId &&
+            edge.sourcePortId === noMatch.portId &&
+            edge.targetNodeId === delayNode.nodeId &&
+            edge.targetPortId === "run",
+        );
+  const returnEdge =
+    delayNode === undefined || run === undefined
+      ? undefined
+      : graph.edges.find(
+          (edge) =>
+            edge.edgeKind === "execution" &&
+            edge.sourceNodeId === delayNode.nodeId &&
+            edge.sourcePortId === "next" &&
+            edge.targetNodeId === run.nodeId &&
+            edge.targetPortId === run.portId,
+        );
+  const hint =
+    repeatEdge === undefined
+      ? undefined
+      : graph.editorMetadata?.repeatHints?.find(
+          (candidate) => candidate.edgeId === repeatEdge.edgeId,
+        );
+  return {
+    delayNode,
+    repeatEdge,
+    returnEdge,
+    hint,
+    enabled: repeatEdge !== undefined && returnEdge !== undefined,
+  };
+}
+
+export function recognitionRepeatGroupForEdge(
+  graph: GraphV1,
+  edgeId: string,
+): WorkflowGroupV1 | undefined {
+  return workflowGroups(graph).find(
+    (group) =>
+      recognitionRepeatState(graph, group).repeatEdge?.edgeId === edgeId,
+  );
 }
 
 function derivedProxyPortId(

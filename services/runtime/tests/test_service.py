@@ -65,8 +65,8 @@ class StubDeviceService:
         )
         self.runtime_info = AutomationRuntimeInfo(
             backend_key="maa",
-            binding_version="5.10.5",
-            native_version="5.10.5",
+            binding_version="5.12.3",
+            native_version="5.12.3",
         )
         self.closed = 0
         self.failure: DeviceServiceError | None = None
@@ -461,8 +461,8 @@ def test_handshake_advertises_only_an_initialized_device_service() -> None:
 
     assert response["result"]["maaRuntime"] == {
         "state": "available",
-        "bindingVersion": "5.10.5",
-        "nativeVersion": "5.10.5",
+        "bindingVersion": "5.12.3",
+        "nativeVersion": "5.12.3",
     }
     assert response["result"]["featureFlags"] == [
         "runtime.graphExecution",

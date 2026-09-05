@@ -24,6 +24,8 @@ import {
   setImageRecognitionThreshold,
   setRecognitionDelayMode,
   setRecognitionClickMethod,
+  setRecognitionRepeatDelay,
+  setRecognitionRepeatEnabled,
   setTextRecognitionClickPoint,
   setTextRecognitionClickMethod,
   setTextRecognitionConfidence,
@@ -272,6 +274,90 @@ describe("workflow group methods", () => {
         nodeTypeKey: "automation.clickPoint",
       },
     });
+  });
+
+  it("updates, disables, and restores recognition repeat execution", () => {
+    const group: WorkflowGroupV1 = {
+      groupId: "text-group",
+      kind: "textRecognition",
+      collapsed: true,
+      members: [
+        { role: "capture", nodeId: "capture" },
+        { role: "matchBranch", nodeId: "branch" },
+        { role: "retryDelay", nodeId: "retry-delay" },
+      ],
+      exposedPorts: [
+        {
+          proxyPortId: "run",
+          nodeId: "capture",
+          portId: "run",
+          labelKey: "workflowGroup.textRecognition.port.run",
+        },
+        {
+          proxyPortId: "noMatch",
+          nodeId: "branch",
+          portId: "whenFalse",
+          labelKey: "workflowGroup.textRecognition.port.noMatch",
+        },
+      ],
+    };
+    const document = project(
+      [
+        node("capture", "automation.captureScreen"),
+        node("branch", "core.logic.branch"),
+        node("retry-delay", "core.time.delay", {
+          durationMilliseconds: 1_000,
+        }),
+      ],
+      [
+        {
+          edgeId: "repeat-edge",
+          edgeKind: "execution",
+          sourceNodeId: "branch",
+          sourcePortId: "whenFalse",
+          targetNodeId: "retry-delay",
+          targetPortId: "run",
+        },
+        {
+          edgeId: "return-edge",
+          edgeKind: "execution",
+          sourceNodeId: "retry-delay",
+          sourcePortId: "next",
+          targetNodeId: "capture",
+          targetPortId: "run",
+        },
+      ],
+      [group],
+    );
+    const graph = document.graphs[0];
+    if (graph === undefined) {
+      throw new Error("Expected a graph fixture.");
+    }
+    graph.editorMetadata = {
+      ...graph.editorMetadata,
+      repeatHints: [
+        {
+          hintId: "repeat-hint",
+          edgeId: "repeat-edge",
+          position: { x: 760, y: 196 },
+        },
+      ],
+    };
+    useDocumentStore.getState().openDocument(document);
+
+    expect(setRecognitionRepeatDelay("text-group", 450)).toBe(true);
+    expect(
+      currentGraph().nodes.find((item) => item.nodeId === "retry-delay")
+        ?.inputValues["durationMilliseconds"],
+    ).toBe(450);
+
+    expect(setRecognitionRepeatEnabled("text-group", false)).toBe(true);
+    expect(currentGraph().edges).toEqual([]);
+    expect(currentGraph().editorMetadata?.repeatHints).toBeUndefined();
+
+    expect(setRecognitionRepeatEnabled("text-group", true)).toBe(true);
+    expect(currentGraph().edges).toHaveLength(2);
+    expect(currentGraph().editorMetadata?.repeatHints).toHaveLength(1);
   });
 
   it("rejects click-only timing for a disabled recognition click member", () => {
@@ -804,6 +890,116 @@ describe("workflow group methods", () => {
         targetPortId: "rect",
       }),
     );
+  });
+
+  it("preserves the compact next output and its connection when enabling recognition clicking", () => {
+    const group: WorkflowGroupV1 = {
+      groupId: "image-group",
+      kind: "imageRecognition",
+      collapsed: true,
+      members: [
+        { role: "recognizer", nodeId: "recognizer" },
+        { role: "matchBranch", nodeId: "branch" },
+        { role: "click", nodeId: "click" },
+      ],
+      exposedPorts: [
+        {
+          proxyPortId: "next",
+          nodeId: "click",
+          portId: "steps",
+          labelKey: "workflowGroup.imageRecognition.port.next",
+        },
+      ],
+    };
+    useDocumentStore.getState().openDocument(
+      project(
+        [
+          node("recognizer", "vision.templateMatch"),
+          node("branch", "core.logic.branch"),
+          node("click", "core.flow.sequence"),
+          node("target", "core.time.delay"),
+        ],
+        [
+          {
+            edgeId: "success-edge",
+            edgeKind: "execution",
+            sourceNodeId: "branch",
+            sourcePortId: "whenTrue",
+            targetNodeId: "click",
+            targetPortId: "run",
+          },
+          {
+            edgeId: "continuation-edge",
+            edgeKind: "execution",
+            sourceNodeId: "click",
+            sourcePortId: "steps",
+            targetNodeId: "target",
+            targetPortId: "run",
+          },
+        ],
+        [group],
+      ),
+    );
+
+    expect(setRecognitionClickMethod("image-group", "rectCenter")).toBe(true);
+    expect(
+      currentGraph().editorMetadata?.workflowGroups?.[0]?.exposedPorts,
+    ).toContainEqual({
+      proxyPortId: "next",
+      nodeId: "click",
+      portId: "next",
+      labelKey: "workflowGroup.imageRecognition.port.next",
+    });
+    expect(currentGraph().edges).toContainEqual({
+      edgeId: "continuation-edge",
+      edgeKind: "execution",
+      sourceNodeId: "click",
+      sourcePortId: "next",
+      targetNodeId: "target",
+      targetPortId: "run",
+    });
+
+    useDocumentStore.getState().undoChange();
+    expect(
+      currentGraph().nodes.find((item) => item.nodeId === "click")?.typeKey,
+    ).toBe("core.flow.sequence");
+    expect(
+      currentGraph().editorMetadata?.workflowGroups?.[0]?.exposedPorts,
+    ).toContainEqual({
+      proxyPortId: "next",
+      nodeId: "click",
+      portId: "steps",
+      labelKey: "workflowGroup.imageRecognition.port.next",
+    });
+    expect(currentGraph().edges).toContainEqual({
+      edgeId: "continuation-edge",
+      edgeKind: "execution",
+      sourceNodeId: "click",
+      sourcePortId: "steps",
+      targetNodeId: "target",
+      targetPortId: "run",
+    });
+
+    useDocumentStore.getState().redoChange();
+    expect(
+      currentGraph().nodes.find((item) => item.nodeId === "click")?.typeKey,
+    ).toBe("automation.clickRectCenter");
+    expect(
+      currentGraph().editorMetadata?.workflowGroups?.[0]?.exposedPorts,
+    ).toContainEqual({
+      proxyPortId: "next",
+      nodeId: "click",
+      portId: "next",
+      labelKey: "workflowGroup.imageRecognition.port.next",
+    });
+    expect(currentGraph().edges).toContainEqual({
+      edgeId: "continuation-edge",
+      edgeKind: "execution",
+      sourceNodeId: "click",
+      sourcePortId: "next",
+      targetNodeId: "target",
+      targetPortId: "run",
+    });
   });
 
   it("edits collapsed text recognition parameters on their ordinary nodes", () => {

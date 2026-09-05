@@ -20,6 +20,10 @@ import {
   validateAssetDisplayName,
   validateAssetVisibleName,
 } from "../project/asset-names";
+import {
+  DEFAULT_PROJECT_LICENSE,
+  normalizeProjectLicense,
+} from "../project-license";
 import { normalizeVariableName } from "../variables/variable-authoring";
 import type { VariableDefinition } from "../variables/variable-authoring";
 
@@ -41,6 +45,7 @@ export type GraphCommand =
   | { kind: "removeGraph"; graphId: string }
   | { kind: "renameGraph"; graphId: string; name: string }
   | { kind: "setEntryGraph"; graphId: string }
+  | { kind: "setProjectLicense"; licenseIdentifier: string }
   | {
       kind: "setGraphVariables";
       graphId: string;
@@ -166,6 +171,7 @@ export type CommandFailureReason =
   | "graphNameInvalid"
   | "variableLimitReached"
   | "variableIdInvalid"
+  | "projectLicenseInvalid"
   | "variableIdDuplicate"
   | "variableNameInvalid"
   | "variableNameDuplicate"
@@ -642,6 +648,29 @@ function applySetEntryGraph(
     ok: true,
     document: { ...document, entryGraphId: command.graphId },
     inverse: { kind: "setEntryGraph", graphId: document.entryGraphId },
+  };
+}
+
+function applySetProjectLicense(
+  document: RinoProjectDocumentV1,
+  command: Extract<GraphCommand, { kind: "setProjectLicense" }>,
+): CommandResult {
+  const licenseIdentifier = normalizeProjectLicense(command.licenseIdentifier);
+  if (licenseIdentifier === undefined) {
+    return failure("projectLicenseInvalid");
+  }
+
+  return {
+    ok: true,
+    document: {
+      ...document,
+      metadata: { ...document.metadata, licenseIdentifier },
+    },
+    inverse: {
+      kind: "setProjectLicense",
+      licenseIdentifier:
+        document.metadata.licenseIdentifier ?? DEFAULT_PROJECT_LICENSE,
+    },
   };
 }
 
@@ -1644,6 +1673,8 @@ export function applyCommand(
       return applyRemoveGraph(document, command);
     case "renameGraph":
       return applyRenameGraph(document, command);
+    case "setProjectLicense":
+      return applySetProjectLicense(document, command);
     case "setEntryGraph":
       return applySetEntryGraph(document, command);
     case "setProjectVariables":

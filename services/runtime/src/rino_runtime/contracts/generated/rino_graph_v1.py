@@ -60,6 +60,14 @@ class ProjectMetadataV1(BaseModel):
         extra="forbid",
     )
     name: Annotated[str, Field(max_length=200, min_length=1)]
+    license_identifier: Annotated[
+        str | None,
+        Field(
+            alias="licenseIdentifier",
+            description="The project-wide SPDX expression or LicenseRef identifier inherited by every exported package.",
+            pattern="^[A-Za-z0-9][A-Za-z0-9.+-]{0,127}$",
+        ),
+    ] = None
     created_at: Annotated[AwareDatetime, Field(alias="createdAt")]
     updated_at: Annotated[AwareDatetime, Field(alias="updatedAt")]
 

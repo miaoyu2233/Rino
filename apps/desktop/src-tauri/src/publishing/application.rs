@@ -5,7 +5,11 @@ use std::{
     fs::{self, File, OpenOptions},
     io::{self, Read, Seek, Write},
     path::{Component, Path, PathBuf},
+    process::{Command, Stdio},
 };
+
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -18,6 +22,11 @@ use super::{
     package::PackageOutput,
 };
 
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+const INSTALLER_SCRIPT_NAME: &str = "RinoProject.iss";
+const INSTALLER_LANGUAGE_NAME: &str = "ChineseSimplified.isl";
+const INSTALLER_LANGUAGE_LICENSE_NAME: &str = "ChineseSimplified.LICENSE.txt";
 const TEMPLATE_ARCHIVE_NAME: &str = "Rino-WFP-win-x64.zip";
 const TEMPLATE_MANIFEST_PATH: &str = "rino-wfp-template-v1.json";
 pub const RESOURCE_DIRECTORY_NAME: &str = "RinoProject";
@@ -257,7 +266,330 @@ pub fn write_application(
         sha256: completed.1,
         key_id: package.key_id.clone(),
         public_key_base64: package.public_key_base64.clone(),
+        publisher_display_name: package.publisher_display_name.clone(),
     })
+}
+
+#[allow(
+    clippy::too_many_lines,
+    reason = "payload preparation, compiler invocation, and atomic commit form one installer transaction"
+)]
+pub fn write_installer(
+    target: &Path,
+    template_path: &Path,
+    package_path: &Path,
+    package: &PackageOutput,
+    options: &PackageOptions,
+    compiler_root: &Path,
+) -> PublishingResult<PackageOutput> {
+    options.validate()?;
+    let compiler = compiler_root.join("ISCC.exe");
+    let script = compiler_root.join(INSTALLER_SCRIPT_NAME);
+    let language = compiler_root.join(INSTALLER_LANGUAGE_NAME);
+    let language_license = compiler_root.join(INSTALLER_LANGUAGE_LICENSE_NAME);
+    validate_installer_file(&compiler, "installerCompiler")?;
+    validate_installer_file(&script, "installerScript")?;
+    validate_installer_file(&language, "installerLanguage")?;
+    validate_installer_file(&language_license, "installerLanguageLicense")?;
+
+    let staging_root = installer_staging_root(target)?;
+    fs::create_dir(&staging_root).map_err(|error| {
+        PublishingError::from_io(
+            PublishingErrorCode::ApplicationWriteFailed,
+            "installerStagingCreate",
+            &error,
+        )
+    })?;
+    let result = (|| {
+        let payload_archive = staging_root.join("payload.rino-app.zip");
+        write_application(
+            &payload_archive,
+            template_path,
+            package_path,
+            package,
+            options,
+        )?;
+        let payload_root = staging_root.join("payload");
+        fs::create_dir(&payload_root).map_err(|error| {
+            PublishingError::from_io(
+                PublishingErrorCode::ApplicationWriteFailed,
+                "installerPayloadCreate",
+                &error,
+            )
+        })?;
+        extract_application_payload(&payload_archive, &payload_root)?;
+
+        let executable_name = format!("{}.exe", options.application_name.trim());
+        if !executable_name.eq_ignore_ascii_case("Rino.exe") {
+            fs::rename(
+                payload_root.join("Rino.exe"),
+                payload_root.join(&executable_name),
+            )
+            .map_err(|error| {
+                PublishingError::from_io(
+                    PublishingErrorCode::ApplicationWriteFailed,
+                    "installerExecutableRename",
+                    &error,
+                )
+            })?;
+        }
+
+        let output_root = staging_root.join("output");
+        fs::create_dir(&output_root).map_err(|error| {
+            PublishingError::from_io(
+                PublishingErrorCode::ApplicationWriteFailed,
+                "installerOutputCreate",
+                &error,
+            )
+        })?;
+        let output_base_name = options
+            .application_asset_name()
+            .strip_suffix(".exe")
+            .unwrap_or("Rino_Setup")
+            .to_owned();
+        compile_installer(
+            &compiler,
+            &script,
+            &payload_root,
+            &output_root,
+            &output_base_name,
+            &executable_name,
+            package,
+            options,
+        )?;
+        let installer_output = output_root.join(format!("{output_base_name}.exe"));
+        validate_installer_file(&installer_output, "installerOutput")?;
+        validate_pe_file(&installer_output)?;
+
+        if target.exists() {
+            validate_installer_file(target, "installerTarget")?;
+            fs::remove_file(target).map_err(|error| {
+                PublishingError::from_io(
+                    PublishingErrorCode::ApplicationWriteFailed,
+                    "installerReplace",
+                    &error,
+                )
+            })?;
+        }
+        fs::rename(&installer_output, target).map_err(|error| {
+            PublishingError::from_io(
+                PublishingErrorCode::ApplicationWriteFailed,
+                "installerCommit",
+                &error,
+            )
+        })?;
+        let metadata = fs::metadata(target).map_err(|error| {
+            PublishingError::from_io(
+                PublishingErrorCode::ApplicationWriteFailed,
+                "installerMetadata",
+                &error,
+            )
+        })?;
+        Ok(PackageOutput {
+            asset_name: options.application_asset_name(),
+            byte_length: metadata.len(),
+            sha256: hash_file(target, PublishingErrorCode::ApplicationWriteFailed)?,
+            key_id: package.key_id.clone(),
+            public_key_base64: package.public_key_base64.clone(),
+            publisher_display_name: package.publisher_display_name.clone(),
+        })
+    })();
+    let _ignored = fs::remove_dir_all(&staging_root);
+    result
+}
+
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the fixed compiler boundary receives validated paths and metadata without ambient mutable state"
+)]
+fn compile_installer(
+    compiler: &Path,
+    script: &Path,
+    payload_root: &Path,
+    output_root: &Path,
+    output_base_name: &str,
+    executable_name: &str,
+    package: &PackageOutput,
+    options: &PackageOptions,
+) -> PublishingResult<()> {
+    let mut command = Command::new(compiler);
+    command
+        .arg("/Qp")
+        .arg(script)
+        .current_dir(compiler.parent().unwrap_or_else(|| Path::new(".")))
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .env("RINO_INSTALLER_APP_NAME", options.application_name.trim())
+        .env("RINO_INSTALLER_APP_VERSION", &options.version)
+        .env("RINO_INSTALLER_APP_ID", &options.package_id)
+        .env(
+            "RINO_INSTALLER_APP_PUBLISHER",
+            &package.publisher_display_name,
+        )
+        .env("RINO_INSTALLER_PAYLOAD_ROOT", payload_root)
+        .env("RINO_INSTALLER_EXECUTABLE", executable_name)
+        .env("RINO_INSTALLER_OUTPUT_ROOT", output_root)
+        .env("RINO_INSTALLER_OUTPUT_NAME", output_base_name);
+    for environment in [
+        "GH_TOKEN",
+        "GITHUB_TOKEN",
+        "GH_ENTERPRISE_TOKEN",
+        "GITHUB_ENTERPRISE_TOKEN",
+        "GH_DEBUG",
+        "DEBUG",
+    ] {
+        command.env_remove(environment);
+    }
+    #[cfg(windows)]
+    command.creation_flags(CREATE_NO_WINDOW);
+    let status = command.status().map_err(|error| {
+        PublishingError::from_io(
+            PublishingErrorCode::ApplicationWriteFailed,
+            "installerCompilerStart",
+            &error,
+        )
+    })?;
+    if !status.success() {
+        return Err(PublishingError::new(
+            PublishingErrorCode::ApplicationWriteFailed,
+            "installerCompilerFailed",
+        ));
+    }
+    Ok(())
+}
+
+fn extract_application_payload(archive_path: &Path, target: &Path) -> PublishingResult<()> {
+    validate_application_archive(archive_path)?;
+    let file = File::open(archive_path).map_err(|error| {
+        PublishingError::from_io(
+            PublishingErrorCode::ApplicationWriteFailed,
+            "installerPayloadOpen",
+            &error,
+        )
+    })?;
+    let mut archive = ZipArchive::new(file).map_err(|_| {
+        PublishingError::new(
+            PublishingErrorCode::ApplicationWriteFailed,
+            "installerPayloadArchive",
+        )
+    })?;
+    for index in 0..archive.len() {
+        let mut entry = archive.by_index(index).map_err(|_| {
+            PublishingError::new(
+                PublishingErrorCode::ApplicationWriteFailed,
+                "installerPayloadEntry",
+            )
+        })?;
+        let directory = entry.is_dir();
+        let name = validate_archive_name(entry.name(), directory)?;
+        if is_symbolic_link(entry.unix_mode()) {
+            return Err(PublishingError::new(
+                PublishingErrorCode::ApplicationWriteFailed,
+                "installerPayloadSymlink",
+            ));
+        }
+        let output = target.join(name);
+        if directory {
+            fs::create_dir_all(&output).map_err(|error| {
+                PublishingError::from_io(
+                    PublishingErrorCode::ApplicationWriteFailed,
+                    "installerPayloadDirectory",
+                    &error,
+                )
+            })?;
+            continue;
+        }
+        if let Some(parent) = output.parent() {
+            fs::create_dir_all(parent).map_err(|error| {
+                PublishingError::from_io(
+                    PublishingErrorCode::ApplicationWriteFailed,
+                    "installerPayloadParent",
+                    &error,
+                )
+            })?;
+        }
+        let mut destination = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&output)
+            .map_err(|error| {
+                PublishingError::from_io(
+                    PublishingErrorCode::ApplicationWriteFailed,
+                    "installerPayloadFile",
+                    &error,
+                )
+            })?;
+        io::copy(&mut entry, &mut destination).map_err(|error| {
+            PublishingError::from_io(
+                PublishingErrorCode::ApplicationWriteFailed,
+                "installerPayloadCopy",
+                &error,
+            )
+        })?;
+        destination.sync_all().map_err(|error| {
+            PublishingError::from_io(
+                PublishingErrorCode::ApplicationWriteFailed,
+                "installerPayloadSync",
+                &error,
+            )
+        })?;
+    }
+    Ok(())
+}
+
+fn validate_installer_file(path: &Path, detail: &'static str) -> PublishingResult<()> {
+    let metadata = fs::symlink_metadata(path).map_err(|error| {
+        PublishingError::from_io(PublishingErrorCode::ApplicationWriteFailed, detail, &error)
+    })?;
+    if metadata.file_type().is_symlink() || is_reparse_point(&metadata) || !metadata.is_file() {
+        return Err(PublishingError::new(
+            PublishingErrorCode::ApplicationWriteFailed,
+            detail,
+        ));
+    }
+    Ok(())
+}
+
+fn validate_pe_file(path: &Path) -> PublishingResult<()> {
+    let mut file = File::open(path).map_err(|error| {
+        PublishingError::from_io(
+            PublishingErrorCode::ApplicationWriteFailed,
+            "installerVerifyOpen",
+            &error,
+        )
+    })?;
+    let mut signature = [0_u8; 2];
+    file.read_exact(&mut signature).map_err(|error| {
+        PublishingError::from_io(
+            PublishingErrorCode::ApplicationWriteFailed,
+            "installerVerifyRead",
+            &error,
+        )
+    })?;
+    if signature != *b"MZ" {
+        return Err(PublishingError::new(
+            PublishingErrorCode::ApplicationWriteFailed,
+            "installerVerifyPe",
+        ));
+    }
+    Ok(())
+}
+
+fn installer_staging_root(target: &Path) -> PublishingResult<PathBuf> {
+    let file_name = target.file_name().ok_or_else(|| {
+        PublishingError::new(
+            PublishingErrorCode::ApplicationWriteFailed,
+            "installerTarget",
+        )
+    })?;
+    let mut staged_name = OsString::from(".");
+    staged_name.push(file_name);
+    staged_name.push(format!(
+        ".rino-installer-staging-{}",
+        uuid::Uuid::new_v4().simple()
+    ));
+    Ok(target.with_file_name(staged_name))
 }
 
 pub fn write_resource_directory(
@@ -300,6 +632,7 @@ pub fn write_resource_directory(
         sha256: package.sha256.clone(),
         key_id: package.key_id.clone(),
         public_key_base64: package.public_key_base64.clone(),
+        publisher_display_name: package.publisher_display_name.clone(),
     })
 }
 
@@ -307,7 +640,11 @@ fn resource_descriptor_bytes(
     package: &PackageOutput,
     options: &PackageOptions,
 ) -> PublishingResult<Vec<u8>> {
-    let suggested_configuration_name = options.package_id.chars().take(80).collect::<String>();
+    let suggested_configuration_name = options
+        .application_name
+        .chars()
+        .take(80)
+        .collect::<String>();
     let descriptor = ResourceProjectDescriptor {
         schema_version: 1,
         publisher_key_id: &package.key_id,
@@ -1052,9 +1389,10 @@ mod tests {
         let package = PackageOutput {
             asset_name: "example.rino-package".to_owned(),
             byte_length: fs::metadata(&package_path).map_or(0, |metadata| metadata.len()),
-            sha256: package_sha.clone(),
+            sha256: package_sha,
             key_id: "example.publisher.key".to_owned(),
             public_key_base64: "ERERERERERERERERERERERERERERERERERERERERERE=".to_owned(),
+            publisher_display_name: "Example Publisher".to_owned(),
         };
         let target = root.join("example.rino-app.zip");
         let result = write_application(&target, &template, &package_path, &package, &options());
@@ -1100,6 +1438,41 @@ mod tests {
     }
 
     #[test]
+    fn windows_installer_compiles_when_inno_is_configured() {
+        let Some(compiler_root) = std::env::var_os("RINO_INNO_COMPILER_ROOT").map(PathBuf::from)
+        else {
+            return;
+        };
+        let root = test_root("installer");
+        assert!(fs::create_dir_all(&root).is_ok());
+        let template = root.join("template.zip");
+        create_template(&template, None);
+        let package_path = root.join("project.rino-package");
+        create_resource_package(&package_path);
+        let package = PackageOutput {
+            asset_name: "example.rino-package".to_owned(),
+            byte_length: fs::metadata(&package_path).map_or(0, |metadata| metadata.len()),
+            sha256: hash_file(&package_path, PublishingErrorCode::PackageWriteFailed)
+                .unwrap_or_default(),
+            key_id: "example.publisher.key".to_owned(),
+            public_key_base64: "ERERERERERERERERERERERERERERERERERERERERERE=".to_owned(),
+            publisher_display_name: "Example Publisher".to_owned(),
+        };
+        let target = root.join("Example Application_1.2.3_Setup.exe");
+        let result = write_installer(
+            &target,
+            &template,
+            &package_path,
+            &package,
+            &options(),
+            &compiler_root,
+        );
+        assert!(result.is_ok(), "{result:?}");
+        assert!(validate_pe_file(&target).is_ok());
+        assert!(fs::remove_dir_all(root).is_ok());
+    }
+
+    #[test]
     fn resource_export_replaces_one_rino_project_directory() {
         let root = test_root("resource-directory");
         let resource_root = root.join("Resource");
@@ -1113,9 +1486,10 @@ mod tests {
         let package = PackageOutput {
             asset_name: "example.rino-package".to_owned(),
             byte_length: fs::metadata(&package_path).map_or(0, |metadata| metadata.len()),
-            sha256: package_sha.clone(),
+            sha256: package_sha,
             key_id: "example.publisher.key".to_owned(),
             public_key_base64: "ERERERERERERERERERERERERERERERERERERERERERE=".to_owned(),
+            publisher_display_name: "Example Publisher".to_owned(),
         };
 
         let result = write_resource_directory(&target, &package_path, &package, &options());
@@ -1149,6 +1523,10 @@ mod tests {
             &package_path,
             &workspace,
             &options(),
+            &crate::publishing::manifest::PublisherIdentity {
+                publisher_id: "example-owner".to_owned(),
+                display_name: "Example Publisher".to_owned(),
+            },
             &crate::publishing::signing::PublisherSigningKey::from_test_secret([31_u8; 32]),
         );
         assert!(package.is_ok());
@@ -1269,12 +1647,10 @@ mod tests {
     }
     fn options() -> PackageOptions {
         PackageOptions {
-            package_id: "io.rino.project.example".to_owned(),
+            package_id: "io.rino.project.0a1b2c3d-4e5f-4061-8273-8495a6b7c8d9".to_owned(),
             version: "1.2.3".to_owned(),
             summary: "Example application".to_owned(),
-            publisher_id: "example.publisher".to_owned(),
-            publisher_display_name: "Example Publisher".to_owned(),
-            license_identifier: "LicenseRef-Proprietary".to_owned(),
+            application_name: "Example Application".to_owned(),
             github_owner: "example-owner".to_owned(),
             github_repository: "example-repository".to_owned(),
             released_at: "2026-08-12T12:34:56.000Z".to_owned(),

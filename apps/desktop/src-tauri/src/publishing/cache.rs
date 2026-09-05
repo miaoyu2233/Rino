@@ -3,7 +3,7 @@ use std::{fs, io, path::Path};
 use super::error::{PublishingError, PublishingErrorCode, PublishingResult};
 
 const PACKAGE_SUFFIX: &str = ".rino-package";
-const APPLICATION_SUFFIX: &str = ".rino-app.zip";
+const APPLICATION_SUFFIX: &str = ".exe";
 const PACKAGE_ID_LENGTH: usize = 32;
 const MAXIMUM_CACHE_ENTRIES: usize = 4_096;
 

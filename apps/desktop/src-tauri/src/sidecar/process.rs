@@ -7,6 +7,8 @@
 
 use std::ffi::OsString;
 use std::io::{Read, Write};
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, ChildStdout, Command, ExitStatus, Stdio};
 use std::sync::mpsc::{self, Receiver, Sender};
@@ -20,6 +22,9 @@ const CLEANUP_POLL_INTERVAL: Duration = Duration::from_millis(5);
 const DIAGNOSTIC_LINE_LIMIT: usize = 4096;
 const ADB_EXECUTABLE_ARGUMENT: &str = "--adb-executable";
 
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
 /// One item read from the runtime's standard output.
 pub enum ReaderEvent {
     Message(Box<ProtocolEnvelope>),
@@ -31,6 +36,7 @@ pub enum ReaderEvent {
 pub struct SidecarLaunch {
     executable: PathBuf,
     arguments: Vec<OsString>,
+    owned_adb_executable: Option<PathBuf>,
 }
 
 impl SidecarLaunch {
@@ -49,7 +55,30 @@ impl SidecarLaunch {
         Ok(Self {
             executable,
             arguments,
+            owned_adb_executable: None,
         })
+    }
+
+    /// Marks the configured ADB executable as application-owned for bounded exit cleanup.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error unless the path is the same absolute existing executable already
+    /// present in the fixed runtime arguments.
+    pub fn with_owned_adb_executable(
+        mut self,
+        adb_executable: PathBuf,
+    ) -> Result<Self, TransportError> {
+        if !adb_executable.is_absolute()
+            || !adb_executable.is_file()
+            || self.configured_adb_executable() != Some(adb_executable.as_path())
+        {
+            return Err(TransportError::ProtocolViolation(
+                "the owned ADB executable must match the configured absolute executable",
+            ));
+        }
+        self.owned_adb_executable = Some(adb_executable);
+        Ok(self)
     }
 
     #[must_use]
@@ -57,7 +86,7 @@ impl SidecarLaunch {
         &self.executable
     }
 
-    fn configured_adb_directory(&self) -> Option<&Path> {
+    fn configured_adb_executable(&self) -> Option<&Path> {
         let adb_executable = self
             .arguments
             .windows(2)
@@ -66,7 +95,17 @@ impl SidecarLaunch {
         if !adb_executable.is_absolute() || !adb_executable.is_file() {
             return None;
         }
-        adb_executable.parent()
+        Some(adb_executable)
+    }
+
+    fn configured_adb_directory(&self) -> Option<&Path> {
+        self.configured_adb_executable()?.parent()
+    }
+
+    #[must_use]
+    #[cfg(test)]
+    pub(crate) fn owned_adb_executable(&self) -> Option<&Path> {
+        self.owned_adb_executable.as_deref()
     }
 }
 
@@ -77,6 +116,7 @@ pub struct SidecarProcess {
     reader: Option<JoinHandle<()>>,
     diagnostics: Option<JoinHandle<()>>,
     process_tree: Option<platform::ProcessTreeGuard>,
+    owned_adb_executable: Option<PathBuf>,
 }
 
 impl SidecarProcess {
@@ -101,7 +141,9 @@ impl SidecarProcess {
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
+        configure_process_creation(&mut command);
         apply_minimal_environment(&mut command, launch);
+        let owned_adb_executable = launch.owned_adb_executable.clone();
 
         let mut child = command.spawn()?;
         let process_tree = match platform::ProcessTreeGuard::attach(&child) {
@@ -140,6 +182,7 @@ impl SidecarProcess {
                 reader: Some(reader),
                 diagnostics: Some(diagnostics),
                 process_tree,
+                owned_adb_executable,
             },
             output,
         ))
@@ -192,6 +235,7 @@ impl SidecarProcess {
             if let Some(status) = child.try_wait()? {
                 self.stdin.take();
                 self.join_readers();
+                self.stop_owned_adb_server(timeout)?;
                 return Ok(status);
             }
             if Instant::now() >= deadline {
@@ -231,6 +275,29 @@ impl SidecarProcess {
         }
         if let Some(diagnostics) = self.diagnostics.take() {
             let _ignored = diagnostics.join();
+        }
+    }
+
+    fn stop_owned_adb_server(&mut self, timeout: Duration) -> Result<(), TransportError> {
+        let Some(adb_executable) = self.owned_adb_executable.as_deref() else {
+            return Ok(());
+        };
+        let mut cleanup = owned_adb_cleanup_command(adb_executable).spawn()?;
+        let deadline = Instant::now() + timeout;
+        loop {
+            if let Some(status) = cleanup.try_wait()? {
+                if status.success() {
+                    self.owned_adb_executable.take();
+                    return Ok(());
+                }
+                return Err(TransportError::ProcessCleanupFailed);
+            }
+            if Instant::now() >= deadline {
+                let _ignored = cleanup.kill();
+                let _ignored = cleanup.wait();
+                return Err(TransportError::ProcessCleanupFailed);
+            }
+            thread::sleep(CLEANUP_POLL_INTERVAL);
         }
     }
 }
@@ -318,6 +385,14 @@ fn emit_diagnostic_line(line: &[u8], sink: &Sender<String>) {
     }
 }
 
+#[cfg(windows)]
+fn configure_process_creation(command: &mut Command) {
+    command.creation_flags(CREATE_NO_WINDOW);
+}
+
+#[cfg(not(windows))]
+fn configure_process_creation(_command: &mut Command) {}
+
 /// Starts the runtime from a minimal environment.
 ///
 /// Inheriting the full environment would let `PATH`, `PYTHONPATH`, or `PYTHONHOME` from the
@@ -325,6 +400,10 @@ fn emit_diagnostic_line(line: &[u8], sink: &Sender<String>) {
 /// configured, its validated parent directory is the only search path admitted because the
 /// binding requires that directory while enumerating devices.
 fn apply_minimal_environment(command: &mut Command, launch: &SidecarLaunch) {
+    apply_isolated_environment(command, launch.configured_adb_directory());
+}
+
+fn apply_isolated_environment(command: &mut Command, adb_directory: Option<&Path>) {
     let inherited_keys = ["SystemRoot", "WINDIR", "SYSTEMDRIVE", "TEMP", "TMP"];
     let inherited_values = inherited_keys
         .iter()
@@ -335,9 +414,21 @@ fn apply_minimal_environment(command: &mut Command, launch: &SidecarLaunch) {
     command.env("PYTHONIOENCODING", "utf-8");
     command.env("PYTHONUNBUFFERED", "1");
     command.env("PYTHONNOUSERSITE", "1");
-    if let Some(adb_directory) = launch.configured_adb_directory() {
+    if let Some(adb_directory) = adb_directory {
         command.env("PATH", adb_directory);
     }
+}
+
+fn owned_adb_cleanup_command(adb_executable: &Path) -> Command {
+    let mut command = Command::new(adb_executable);
+    command
+        .arg("kill-server")
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null());
+    configure_process_creation(&mut command);
+    apply_isolated_environment(&mut command, adb_executable.parent());
+    command
 }
 
 #[cfg(test)]
@@ -394,6 +485,59 @@ mod tests {
         apply_minimal_environment(&mut command, &launch);
 
         assert_eq!(environment_value(&command, "PATH"), None);
+    }
+
+    #[test]
+    fn owned_adb_requires_the_same_fixed_configured_executable()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let executable = std::env::current_exe()?;
+        let launch = SidecarLaunch::new(
+            executable.clone(),
+            vec![
+                OsString::from(ADB_EXECUTABLE_ARGUMENT),
+                executable.clone().into_os_string(),
+            ],
+        )?
+        .with_owned_adb_executable(executable.clone())?;
+
+        assert_eq!(launch.owned_adb_executable(), Some(executable.as_path()));
+        Ok(())
+    }
+
+    #[test]
+    fn owned_adb_cleanup_uses_only_the_fixed_kill_server_argument()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let executable = std::env::current_exe()?;
+        let command = owned_adb_cleanup_command(&executable);
+
+        assert_eq!(command.get_program(), executable.as_os_str());
+        assert_eq!(
+            command.get_args().collect::<Vec<_>>(),
+            vec![OsStr::new("kill-server")]
+        );
+        assert_eq!(
+            environment_value(&command, "PATH"),
+            executable.parent().map(Path::as_os_str)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn owned_adb_cleanup_waits_for_success_and_releases_ownership()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut process = SidecarProcess {
+            child: None,
+            stdin: None,
+            reader: None,
+            diagnostics: None,
+            process_tree: None,
+            owned_adb_executable: Some(std::env::current_exe()?),
+        };
+
+        process.stop_owned_adb_server(Duration::from_secs(5))?;
+
+        assert!(process.owned_adb_executable.is_none());
+        Ok(())
     }
 }
 

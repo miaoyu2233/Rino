@@ -2,6 +2,8 @@
 identifier = "main-commands"
 description = "Allows the main window to use the reviewed application command surface."
 commands.allow = [
+  "complete_startup",
+  "update_startup_stage",
   "runtime_status",
   "runtime_start",
   "runtime_restart",

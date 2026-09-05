@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { invoke, isTauri, listen, currentWindow } = vi.hoisted(() => ({
   invoke: vi.fn(),
@@ -16,8 +16,11 @@ vi.mock("@tauri-apps/api/window", () => ({
 import {
   createDevicePreviewWindowBridge,
   decodeDevicePreviewSnapshot,
+  isDevicePreviewWindow,
   type DevicePreviewWindowSnapshot,
 } from "./device-preview-window-bridge";
+
+const initialUrl = window.location.href;
 
 const snapshot: DevicePreviewWindowSnapshot = {
   generation: 7,
@@ -34,6 +37,10 @@ beforeEach(() => {
   currentWindow.label = "main";
   listen.mockReset();
   listen.mockResolvedValue(() => undefined);
+});
+
+afterEach(() => {
+  window.history.replaceState({}, "", initialUrl);
 });
 
 describe("device preview snapshot codec", () => {
@@ -88,6 +95,20 @@ describe("device preview window bridge", () => {
       ["device_preview_close"],
       ["device_preview_focus"],
     ]);
+  });
+
+  it("identifies the preview window by native label in Tauri", () => {
+    expect(isDevicePreviewWindow()).toBe(false);
+    currentWindow.label = "device-preview";
+    expect(isDevicePreviewWindow()).toBe(true);
+  });
+
+  it("uses the query route only outside Tauri", () => {
+    isTauri.mockReturnValue(false);
+    window.history.replaceState({}, "", "?window=device-preview");
+    expect(isDevicePreviewWindow()).toBe(true);
+    window.history.replaceState({}, "", "?window=main");
+    expect(isDevicePreviewWindow()).toBe(false);
   });
 
   it("allows the bridge only in the Tauri main window", () => {

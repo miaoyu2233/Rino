@@ -40,6 +40,49 @@ describe("application failure details", () => {
     );
   });
 
+  it("ignores browser ResizeObserver notifications without an Error", () => {
+    const showFailure = vi.fn();
+    const dispose = installGlobalApplicationFailureHandlers(showFailure);
+    const events = [
+      new ErrorEvent("error", {
+        cancelable: true,
+        message:
+          "ResizeObserver loop completed with undelivered notifications.",
+      }),
+      new ErrorEvent("error", {
+        cancelable: true,
+        message: "ResizeObserver loop limit exceeded",
+      }),
+    ];
+
+    for (const event of events) {
+      window.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(true);
+    }
+
+    expect(showFailure).not.toHaveBeenCalled();
+    dispose();
+  });
+
+  it("reports a real Error with a ResizeObserver message", () => {
+    const showFailure = vi.fn();
+    const dispose = installGlobalApplicationFailureHandlers(showFailure);
+    const error = new Error("ResizeObserver loop limit exceeded");
+    const event = new ErrorEvent("error", {
+      cancelable: true,
+      error,
+      message: error.message,
+    });
+
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(showFailure).toHaveBeenCalledWith(
+      expect.objectContaining({ message: error.message }),
+    );
+    dispose();
+  });
+
   it("captures global errors and unhandled rejections until disposed", () => {
     const showFailure = vi.fn();
     const removeEventListener = vi.spyOn(window, "removeEventListener");

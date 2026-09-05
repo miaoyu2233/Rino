@@ -103,6 +103,20 @@ function addTask(name: string): void {
   }
 }
 
+async function prepareLegacyProject(): Promise<number> {
+  await createFixtureProject();
+  addTask("刷金币");
+  addTask("刷钻石");
+  const legacyDocument = activeDocument();
+  const writesBefore = service.writeCount;
+  await closeProject();
+  service.storedFiles = {
+    manifest: JSON.stringify(legacyDocument),
+    graphs: [],
+  };
+  return writesBefore;
+}
+
 beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-07-27T10:00:00Z"));
@@ -187,6 +201,47 @@ describe("saving a project", () => {
     expect(outcome).toEqual({ status: "completed" });
     expect(service.writeCount).toBe(1);
     expect(activeDocument().metadata.updatedAt).toBe(CREATED_AT);
+  });
+
+  it("opens a legacy monolithic project clean and migrates on explicit save", async () => {
+    const writesBefore = await prepareLegacyProject();
+
+    await expect(openProject(DIALOG_TEXT)).resolves.toEqual({
+      status: "completed",
+    });
+    expect(activeDocument().graphs.map((graph) => graph.name)).toEqual([
+      "主图",
+      "刷金币",
+      "刷钻石",
+    ]);
+    expect(dirty()).toBe(false);
+    expect(useProjectStore.getState().pendingMigration).toBe(true);
+    expect(service.writeCount).toBe(writesBefore);
+
+    await expect(saveProject()).resolves.toEqual({ status: "completed" });
+
+    expect(service.writeCount).toBe(writesBefore + 1);
+    expect(service.committed?.graphs.map((file) => file.fileName)).toEqual([
+      "main.rino.graph.json",
+      "graph-2.rino.graph.json",
+      "graph-3.rino.graph.json",
+    ]);
+    expect(useProjectStore.getState().pendingMigration).toBe(false);
+  });
+
+  it("keeps migration pending when the migration save fails", async () => {
+    const writesBefore = await prepareLegacyProject();
+    await expect(openProject(DIALOG_TEXT)).resolves.toEqual({
+      status: "completed",
+    });
+    service.save = () =>
+      Promise.reject(shellRejection("WRITE_FAILED", "commitReplace"));
+
+    await expect(saveProject()).resolves.toEqual({ status: "failed" });
+
+    expect(service.writeCount).toBe(writesBefore);
+    expect(useProjectStore.getState().pendingMigration).toBe(true);
+    expect(dirty()).toBe(false);
   });
 
   it("stamps updatedAt and clears the dirty state when content changed", async () => {
@@ -365,6 +420,18 @@ describe("opening a project", () => {
     expect(useDiagnosticStore.getState().problems[0]).toMatchObject({
       code: "unsupportedVersion",
     });
+  });
+
+  it("clears migration state when a legacy project is closed", async () => {
+    await prepareLegacyProject();
+    await expect(openProject(DIALOG_TEXT)).resolves.toEqual({
+      status: "completed",
+    });
+    expect(useProjectStore.getState().pendingMigration).toBe(true);
+
+    await closeProject();
+
+    expect(useProjectStore.getState().pendingMigration).toBe(false);
   });
 });
 

@@ -356,16 +356,24 @@ export const zhCNTranslation = {
     },
     settings: {
       title: "设置",
-      description: "管理界面、性能、快捷键与本机数据。",
+      description: "管理界面、性能、项目、快捷键与本机数据。",
       navigationLabel: "设置分类",
       sections: {
         appearance: "外观",
         performance: "性能",
         shortcuts: "快捷键",
+        project: "项目",
         data: "数据",
       },
       appearanceTitle: "外观",
       appearanceDescription: "调整软件的主题与界面语言。",
+      projectTitle: "项目",
+      projectDescription: "管理当前项目自身的发布信息。",
+      projectLicense: "项目许可证",
+      projectLicenseDescription:
+        "输入 SPDX 标识或自定义 LicenseRef。导出与发布会自动使用此值，打包页面不能修改。",
+      projectLicenseInvalid: "请输入有效的 SPDX 标识或 LicenseRef。",
+      projectUnavailable: "请先打开一个项目。",
       shortcutsTitle: "快捷键参考",
       shortcutsDescription: "搜索命令、按键或适用范围。",
       searchShortcuts: "搜索快捷键",
@@ -970,8 +978,9 @@ export const zhCNTranslation = {
     },
     repeatHint: {
       title: "重复执行",
-      description: "沿原连线返回并再次执行识别",
-      remove: "移除重复执行提示",
+      description: "未识别到时等待后再次执行；双击可定位目标节点",
+      input: "未匹配连接",
+      remove: "关闭重复执行",
     },
     diagnostics: {
       graphDuplicateGraphId: "图标识重复",
@@ -1102,13 +1111,13 @@ export const zhCNTranslation = {
           },
         },
         boundedRetry: {
-          title: "有界重试",
+          title: "限时重复尝试",
           description:
-            "按最小轮询间隔重复执行尝试分支，达到超时或次数上限后进入已耗尽分支。",
+            "在设定的时间和次数内反复执行“开始尝试”分支；达到任一上限后，从“停止尝试”分支继续。适合等待界面或识别结果出现。",
           port: {
             run: "执行",
             attempt: "开始尝试",
-            exhausted: "已耗尽",
+            exhausted: "停止尝试",
             attemptNumber: "尝试次数",
             elapsedMilliseconds: "已用时（毫秒）",
           },
@@ -2456,6 +2465,12 @@ export const zhCNTranslation = {
       delayBeforeClickDescription: "识别成功后等待，再执行点击动作。",
       delayMilliseconds: "延迟（毫秒）",
       delayMillisecondsDescription: "等待时长，取值范围由节点运行时限制。",
+      repeatOnNoMatch: "未识别到时重复执行当前节点",
+      repeatOnNoMatchDescription:
+        "开启后，未识别到会先等待指定时间，再重新执行当前识别节点。",
+      repeatDelayMilliseconds: "重复执行等待时间（毫秒）",
+      repeatDelayMillisecondsDescription:
+        "每次未识别到后、再次识别前的等待时间。",
     },
     actions: {
       expand: "展开组合节点",
@@ -2499,7 +2514,7 @@ export const zhCNTranslation = {
         "发布会把已保存的项目图、项目元数据和项目素材公开上传到 GitHub；应用模式还会上传公开的 Rino_WFP 运行文件。不会上传恢复数据、日志、本机路径、凭据或编辑器设置。",
       authTitle: "GitHub CLI 授权",
       authDescription:
-        "登录由官方 GitHub CLI 发起浏览器/设备授权流程。Rino 不读取、存储或显示 GitHub 账户标识或令牌，凭据由 GH CLI 管理。",
+        "登录由官方 GitHub CLI 发起。Rino 只临时读取公开用户名和公开显示名作为发布者，不读取或存储令牌，凭据由 GH CLI 管理。",
       authFlow:
         "按 GH CLI 提示打开官方浏览器授权页面；一次性代码会复制到剪贴板，按提示粘贴即可。",
       logoutWarning:
@@ -2507,7 +2522,7 @@ export const zhCNTranslation = {
       exportResourceTitle: "选择 Rino_WFP 资源目录",
       resourceFileTypeLabel: "RinoProject 资源目录",
       exportApplicationTitle: "导出 Rino Windows 应用",
-      applicationFileTypeLabel: "Rino 应用 ZIP",
+      applicationFileTypeLabel: "Windows 安装程序",
     },
     content: {
       resource: "仅导出资源",
@@ -2515,31 +2530,33 @@ export const zhCNTranslation = {
         "本地导出会在所选目录生成签名的 RinoProject 文件夹；GitHub 发布仍使用兼容的 .rino-package。",
       application: "导出可运行应用",
       applicationDescription:
-        "把签名资源包放入 Rino_WFP、Sidecar、ADB 与固定 OCR 资源中，生成 Windows 应用 ZIP。",
+        "把签名资源包、Rino_WFP、Sidecar、ADB 与固定 OCR 资源封装为可安装的 Windows 应用。",
     },
     fields: {
       content: "导出内容",
       updateWfp: "本地导出前同步最新 Rino_WFP",
       updateWfpNotice:
         "未勾选时优先使用已验证缓存；缓存不存在仍会同步。发布到 GitHub 的应用始终强制同步最新稳定版。",
-      packageId: "包标识",
-      version: "版本",
-      summary: "项目摘要",
-      publisherId: "项目包命名空间（自声明）",
-      publisherName: "项目包署名（自声明）",
-      license: "许可证标识",
-      githubOwner: "GitHub 所有者",
-      githubRepository: "GitHub 仓库",
+      packageId: "项目唯一标识",
+      applicationName: "应用名称",
+      version: "项目版本",
+      summary: "项目简介",
+      publisherId: "发布者标识",
+      publisherName: "发布者名称",
+      license: "许可证",
+      githubOwner: "GitHub 用户或组织",
+      githubRepository: "仓库名称",
       metadataNotice:
-        "项目包命名空间和署名只是自声明信息，不代表 GitHub 身份或验证。仓库和上传身份由当前 GH CLI 登录决定；所有者与仓库文本只选择目标，发布时会按权限检查。",
+        "项目唯一标识由项目内部 ID 自动生成；发布者来自当前 GitHub 登录账号；许可证来自项目设置。这三项都不能在此修改。",
     },
     status: {
       checking: "正在检查 GitHub CLI 登录状态…",
       authenticated: "GitHub CLI 已认证",
+      identityUnavailable: "已登录，但无法读取 GitHub 公开身份，请重新登录。",
       loginRequired:
         "GitHub CLI 尚未登录。点击登录并按官方浏览器/设备流程完成授权。",
       cliRequired:
-        "未找到 GitHub CLI。仍可导出本地资源包；需要刷新 Rino_WFP 的应用导出不可用。",
+        "未找到 GitHub CLI。安装 GitHub CLI 并登录后才能导出或发布。",
     },
     actions: {
       login: "登录 GitHub CLI",
@@ -2569,7 +2586,7 @@ export const zhCNTranslation = {
       ASSET_UNAVAILABLE: "项目素材缺失、损坏或与登记的哈希不一致。",
       CREDENTIAL_UNAVAILABLE: "无法访问 Windows 凭据管理器中的本地签名密钥。",
       PACKAGE_WRITE_FAILED: "项目保存或项目包写入失败。",
-      APPLICATION_WRITE_FAILED: "无法生成或验证可运行应用 ZIP。",
+      APPLICATION_WRITE_FAILED: "无法生成或验证 Windows 应用安装程序。",
       WFP_TEMPLATE_UNAVAILABLE:
         "Rino_WFP 仓库尚无可用的最新稳定模板，且本机没有已验证缓存。",
       WFP_TEMPLATE_INVALID: "Rino_WFP 模板的清单、路径或完整性校验失败。",

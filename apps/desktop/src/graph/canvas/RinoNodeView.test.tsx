@@ -15,6 +15,7 @@ import type {
   RinoFlowNode,
 } from "./graph-view-model";
 import { shouldFloatDisplayAlias } from "./alias-display";
+import { estimateNodeHeight } from "./node-layout-size";
 import { RinoNodeView } from "./RinoNodeView";
 
 function renderNode(element: ReactNode) {
@@ -360,8 +361,10 @@ describe("node port placement", () => {
       );
     });
     const overviewNode = container.querySelector<HTMLElement>(".rino-node");
-    expect(overviewNode?.style.minHeight).not.toBe("");
-    expect(overviewNode?.style.height).toBe("");
+    expect(overviewNode?.style.minHeight).toBe("");
+    expect(overviewNode?.style.height).toBe(
+      `${String(estimateNodeHeight(data))}px`,
+    );
     expect(screen.getByText("等待节点")).toBeInTheDocument();
     expect(screen.getByText("识别后等待")).toBeInTheDocument();
     expect(container.querySelector("[data-port-section]")).toBeNull();
@@ -522,7 +525,7 @@ describe("node port placement", () => {
     ).toEqual({ collectionItemCount: 1 });
   });
 
-  it("renders repeat hints without handles and removes only the metadata", async () => {
+  it("renders repeat hints with one unmatched connection and removes only generic metadata", async () => {
     const user = userEvent.setup();
     const graphId = "20000000-0000-4000-8000-000000000010";
     const edgeId = "30000000-0000-4000-8000-000000000010";
@@ -602,13 +605,14 @@ describe("node port placement", () => {
     );
 
     expect(screen.getByText("重复执行")).toBeVisible();
-    expect(screen.getByText("沿原连线返回并再次执行识别")).toBeVisible();
     expect(
-      screen.getByRole("button", { name: "移除重复执行提示" }),
+      screen.getByText("未识别到时等待后再次执行；双击可定位目标节点"),
     ).toBeVisible();
-    expect(container.querySelector(".react-flow__handle")).toBeNull();
+    expect(screen.getByRole("button", { name: "关闭重复执行" })).toBeVisible();
+    expect(screen.getByLabelText("未匹配连接")).toBeVisible();
+    expect(container.querySelectorAll(".react-flow__handle")).toHaveLength(1);
 
-    await user.click(screen.getByRole("button", { name: "移除重复执行提示" }));
+    await user.click(screen.getByRole("button", { name: "关闭重复执行" }));
 
     const storedGraph = useDocumentStore
       .getState()
@@ -958,6 +962,10 @@ describe("node port placement", () => {
             iconKey: "node.click",
           },
         ],
+        recognitionRepeat: {
+          enabled: true,
+          delayMilliseconds: 1_000,
+        },
         textRecognitionParameters: {
           delayMilliseconds: 0,
           delayMode: "beforeRecognition",
@@ -991,6 +999,17 @@ describe("node port placement", () => {
         />
       </ReactFlowProvider>,
     );
+
+    expect(
+      screen.getByRole("switch", {
+        name: /未识别到时重复执行当前节点/,
+      }),
+    ).toBeChecked();
+    expect(
+      screen.getByRole("spinbutton", {
+        name: /重复执行等待时间（毫秒）/,
+      }),
+    ).toHaveValue(1_000);
 
     const regions = container.querySelectorAll(".rino-workflow-region");
     expect(regions).toHaveLength(2);

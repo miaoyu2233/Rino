@@ -1,11 +1,16 @@
 export type PreviewPauseReason =
-  "disconnected" | "userPaused" | "surfaceHidden" | "windowInactive";
+  | "disconnected"
+  | "userPaused"
+  | "surfaceHidden"
+  | "windowInactive"
+  | "windowInteracting";
 
 export interface PreviewRefreshContext {
   deviceConnected: boolean;
   userPaused: boolean;
   surfaceVisible: boolean;
   windowActive: boolean;
+  windowInteracting: boolean;
   deviceBusy: boolean;
   graphInteracting: boolean;
   runActive: boolean;
@@ -25,6 +30,9 @@ export function choosePreviewRefreshPolicy(
   }
   if (context.userPaused) {
     return { mode: "paused", reason: "userPaused" };
+  }
+  if (context.windowInteracting) {
+    return { mode: "paused", reason: "windowInteracting" };
   }
   if (!context.surfaceVisible) {
     return { mode: "paused", reason: "surfaceHidden" };

@@ -3,9 +3,10 @@ import { useTranslation } from "react-i18next";
 
 import { Tooltip } from "../../components/ui/Tooltip";
 import { ProductIcon } from "../../design-system/icons/ProductIcon";
-import { resolveProductIcon } from "../../design-system/icons/product-icons";
+
 import { clearDragPayload, writeDragPayload } from "../canvas/canvas-drag";
 import { applyDragGhost } from "./drag-ghost";
+import { paletteIconForEntry } from "./palette-entry-icon";
 import type { CapabilityState, PaletteEntry } from "./palette-model";
 import type { PaletteEntryLabels } from "./usePaletteCatalog";
 
@@ -103,7 +104,7 @@ function PaletteEntryButtonComponent({
           className="palette-item__drag-handle"
         />
         <ProductIcon
-          icon={resolveProductIcon(entry.iconKey, "category.flow")}
+          icon={paletteIconForEntry(entry)}
           size="small"
           className="palette-item__icon"
         />

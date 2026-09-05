@@ -21,7 +21,10 @@ import {
   isGraphRunActive,
   useRuntimeExecutionStore,
 } from "../ipc/runtime-execution-store";
-import type { WindowMetrics } from "../platform/useWindowMetrics";
+import {
+  useWindowInteraction,
+  type WindowMetrics,
+} from "../platform/useWindowMetrics";
 import {
   createAuthoringSelectionOverlay,
   readAuthoringCoordinateSelection,
@@ -77,6 +80,7 @@ export function DevicePreviewPanel({
   const controller = useDevicePreviewSession();
   const captureWorkbench = useCaptureWorkbench();
   const windowActive = useWindowActivity();
+  const windowInteracting = useWindowInteraction();
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const actionButtonRef = useRef<HTMLButtonElement>(null);
@@ -353,6 +357,7 @@ export function DevicePreviewPanel({
       previewPhase === "ready" &&
       canCapturePreview &&
       !isBusy &&
+      !windowInteracting &&
       !isPickingActive &&
       !isRegionModeActive &&
       !isCaptureWorkbenchActive
@@ -367,6 +372,7 @@ export function DevicePreviewPanel({
     isPickingActive,
     isRegionModeActive,
     isCaptureWorkbenchActive,
+    windowInteracting,
     previewPhase,
     visiblePreview,
   ]);
@@ -383,6 +389,7 @@ export function DevicePreviewPanel({
     userPaused,
     surfaceVisible,
     windowActive,
+    windowInteracting,
     deviceBusy: isBusy,
     graphInteracting: false,
     runActive,

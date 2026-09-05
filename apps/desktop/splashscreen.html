@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Rino</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --splash-background: #f3f5fa;
+        --splash-surface: #ffffff;
+        --splash-border: #d9dfeb;
+        --splash-text: #1d2433;
+        --splash-muted: #687388;
+        --splash-accent: #6256c7;
+        --splash-accent-soft: #e7e4fb;
+        --splash-success: #37866f;
+        --splash-grid: rgb(98 86 199 / 10%);
+        --splash-node: rgb(98 86 199 / 8%);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --splash-background: #171b24;
+          --splash-surface: #202633;
+          --splash-border: #343d4f;
+          --splash-text: #eef1f8;
+          --splash-muted: #a5aec1;
+          --splash-accent: #a49aff;
+          --splash-accent-soft: #302d55;
+          --splash-success: #7cc7ad;
+          --splash-grid: rgb(164 154 255 / 12%);
+          --splash-node: rgb(164 154 255 / 9%);
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      body {
+        background: var(--splash-background);
+        color: var(--splash-text);
+        font-family: "Segoe UI", system-ui, sans-serif;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      .splash-card {
+        position: relative;
+        display: grid;
+        width: 100%;
+        height: 100%;
+        min-height: 100%;
+        grid-template-columns: minmax(190px, 0.9fr) minmax(230px, 1.1fr);
+        grid-template-rows: minmax(0, 1fr) auto;
+        overflow: hidden;
+        padding: 24px 28px 14px;
+        background:
+          radial-gradient(
+            circle at 92% 48%,
+            var(--splash-accent-soft) 0,
+            transparent 48%
+          ),
+          var(--splash-background);
+      }
+
+      .splash-content {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        min-width: 0;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .splash-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 20px;
+        gap: 12px;
+      }
+
+      .status {
+        display: inline-flex;
+        min-width: 0;
+        align-items: center;
+        gap: 8px;
+        color: var(--splash-muted);
+        font-size: 11px;
+        font-weight: 550;
+        letter-spacing: 0.01em;
+        line-height: 1.4;
+      }
+
+      .status::before {
+        width: 6px;
+        height: 6px;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        background: var(--splash-accent);
+        content: "";
+      }
+
+      .status[data-stage="opening"]::before {
+        background: var(--splash-success);
+      }
+
+      .context {
+        flex: 0 0 auto;
+        color: var(--splash-muted);
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        line-height: 1.4;
+        text-align: right;
+      }
+
+      .identity {
+        display: grid;
+        align-content: center;
+        justify-items: start;
+        gap: 14px;
+        min-width: 0;
+        padding-bottom: 12px;
+        text-align: left;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .mark {
+        position: relative;
+        display: grid;
+        width: 48px;
+        height: 48px;
+        place-items: center;
+        overflow: hidden;
+        border: 1px solid var(--splash-accent);
+        border-radius: 14px;
+        background: var(--splash-accent);
+        color: var(--splash-surface);
+        box-shadow: 0 8px 16px var(--splash-accent-soft);
+      }
+
+      .mark::before,
+      .mark::after {
+        position: absolute;
+        display: block;
+        width: 24px;
+        height: 4px;
+        border-radius: 99px;
+        background: currentColor;
+        content: "";
+      }
+
+      .mark::before {
+        transform: translate(-4px, -6px) rotate(-32deg);
+      }
+
+      .mark::after {
+        transform: translate(4px, 6px) rotate(-32deg);
+        opacity: 0.72;
+      }
+
+      .name {
+        color: var(--splash-text);
+        font-size: 36px;
+        font-weight: 650;
+        letter-spacing: -0.06em;
+        line-height: 1;
+      }
+
+      .subtitle {
+        min-height: 18px;
+        margin-left: 60px;
+        color: var(--splash-muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .splash-visual {
+        position: relative;
+        z-index: 1;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        isolation: isolate;
+      }
+
+      .splash-visual::before {
+        position: absolute;
+        inset: 11% -15% 5% 3%;
+        border: 1px solid var(--splash-border);
+        border-radius: 26px;
+        content: "";
+        opacity: 0.6;
+        transform: rotate(-5deg);
+      }
+
+      .visual-grid {
+        position: absolute;
+        inset: 7% -15% 4% 0;
+        background-image:
+          linear-gradient(to right, var(--splash-grid) 1px, transparent 1px),
+          linear-gradient(to bottom, var(--splash-grid) 1px, transparent 1px);
+        background-size: 24px 24px;
+        opacity: 0.75;
+        transform: perspective(480px) rotateY(-14deg) rotateX(7deg);
+      }
+
+      .node {
+        position: absolute;
+        width: 42px;
+        height: 30px;
+        border: 1px solid var(--splash-border);
+        border-radius: 8px;
+        background: var(--splash-node);
+        box-shadow: 0 8px 18px rgb(24 31 50 / 7%);
+      }
+
+      .node::before {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--splash-accent);
+        content: "";
+        opacity: 0.72;
+      }
+
+      .node::after {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        width: 16px;
+        height: 3px;
+        border-radius: 99px;
+        background: var(--splash-border);
+        content: "";
+      }
+
+      .node--left {
+        top: 34%;
+        left: 8%;
+      }
+
+      .node--main {
+        top: 39%;
+        left: 43%;
+        width: 64px;
+        height: 46px;
+        border-color: var(--splash-accent);
+        background: var(--splash-accent-soft);
+        box-shadow: 0 10px 24px var(--splash-accent-soft);
+      }
+
+      .node--main::before {
+        top: 12px;
+        left: 12px;
+        width: 7px;
+        height: 7px;
+        background: var(--splash-accent);
+      }
+
+      .node--main::after {
+        right: 12px;
+        bottom: 13px;
+        width: 25px;
+        background: var(--splash-accent);
+        opacity: 0.55;
+      }
+
+      .node--top {
+        top: 15%;
+        right: 10%;
+      }
+
+      .node--bottom {
+        right: 6%;
+        bottom: 14%;
+      }
+
+      .node--lower-left {
+        bottom: 10%;
+        left: 19%;
+        width: 34px;
+        height: 24px;
+      }
+
+      .connector {
+        position: absolute;
+        height: 1px;
+        border-radius: 99px;
+        background: var(--splash-accent);
+        opacity: 0.38;
+        transform-origin: left center;
+      }
+
+      .connector--left {
+        top: 47%;
+        left: 23%;
+        width: 82px;
+        transform: rotate(-17deg);
+      }
+
+      .connector--top {
+        top: 39%;
+        left: 68%;
+        width: 73px;
+        transform: rotate(-38deg);
+      }
+
+      .connector--bottom {
+        top: 58%;
+        left: 68%;
+        width: 70px;
+        transform: rotate(34deg);
+      }
+
+      .connector--lower-left {
+        top: 67%;
+        left: 36%;
+        width: 60px;
+        transform: rotate(23deg);
+      }
+
+      .activity {
+        position: relative;
+        z-index: 3;
+        grid-column: 1 / -1;
+        width: 100%;
+        height: 2px;
+        justify-self: stretch;
+        overflow: hidden;
+        border-radius: 99px;
+        background: var(--splash-border);
+      }
+
+      .activity::before {
+        display: block;
+        width: 30%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--splash-accent);
+        content: "";
+        animation: activity-sweep 1400ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+      }
+
+      @keyframes activity-sweep {
+        0% {
+          transform: translateX(-125%);
+        }
+
+        100% {
+          transform: translateX(420%);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .activity::before {
+          transform: translateX(0);
+          animation: none;
+          opacity: 0.65;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="splash-card" data-tauri-drag-region aria-label="Rino">
+      <section class="splash-content" data-tauri-drag-region>
+        <header class="splash-header" data-tauri-drag-region>
+          <span
+            id="startup-status"
+            class="status"
+            data-stage="initializing"
+            aria-live="polite"
+          ></span>
+          <span id="startup-context" class="context"></span>
+        </header>
+        <div class="identity" data-tauri-drag-region>
+          <div class="brand">
+            <span class="mark" aria-hidden="true"></span>
+            <span class="name">Rino</span>
+          </div>
+          <span id="startup-subtitle" class="subtitle"></span>
+        </div>
+      </section>
+      <div class="splash-visual" data-tauri-drag-region aria-hidden="true">
+        <div class="visual-grid"></div>
+        <span class="node node--left"></span>
+        <span class="node node--main"></span>
+        <span class="node node--top"></span>
+        <span class="node node--bottom"></span>
+        <span class="node node--lower-left"></span>
+        <span class="connector connector--left"></span>
+        <span class="connector connector--top"></span>
+        <span class="connector connector--bottom"></span>
+        <span class="connector connector--lower-left"></span>
+      </div>
+      <div class="activity" aria-hidden="true"></div>
+    </main>
+    <script type="module" src="/src/startup/splashscreen-entry.ts"></script>
+  </body>
+</html>

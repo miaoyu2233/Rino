@@ -394,17 +394,27 @@ export const enUSTranslation = {
     },
     settings: {
       title: "Settings",
-      description: "Manage appearance, performance, shortcuts, and local data.",
+      description:
+        "Manage appearance, performance, project, shortcuts, and local data.",
       navigationLabel: "Settings categories",
       sections: {
         appearance: "Appearance",
         performance: "Performance",
         shortcuts: "Shortcuts",
+        project: "Project",
         data: "Data",
       },
       appearanceTitle: "Appearance",
       appearanceDescription:
         "Adjust the application theme and interface language.",
+      projectTitle: "Project",
+      projectDescription:
+        "Manage publishing information owned by this project.",
+      projectLicense: "Project license",
+      projectLicenseDescription:
+        "Enter an SPDX identifier or custom LicenseRef. Export and publishing inherit this value and cannot override it.",
+      projectLicenseInvalid: "Enter a valid SPDX identifier or LicenseRef.",
+      projectUnavailable: "Open a project to edit its settings.",
       shortcutsTitle: "Keyboard shortcut reference",
       shortcutsDescription: "Search commands, keys, or scope.",
       searchShortcuts: "Search shortcuts",
@@ -1099,8 +1109,9 @@ export const enUSTranslation = {
     repeatHint: {
       title: "Repeat",
       description:
-        "Return along the existing wire and execute recognition again",
-      remove: "Remove repeat hint",
+        "Wait and run recognition again after no match; double-click to reveal the target",
+      input: "No-match connection",
+      remove: "Turn off repeat execution",
     },
     diagnostics: {
       graphDuplicateGraphId: "Duplicate graph identifier",
@@ -1254,13 +1265,13 @@ export const enUSTranslation = {
           },
         },
         boundedRetry: {
-          title: "Bounded retry",
+          title: "Timed retry",
           description:
-            "Runs the attempt branch at a minimum polling interval, then uses Exhausted after the timeout or attempt limit.",
+            "Repeatedly runs Attempt within the configured time and attempt limits, then continues through Stop retrying when either limit is reached.",
           port: {
             run: "Run",
             attempt: "Attempt",
-            exhausted: "Exhausted",
+            exhausted: "Stop retrying",
             attemptNumber: "Attempt number",
             elapsedMilliseconds: "Elapsed (ms)",
           },
@@ -2720,6 +2731,12 @@ export const enUSTranslation = {
       delayMilliseconds: "Delay (ms)",
       delayMillisecondsDescription:
         "The wait duration, bounded by the runtime node limit.",
+      repeatOnNoMatch: "Repeat this node when recognition finds no match",
+      repeatOnNoMatchDescription:
+        "When enabled, wait for the configured duration and run this recognition node again after no match.",
+      repeatDelayMilliseconds: "Repeat wait (ms)",
+      repeatDelayMillisecondsDescription:
+        "Time to wait after no match and before the next recognition attempt.",
     },
     actions: {
       expand: "Expand workflow node",
@@ -2764,7 +2781,7 @@ export const enUSTranslation = {
         "Publishing publicly uploads the saved project graphs, metadata, and project assets to GitHub. Application mode also uploads the public Rino_WFP runtime files. Recovery data, logs, local paths, credentials, and editor settings are never included.",
       authTitle: "GitHub CLI authorization",
       authDescription:
-        "The official GitHub CLI starts the browser/device authorization flow. Rino never reads, stores, or displays a GitHub account identifier or token; credentials are managed by GH CLI.",
+        "The official GitHub CLI starts authorization. Rino temporarily reads only the public login and display name for publisher metadata, never the token; credentials remain managed by GH CLI.",
       authFlow:
         "Follow the GH CLI prompt to open the official browser authorization page. A one-time code is copied to the clipboard for you to paste when prompted.",
       logoutWarning:
@@ -2772,7 +2789,7 @@ export const enUSTranslation = {
       exportResourceTitle: "Select the Rino_WFP resource directory",
       resourceFileTypeLabel: "RinoProject resource directory",
       exportApplicationTitle: "Export Rino Windows application",
-      applicationFileTypeLabel: "Rino application ZIP",
+      applicationFileTypeLabel: "Windows installer",
     },
     content: {
       resource: "Resources only",
@@ -2780,31 +2797,34 @@ export const enUSTranslation = {
         "Local export creates a signed RinoProject folder inside the selected directory; GitHub publishing keeps the compatible .rino-package.",
       application: "Runnable application",
       applicationDescription:
-        "Place the signed resource package into Rino_WFP with its Sidecar, ADB, and fixed OCR resources, then create a Windows application ZIP.",
+        "Bundle the signed project, Rino_WFP, Sidecar, ADB, and fixed OCR resources as an installable Windows application.",
     },
     fields: {
       content: "Export content",
       updateWfp: "Sync the latest Rino_WFP before local export",
       updateWfpNotice:
         "When cleared, local export prefers the verified cache and still syncs if no cache exists. GitHub application publishing always forces the latest stable version.",
-      packageId: "Package ID",
-      version: "Version",
-      summary: "Summary",
-      publisherId: "Package namespace (self-declared)",
-      publisherName: "Package attribution (self-declared)",
-      license: "License identifier",
-      githubOwner: "GitHub owner",
-      githubRepository: "GitHub repository",
+      packageId: "Unique project ID",
+      applicationName: "Application name",
+      version: "Project version",
+      summary: "Project description",
+      publisherId: "Publisher ID",
+      publisherName: "Publisher name",
+      license: "License",
+      githubOwner: "GitHub user or organization",
+      githubRepository: "Repository name",
       metadataNotice:
-        "Package namespace and attribution are self-declared metadata, not GitHub identity or verification. Repository and upload identity come from the active GH CLI login; owner and repository text only select the target and are permission-checked when publishing.",
+        "The project ID is derived from its internal document ID, the publisher comes from the active GitHub account, and the license comes from project settings. None can be changed here.",
     },
     status: {
       checking: "Checking GitHub CLI sign-in…",
       authenticated: "GitHub CLI authenticated",
+      identityUnavailable:
+        "Signed in, but the public GitHub identity could not be read. Sign in again.",
       loginRequired:
         "GitHub CLI is not signed in. Click sign in and complete the official browser/device flow.",
       cliRequired:
-        "GitHub CLI was not found. Local resource export remains available; application export cannot refresh Rino_WFP.",
+        "GitHub CLI was not found. Install it and sign in before exporting or publishing.",
     },
     actions: {
       login: "Sign in with GitHub CLI",
@@ -2838,7 +2858,7 @@ export const enUSTranslation = {
         "The local signing key in Windows Credential Manager is unavailable.",
       PACKAGE_WRITE_FAILED: "The project or package could not be written.",
       APPLICATION_WRITE_FAILED:
-        "The runnable application ZIP could not be created or verified.",
+        "The Windows application installer could not be created or verified.",
       WFP_TEMPLATE_UNAVAILABLE:
         "The Rino_WFP repository has no usable latest stable template and no verified local cache is available.",
       WFP_TEMPLATE_INVALID:

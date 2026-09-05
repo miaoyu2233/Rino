@@ -9,6 +9,7 @@
   height: 100%;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
   background: var(--background);
 }
 
@@ -245,7 +246,6 @@
   transition:
     border-color var(--duration-micro) var(--ease-standard),
     background-color var(--duration-micro) var(--ease-standard);
-  animation: rino-node-enter var(--duration-standard) var(--ease-standard);
 }
 
 .rino-repeat-hint {
@@ -267,6 +267,17 @@
   box-shadow:
     var(--shadow-raised),
     0 0 0 1px var(--node-selected);
+}
+
+.rino-repeat-hint__handle {
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--surface-elevated);
+  background: var(--port-execution);
+}
+
+.rino-repeat-hint__handle.react-flow__handle-left {
+  left: -5px;
 }
 
 .rino-repeat-hint:focus-visible {
@@ -459,18 +470,6 @@
   background: var(--surface-elevated);
 }
 
-@keyframes rino-node-enter {
-  from {
-    opacity: 0;
-    transform: translateY(4px) scale(0.985);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 .rino-node[data-selected="true"] {
   border-color: var(--node-selected);
   box-shadow:
@@ -506,24 +505,20 @@
     0 0 0 1px var(--node-failed);
 }
 
-/* A virtualized node can mount while the viewport is moving. Cancelling its entrance
-   animation keeps it out of the transparent first frame that previously looked like a
-   black flash; the active runtime animation is paused and resumes after movement. */
+/* Virtualized nodes mount fully opaque. Finite status feedback is suppressed and the
+   active runtime animation is paused while the viewport moves. */
 .graph-canvas[data-panning="true"] .rino-node,
-.graph-canvas[data-zooming="true"] .rino-node,
 .graph-canvas[data-viewport-moving="true"] .rino-node {
   transition: none;
 }
 
 .graph-canvas[data-panning="true"] .rino-node:not([data-runtime="running"]),
-.graph-canvas[data-zooming="true"] .rino-node:not([data-runtime="running"]),
 .graph-canvas[data-viewport-moving="true"]
   .rino-node:not([data-runtime="running"]) {
   animation: none;
 }
 
 .graph-canvas[data-panning="true"] .rino-node[data-runtime="running"],
-.graph-canvas[data-zooming="true"] .rino-node[data-runtime="running"],
 .graph-canvas[data-viewport-moving="true"] .rino-node[data-runtime="running"] {
   animation-play-state: paused;
 }
@@ -908,13 +903,21 @@
 .rino-workflow-parameter input[type="number"],
 .rino-workflow-region input[type="number"] {
   min-width: 0;
-  max-width: 96px;
   height: 26px;
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-small);
   background: var(--surface-interactive);
   color: var(--text-primary);
   font: inherit;
+}
+
+.rino-workflow-parameter .ui-select__trigger,
+.rino-workflow-parameter input[type="number"] {
+  max-width: 100%;
+}
+
+.rino-workflow-region input[type="number"] {
+  max-width: 96px;
 }
 
 .rino-workflow-parameter .ui-select__trigger {
@@ -1431,7 +1434,6 @@
 }
 
 .graph-canvas[data-panning="true"] .rino-edge,
-.graph-canvas[data-zooming="true"] .rino-edge,
 .graph-canvas[data-viewport-moving="true"] .rino-edge {
   transition: none;
 }
@@ -1481,13 +1483,52 @@
   }
 }
 
+.rino-edge--source-selected {
+  stroke: color-mix(in oklch, var(--accent) 72%, var(--edge-color));
+  stroke-width: 2.5;
+  stroke-opacity: 1;
+}
+
 .rino-edge--selected {
   stroke: var(--accent);
-  stroke-width: 2.5;
+  stroke-width: 3.25;
+  stroke-opacity: 1;
+}
+
+/* At overview scale, connection topology matters more than exact routing. Straight,
+   marker-free paths avoid the most expensive SVG work when hundreds of edges are
+   visible at once. Runtime and selection colours remain available without motion. */
+.rino-edge--overview {
+  stroke-width: 1;
+  stroke-opacity: 0.58;
+  shape-rendering: optimizeSpeed;
+  animation: none;
+  transition: none;
+}
+
+.rino-edge--overview.rino-edge--execution {
+  stroke-width: 1.25;
+}
+
+.rino-edge--overview.rino-edge--traversed {
+  stroke-width: 1.25;
+  stroke-opacity: 0.72;
+}
+
+.rino-edge--overview.rino-edge--active,
+.rino-edge--overview.rino-edge--source-selected,
+.rino-edge--overview.rino-edge--selected {
+  stroke-width: 2.25;
+  stroke-opacity: 1;
 }
 
 .graph-canvas .react-flow__connectionline .react-flow__connection-path {
   stroke: var(--accent);
   stroke-width: 2;
   stroke-dasharray: 4 4;
+}
+
+/* Direct canvas commands should be visible as soon as the menu is mounted. */
+.graph-canvas-menu {
+  animation: none;
 }

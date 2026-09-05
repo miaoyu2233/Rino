@@ -131,6 +131,8 @@ secrets.json
 **/wfp-template-cache/
 *.rino-app.zip.rino-staging-*
 *.rino-app.zip
+*.exe.rino-staging-*
+*.rino-installer-staging-*
 
 # Editors and operating systems
 **/.idea/

@@ -27,6 +27,23 @@ describe("estimateNodeHeight", () => {
     expect(expanded).toBeGreaterThan(base);
   });
 
+  it("reserves an extra row for repeat execution and its enabled wait input", () => {
+    const disabled = estimateNodeHeight({
+      workflowGroup: {
+        steps: [],
+        recognitionRepeat: { enabled: false },
+      },
+    });
+    const enabled = estimateNodeHeight({
+      workflowGroup: {
+        steps: [],
+        recognitionRepeat: { enabled: true },
+      },
+    });
+
+    expect(enabled).toBeGreaterThan(disabled);
+  });
+
   it("includes log, coordinate, sequence, and workflow content within a bound", () => {
     const height = estimateNodeHeight({
       typeKey: "core.geometry.rectangle",

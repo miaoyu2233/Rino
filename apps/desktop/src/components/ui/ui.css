@@ -534,13 +534,18 @@
 }
 
 .ui-select__viewport {
+  min-width: 0;
+  min-height: 0;
   padding: var(--space-half);
 }
 
 .ui-select__menu-layout {
   display: flex;
+  flex: 1 1 auto;
   min-width: 0;
+  min-height: 0;
   align-items: stretch;
+  overflow: hidden;
 }
 
 .ui-select__content[data-has-option-help="true"] .ui-select__menu-layout {

@@ -11,6 +11,11 @@ import { useCoordinatePickerStore } from "../../device-preview/coordinate-picker
 import { useRegistryStore } from "../registry/registry-store";
 import { useDocumentStore } from "../store/document-store";
 import { useEditorSessionStore } from "../store/editor-session-store";
+import {
+  recognitionRepeatGroupForEdge,
+  recognitionRepeatState,
+  workflowGroupOrigin,
+} from "../workflow-groups";
 import type { GraphCommand } from "./graph-commands";
 
 export type ImageRecognitionMethod = "template" | "feature" | "color";
@@ -545,6 +550,165 @@ export function setTextRecognitionDelay(
   ]);
 }
 
+export function setRecognitionRepeatDelay(
+  groupId: string,
+  milliseconds: number,
+): boolean {
+  const context = editingContext();
+  const group =
+    context === undefined ? undefined : groupById(context.graph, groupId);
+  const repeat =
+    context === undefined || group === undefined
+      ? undefined
+      : recognitionRepeatState(context.graph, group);
+  if (
+    context === undefined ||
+    repeat?.delayNode?.typeKey !== "core.time.delay" ||
+    !Number.isInteger(milliseconds) ||
+    milliseconds < 0 ||
+    milliseconds > MAXIMUM_TEXT_RECOGNITION_DELAY_MILLISECONDS
+  ) {
+    return false;
+  }
+  return runComposite("graph.history.setRecognitionRepeatDelay", [
+    {
+      kind: "setInputValue",
+      graphId: context.graph.graphId,
+      nodeId: repeat.delayNode.nodeId,
+      portId: "durationMilliseconds",
+      value: milliseconds,
+    },
+  ]);
+}
+
+export function setRecognitionRepeatEnabled(
+  groupId: string,
+  enabled: boolean,
+): boolean {
+  const context = editingContext();
+  const group =
+    context === undefined ? undefined : groupById(context.graph, groupId);
+  if (context === undefined || group === undefined) {
+    return false;
+  }
+  const repeat = recognitionRepeatState(context.graph, group);
+  const noMatch = group.exposedPorts.find(
+    (port) => port.proxyPortId === "noMatch",
+  );
+  const run = group.exposedPorts.find((port) => port.proxyPortId === "run");
+  if (
+    repeat.delayNode?.typeKey !== "core.time.delay" ||
+    noMatch === undefined ||
+    run === undefined
+  ) {
+    return false;
+  }
+  if (!enabled) {
+    const edgeIds = [
+      repeat.repeatEdge?.edgeId,
+      repeat.returnEdge?.edgeId,
+    ].filter((edgeId): edgeId is string => edgeId !== undefined);
+    return runComposite(
+      "graph.history.setRecognitionRepeatEnabled",
+      edgeIds.map((edgeId) => ({
+        kind: "removeEdge" as const,
+        graphId: context.graph.graphId,
+        edgeId,
+      })),
+    );
+  }
+  if (repeat.enabled && repeat.hint !== undefined) {
+    return true;
+  }
+
+  const repeatSourceOccupied =
+    repeat.repeatEdge === undefined &&
+    context.graph.edges.some(
+      (edge) =>
+        edge.sourceNodeId === noMatch.nodeId &&
+        edge.sourcePortId === noMatch.portId,
+    );
+  const returnSourceOccupied =
+    repeat.returnEdge === undefined &&
+    context.graph.edges.some(
+      (edge) =>
+        edge.sourceNodeId === repeat.delayNode?.nodeId &&
+        edge.sourcePortId === "next",
+    );
+  if (repeatSourceOccupied || returnSourceOccupied) {
+    return false;
+  }
+
+  const commands: GraphCommand[] = [];
+  const repeatEdgeCommand =
+    repeat.repeatEdge === undefined
+      ? addEdgeCommand(
+          context.graph.graphId,
+          "execution",
+          noMatch.nodeId,
+          noMatch.portId,
+          repeat.delayNode.nodeId,
+          "run",
+        )
+      : undefined;
+  if (repeatEdgeCommand !== undefined) {
+    commands.push(repeatEdgeCommand);
+  }
+  if (repeat.returnEdge === undefined) {
+    commands.push(
+      addEdgeCommand(
+        context.graph.graphId,
+        "execution",
+        repeat.delayNode.nodeId,
+        "next",
+        run.nodeId,
+        run.portId,
+      ),
+    );
+  }
+  if (repeat.hint === undefined) {
+    const repeatEdgeId =
+      repeat.repeatEdge?.edgeId ?? repeatEdgeCommand?.edge.edgeId;
+    if (repeatEdgeId === undefined) {
+      return false;
+    }
+    const origin = workflowGroupOrigin(context.graph, group);
+    commands.push({
+      kind: "addRepeatHint",
+      graphId: context.graph.graphId,
+      hint: {
+        hintId: createIdentifier(),
+        edgeId: repeatEdgeId,
+        position: { x: origin.x + 360, y: origin.y + 96 },
+      },
+    });
+  }
+  return runComposite("graph.history.setRecognitionRepeatEnabled", commands);
+}
+
+export function removeRepeatHintFromCanvas(
+  graphId: string,
+  hintId: string,
+  edgeId: string,
+): boolean {
+  const documentStore = useDocumentStore.getState();
+  const graph = documentStore.history?.document.graphs.find(
+    (candidate) => candidate.graphId === graphId,
+  );
+  if (graph === undefined) {
+    return false;
+  }
+  const repeatGroup = recognitionRepeatGroupForEdge(graph, edgeId);
+  if (repeatGroup !== undefined) {
+    return setRecognitionRepeatEnabled(repeatGroup.groupId, false);
+  }
+  return documentStore.runCommand("graph.history.removeRepeatHint", {
+    kind: "removeRepeatHint",
+    graphId,
+    hintId,
+  }).ok;
+}
+
 export function setRecognitionDelayMode(
   groupId: string,
   mode: RecognitionDelayMode,
@@ -558,6 +722,7 @@ export function setRecognitionDelayMode(
     memberNode(context.graph, group, "beforeDelay");
   const capture = memberNode(context.graph, group, "capture");
   const click = memberNode(context.graph, group, "click");
+  const repeat = recognitionRepeatState(context.graph, group);
   const success =
     group.kind === "imageRecognition"
       ? (memberNode(context.graph, group, "visibleOcr") ??
@@ -598,13 +763,16 @@ export function setRecognitionDelayMode(
         (edge.sourceNodeId === success.nodeId &&
           (edge.targetNodeId === delay.nodeId ||
             edge.targetNodeId === click?.nodeId)));
-    if (!isExternalRunEdge && !isInternalTimingEdge) continue;
+    const isRepeatReturnEdge = repeat.returnEdge?.edgeId === edge.edgeId;
+    if (!isExternalRunEdge && !isInternalTimingEdge && !isRepeatReturnEdge) {
+      continue;
+    }
     commands.push({
       kind: "removeEdge",
       graphId: context.graph.graphId,
       edgeId: edge.edgeId,
     });
-    if (isExternalRunEdge) {
+    if (isExternalRunEdge || isRepeatReturnEdge) {
       commands.push({
         kind: "addEdge",
         graphId: context.graph.graphId,
@@ -929,7 +1097,7 @@ function addEdgeCommand(
   sourcePortId: string,
   targetNodeId: string,
   targetPortId: string,
-): GraphCommand {
+): Extract<GraphCommand, { kind: "addEdge" }> {
   return {
     kind: "addEdge",
     graphId,
@@ -982,6 +1150,15 @@ export function setRecognitionClickMethod(
     return true;
   }
 
+  const currentNextPort = executionOutput(click.typeKey);
+  const nextPort = executionOutput(definition.typeKey);
+  const continuationEdges = context.graph.edges.filter(
+    (edge) =>
+      edge.sourceNodeId === click.nodeId &&
+      edge.sourcePortId === currentNextPort &&
+      edge.edgeKind === "execution",
+  );
+
   const removedEdges = new Map(
     invalidIncidentEdges(context.graph, click.nodeId, definition).map(
       (edge) => [edge.edgeId, edge],
@@ -1015,6 +1192,20 @@ export function setRecognitionClickMethod(
     graphId: context.graph.graphId,
     node: replacementNode(click, definition),
   });
+  if (currentNextPort !== nextPort) {
+    commands.push(
+      ...continuationEdges
+        .filter((edge) => removedEdges.has(edge.edgeId))
+        .map((edge): GraphCommand => ({
+          kind: "addEdge",
+          graphId: context.graph.graphId,
+          edge: {
+            ...edge,
+            sourcePortId: nextPort,
+          },
+        })),
+    );
+  }
 
   if (
     !context.graph.edges.some(
@@ -1035,9 +1226,13 @@ export function setRecognitionClickMethod(
       ),
     );
   }
-  const nextPort = executionOutput(definition.typeKey);
+  const afterDelayAlreadyConnected = continuationEdges.some(
+    (edge) =>
+      edge.targetNodeId === afterDelay?.nodeId && edge.targetPortId === "run",
+  );
   if (
     afterDelay !== undefined &&
+    !afterDelayAlreadyConnected &&
     !edgeExists(context.graph, click.nodeId, nextPort, afterDelay.nodeId, "run")
   ) {
     commands.push(
@@ -1096,8 +1291,17 @@ export function setRecognitionClickMethod(
     );
   }
 
-  const exposedPorts = group.exposedPorts.filter(
-    (port) => port.nodeId !== click.nodeId,
+  const exposedPorts = group.exposedPorts.flatMap((port) =>
+    port.nodeId !== click.nodeId
+      ? [port]
+      : port.portId === currentNextPort
+        ? [
+            {
+              ...port,
+              portId: nextPort,
+            },
+          ]
+        : [],
   );
   if (method === "point" && clickPoint === undefined) {
     exposedPorts.splice(3, 0, {

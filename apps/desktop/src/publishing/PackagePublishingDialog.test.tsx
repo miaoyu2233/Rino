@@ -53,14 +53,23 @@ describe("PackagePublishingDialog", () => {
     mocks.readGithubStatus.mockResolvedValue({
       available: true,
       authenticated: true,
+      publisher: {
+        publisherId: "example-owner",
+        displayName: "Example Publisher",
+      },
     });
     mocks.loginGithub.mockResolvedValue({
       available: true,
       authenticated: true,
+      publisher: {
+        publisherId: "example-owner",
+        displayName: "Example Publisher",
+      },
     });
     mocks.logoutGithub.mockResolvedValue({
       available: true,
       authenticated: false,
+      publisher: null,
     });
     mocks.saveProject.mockResolvedValue({ status: "completed" });
     mocks.exportPackage.mockResolvedValue({
@@ -69,6 +78,7 @@ describe("PackagePublishingDialog", () => {
       sha256: "a".repeat(64),
       keyId: "example-key",
       publicKeyBase64: "public-key",
+      publisherDisplayName: "Example Publisher",
     });
   });
 
@@ -82,7 +92,7 @@ describe("PackagePublishingDialog", () => {
     await waitFor(() =>
       expect(screen.getByText("GitHub CLI 已认证")).toBeInTheDocument(),
     );
-    expect(screen.queryByText(/example-owner/)).not.toBeInTheDocument();
+    expect(screen.getByText("example-owner")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "导出到本地" }));
 
@@ -95,11 +105,12 @@ describe("PackagePublishingDialog", () => {
   it("exports an application with the selected WFP update policy", async () => {
     const user = userEvent.setup();
     mocks.exportPackage.mockResolvedValue({
-      assetName: "example.rino-app.zip",
+      assetName: "示例项目_1.0.0_Setup.exe",
       byteLength: 200,
       sha256: "b".repeat(64),
       keyId: "example-key",
       publicKeyBase64: "public-key",
+      publisherDisplayName: "Example Publisher",
     });
     render(<PackagePublishingDialog open onOpenChange={vi.fn()} />);
 
@@ -114,10 +125,11 @@ describe("PackagePublishingDialog", () => {
     expect(mocks.exportPackage).toHaveBeenCalledWith(
       {
         title: "导出 Rino Windows 应用",
-        fileTypeLabel: "Rino 应用 ZIP",
+        fileTypeLabel: "Windows 安装程序",
       },
       expect.objectContaining({
         content: "application",
+        applicationName: "示例项目",
         updateWfp: true,
       }),
     );
@@ -128,6 +140,7 @@ describe("PackagePublishingDialog", () => {
     mocks.readGithubStatus.mockResolvedValue({
       available: true,
       authenticated: false,
+      publisher: null,
     });
     render(<PackagePublishingDialog open onOpenChange={vi.fn()} />);
 
@@ -178,6 +191,7 @@ describe("PackagePublishingDialog", () => {
     mocks.readGithubStatus.mockResolvedValue({
       available: true,
       authenticated: false,
+      publisher: null,
     });
     render(<PackagePublishingDialog open onOpenChange={vi.fn()} />);
 
@@ -190,20 +204,38 @@ describe("PackagePublishingDialog", () => {
     ).toBeInTheDocument();
   });
 
-  it("does not autofill package metadata or the manual repository owner", async () => {
+  it("uses GitHub identity and keeps internal package metadata read-only", async () => {
     render(<PackagePublishingDialog open onOpenChange={vi.fn()} />);
 
     await waitFor(() =>
       expect(screen.getByText("GitHub CLI 已认证")).toBeInTheDocument(),
     );
+    expect(screen.getByText("example-owner")).toBeInTheDocument();
+    expect(screen.getByText("Example Publisher")).toBeInTheDocument();
+    expect(screen.getByText("LicenseRef-Proprietary")).toBeInTheDocument();
     expect(
-      screen.getByRole("textbox", { name: "项目包命名空间（自声明）" }),
-    ).toHaveValue("rino.publisher");
+      screen.queryByRole("textbox", { name: "项目唯一标识" }),
+    ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("textbox", { name: "项目包署名（自声明）" }),
-    ).toHaveValue("Rino Publisher");
-    expect(screen.getByRole("textbox", { name: "GitHub 所有者" })).toHaveValue(
-      "",
-    );
+      screen.queryByRole("textbox", { name: "许可证" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: "GitHub 用户或组织" }),
+    ).toHaveValue("example-owner");
+  });
+
+  it("uses plain-language labels for package settings", () => {
+    render(<PackagePublishingDialog open onOpenChange={vi.fn()} />);
+
+    expect(screen.getByText("项目唯一标识")).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: "项目简介" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: "仓库名称" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/项目唯一标识由项目内部 ID 自动生成/),
+    ).toBeInTheDocument();
   });
 });

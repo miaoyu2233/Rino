@@ -1,6 +1,11 @@
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
+
+const desktopRoot = fileURLToPath(new URL(".", import.meta.url));
 
 const dependencyChunkRules = [
   {
@@ -72,6 +77,10 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
     rollupOptions: {
+      input: {
+        main: resolve(desktopRoot, "index.html"),
+        splashscreen: resolve(desktopRoot, "splashscreen.html"),
+      },
       output: {
         manualChunks: resolveManualChunk,
       },

@@ -34,7 +34,7 @@ from rino_runtime.backends.base import (
 from rino_runtime.backends.maa.callbacks import MaaCallbackHub
 from rino_runtime.backends.maa.errors import MaaBackendError, MaaBackendErrorCode
 
-EXPECTED_MAA_FRAMEWORK_VERSION = "5.10.5"
+EXPECTED_MAA_FRAMEWORK_VERSION = "5.12.3"
 EXPECTED_MAA_RUNTIME_VERSION = f"v{EXPECTED_MAA_FRAMEWORK_VERSION}"
 EXPECTED_MAA_AGENT_BINARY_VERSION = "1.0.1"
 PINNED_OCR_ASSET_COMMIT = "dabcd4681ac990dc4361de26416d986abd80e4aa"

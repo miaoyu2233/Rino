@@ -46,6 +46,15 @@ export function installGlobalApplicationFailureHandlers(
   showFailure: ApplicationFailureHandler,
 ): () => void {
   const handleError = (event: ErrorEvent): void => {
+    const isResizeObserverNotification =
+      (event.error === null || event.error === undefined) &&
+      (event.message ===
+        "ResizeObserver loop completed with undelivered notifications." ||
+        event.message === "ResizeObserver loop limit exceeded");
+    if (isResizeObserverNotification) {
+      event.preventDefault();
+      return;
+    }
     showFailure(normalizeApplicationFailure(event.error ?? event.message));
   };
   const handleUnhandledRejection = (event: PromiseRejectionEvent): void => {

@@ -64,6 +64,8 @@ export type ProjectParseResult =
 export interface LoadedProject {
   document: RinoProjectDocumentV1;
   graphFileNames: ReadonlyMap<string, string>;
+  /** Whether the source was a legacy monolithic project awaiting an explicit save. */
+  needsMigration: boolean;
 }
 
 type JsonRecord = Record<string, unknown>;
@@ -420,6 +422,9 @@ export function serializeProject(
     documentId: document.documentId,
     metadata: {
       name: document.metadata.name,
+      ...(document.metadata.licenseIdentifier === undefined
+        ? {}
+        : { licenseIdentifier: document.metadata.licenseIdentifier }),
       createdAt: document.metadata.createdAt,
       updatedAt: document.metadata.updatedAt,
     },
@@ -501,6 +506,23 @@ function isFailure(
   return "reason" in value;
 }
 
+/** Gives a legacy monolithic document the deterministic names a split save uses. */
+function allocateLegacyGraphFileNames(
+  document: RinoProjectDocumentV1,
+): ReadonlyMap<string, string> {
+  const graphFileNames = new Map<string, string>();
+  const taken = new Set<string>();
+  for (const graph of document.graphs) {
+    const fileName = allocateGraphFileName(
+      graph.graphId === document.entryGraphId,
+      taken,
+    );
+    graphFileNames.set(graph.graphId, fileName);
+    taken.add(fileName);
+  }
+  return graphFileNames;
+}
+
 /** Rebuilds one in-memory document from the text of a project directory.
  *
  * Every file is untrusted input: it is decoded, raised to the current schema version,
@@ -518,6 +540,17 @@ export function parseProject(files: {
   );
   if (isFailure(decodedManifest)) {
     return { ok: false, failure: decodedManifest };
+  }
+
+  if (isValidProjectDocument(decodedManifest)) {
+    return {
+      ok: true,
+      value: {
+        document: decodedManifest,
+        graphFileNames: allocateLegacyGraphFileNames(decodedManifest),
+        needsMigration: true,
+      },
+    };
   }
 
   const migration = migrateProjectManifest(decodedManifest);
@@ -654,7 +687,10 @@ export function parseProject(files: {
     };
   }
 
-  return { ok: true, value: { document, graphFileNames } };
+  return {
+    ok: true,
+    value: { document, graphFileNames, needsMigration: false },
+  };
 }
 
 /** Reports whether two serialized projects would write identical bytes.

@@ -10,7 +10,7 @@ import {
   within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "../../app/App";
 import { applicationI18n } from "../../localization/i18n";
@@ -34,12 +34,15 @@ import {
   alignPositionChanges,
   applyTransientNodeChanges,
   nodeRectangle,
+  shouldDeferNodeChange,
 } from "./graph-canvas-helpers";
 import {
   GraphProjection,
   NODE_WIDTH,
   type RinoFlowNode,
 } from "./graph-view-model";
+import { useCanvasViewportStore } from "./canvas-viewport-store";
+import { zoomViewportAtPointer } from "./canvas-interaction";
 import { snapToGrid } from "./canvas-geometry";
 import {
   hasNodeOverlap,
@@ -56,6 +59,10 @@ import {
   createProjectFromEmptyState,
   installInMemoryProjectService,
 } from "../../test/project-transport-double";
+import {
+  canvasDetailModeForZoom,
+  shouldVirtualizeCanvasElements,
+} from "./canvas-detail";
 
 const START = "3d2f6e5c-7081-4c9d-8eb0-2a3b4c5d6e7f";
 const COMPARE = "5f4b8a7e-92a3-4ebf-8ad2-4c5d6e7f8091";
@@ -210,6 +217,14 @@ function overlapCommandCount(): number {
 }
 
 describe("graph canvas", () => {
+  it("simplifies overview detail without disabling large-graph virtualization", () => {
+    expect(canvasDetailModeForZoom(0.49)).toBe("overview");
+    expect(canvasDetailModeForZoom(0.5)).toBe("full");
+    expect(shouldVirtualizeCanvasElements(1_000, 128)).toBe(true);
+    expect(shouldVirtualizeCanvasElements(128, 128)).toBe(true);
+    expect(shouldVirtualizeCanvasElements(127, 128)).toBe(false);
+  });
+
   beforeEach(() => {
     window.localStorage.clear();
     window.localStorage.setItem(LOCALE_STORAGE_KEY, "zh-CN");
@@ -312,6 +327,64 @@ describe("graph canvas", () => {
     });
   });
 
+  it("reveals and selects the repeated target when a repeat node is double-clicked", async () => {
+    render(<App />);
+    await createProjectFromEmptyState();
+
+    const opened = useDocumentStore.getState().history?.document;
+    const entryGraph = opened?.graphs[0];
+    if (opened === undefined || entryGraph === undefined) {
+      throw new Error("The project graph must be available.");
+    }
+    const edgeId = "30000000-0000-4000-8000-000000000021";
+    const hintId = "40000000-0000-4000-8000-000000000021";
+    openProjectDocument({
+      ...opened,
+      graphs: [
+        {
+          ...entryGraph,
+          nodes: [startNode(), plainNode(BRANCH, "core.logic.branch")],
+          edges: [
+            {
+              edgeId,
+              edgeKind: "execution",
+              sourceNodeId: START,
+              sourcePortId: "next",
+              targetNodeId: BRANCH,
+              targetPortId: "run",
+            },
+          ],
+          editorMetadata: {
+            repeatHints: [
+              {
+                hintId,
+                edgeId,
+                position: { x: 520, y: 120 },
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    const repeatNode = await waitFor(() => {
+      const item = document.querySelector<HTMLElement>(".rino-repeat-hint");
+      if (item === null) {
+        throw new Error("The repeat node is not projected yet.");
+      }
+      return item;
+    });
+    fireEvent.doubleClick(repeatNode);
+
+    await waitFor(() => {
+      expect(useEditorSessionStore.getState().selectedNodeIds).toEqual([
+        BRANCH,
+      ]);
+      expect(
+        screen.getByTestId(`rf__node-${BRANCH}`).querySelector(".rino-node"),
+      ).toHaveAttribute("data-selected", "true");
+    });
+  });
   it("does not navigate into a function while execution is locked", async () => {
     render(<App />);
     await createProjectFromEmptyState();
@@ -768,6 +841,32 @@ describe("graph canvas", () => {
     expect(alignedRelease.position).toEqual({ x: 16, y: 150 });
   });
 
+  it("defers node measurements and active drags until the next frame", () => {
+    expect(
+      shouldDeferNodeChange({
+        id: START,
+        type: "dimensions",
+        dimensions: { width: 220, height: 160 },
+      }),
+    ).toBe(true);
+    expect(
+      shouldDeferNodeChange({
+        id: START,
+        type: "position",
+        dragging: true,
+        position: { x: 16, y: 32 },
+      }),
+    ).toBe(true);
+    expect(
+      shouldDeferNodeChange({
+        id: START,
+        type: "position",
+        dragging: false,
+        position: { x: 16, y: 32 },
+      }),
+    ).toBe(false);
+  });
+
   it("flushes consecutive transient drag batches through the internal sink", async () => {
     render(<App />);
     await createProjectFromEmptyState();
@@ -1121,18 +1220,20 @@ describe("graph canvas", () => {
     render(<App />);
     await createProjectFromEmptyState();
 
-    for (
-      let index = 0;
-      index < EFFICIENCY_VISIBLE_ELEMENT_THRESHOLD;
-      index += 1
-    ) {
-      addNode(
-        plainNode(
-          `70000000-0000-4000-8000-${(index + 1).toString().padStart(12, "0")}`,
-          "core.logic.branch",
-        ),
-      );
-    }
+    act(() => {
+      for (
+        let index = 0;
+        index < EFFICIENCY_VISIBLE_ELEMENT_THRESHOLD;
+        index += 1
+      ) {
+        addNode(
+          plainNode(
+            `70000000-0000-4000-8000-${(index + 1).toString().padStart(12, "0")}`,
+            "core.logic.branch",
+          ),
+        );
+      }
+    });
 
     await waitFor(() => {
       const nodes =
@@ -1154,7 +1255,6 @@ describe("graph canvas", () => {
     act(() => {
       replaceActiveGraphNodes(denseNodes(EFFICIENCY_VISIBLE_ELEMENT_THRESHOLD));
     });
-
     await waitFor(() => {
       expect(overlapCommandCount()).toBe(1);
       expect(
@@ -1197,6 +1297,147 @@ describe("graph canvas", () => {
     );
     expect(rectangle?.width).toBe(NODE_WIDTH);
     expect(rectangle?.height).toBeGreaterThan(0);
+  });
+
+  it("applies coalesced wheel input completely on the first display frame", async () => {
+    render(<App />);
+    await createProjectFromEmptyState();
+    const surface = screen.getByLabelText("节点图编辑区");
+    setCanvasBounds(surface);
+    const before = useCanvasViewportStore.getState().viewport;
+    const callbacks = new Map<number, FrameRequestCallback>();
+    let frameId = 0;
+    const request = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((callback) => {
+        callbacks.set(++frameId, callback);
+        return frameId;
+      });
+    const cancel = vi
+      .spyOn(window, "cancelAnimationFrame")
+      .mockImplementation((id) => {
+        callbacks.delete(id);
+      });
+    const tick = async (timestamp: number) => {
+      await act(async () => {
+        const pending = [...callbacks.values()];
+        callbacks.clear();
+        pending.forEach((callback) => {
+          callback(timestamp);
+        });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+    };
+    try {
+      const pointer = { clientX: 640, clientY: 300 };
+      const expected = zoomViewportAtPointer(
+        before,
+        pointer,
+        { left: 320, top: 48, width: 800, height: 500 },
+        -80,
+        0,
+        0.2,
+        2,
+        canvasPerformanceProfiles[
+          useLayoutPreferenceStore.getState().layout.performanceProfile
+        ].wheelZoomSensitivity,
+      );
+      fireEvent.wheel(surface, { ...pointer, deltaY: -40, deltaMode: 0 });
+      fireEvent.wheel(surface, { ...pointer, deltaY: -40, deltaMode: 0 });
+      expect(useCanvasViewportStore.getState().viewport).toEqual(before);
+      await tick(performance.now() + 16);
+      expect(useCanvasViewportStore.getState().viewport.zoom).toBeCloseTo(
+        expected.zoom,
+        8,
+      );
+      expect(useCanvasViewportStore.getState().viewport.x).toBeCloseTo(
+        expected.x,
+        8,
+      );
+      expect(useCanvasViewportStore.getState().viewport.y).toBeCloseTo(
+        expected.y,
+        8,
+      );
+      await tick(performance.now() + 32);
+      expect(useCanvasViewportStore.getState().viewport.zoom).toBeCloseTo(
+        expected.zoom,
+        8,
+      );
+
+      // Starting a pan cancels a queued wheel update before it can move the anchor.
+      fireEvent.wheel(surface, { ...pointer, deltaY: -40, deltaMode: 0 });
+      fireEvent.pointerDown(surface, { ...pointer, button: 2, pointerId: 45 });
+      await tick(performance.now() + 48);
+      expect(useCanvasViewportStore.getState().viewport.zoom).toBeCloseTo(
+        expected.zoom,
+        8,
+      );
+      fireEvent.pointerUp(surface, { ...pointer, button: 2, pointerId: 45 });
+    } finally {
+      request.mockRestore();
+      cancel.mockRestore();
+    }
+  });
+
+  it("keeps React Flow as the sole renderer during dense pan and zoom", async () => {
+    useLayoutPreferenceStore.getState().replaceLayout({
+      ...defaultLayoutPreferences,
+      performanceProfile: "efficiency",
+    });
+    render(<App />);
+    await createProjectFromEmptyState();
+    const nodes = denseNodes(EFFICIENCY_VISIBLE_ELEMENT_THRESHOLD);
+    act(() => {
+      replaceActiveGraphNodes(nodes);
+    });
+    const firstNodeId = nodes[0]?.nodeId;
+    if (firstNodeId === undefined) {
+      throw new Error("The dense graph should contain a first node.");
+    }
+    const firstNode = await screen.findByTestId(`rf__node-${firstNodeId}`);
+    const surface = screen.getByLabelText("节点图编辑区");
+    expect(document.querySelector(".graph-canvas__dense-overview")).toBeNull();
+    expect(surface).not.toHaveAttribute("data-canvas-overview");
+    const pointer = {
+      button: 2,
+      pointerId: 28,
+      clientX: 240,
+      clientY: 180,
+    };
+
+    fireEvent.pointerDown(surface, pointer);
+    fireEvent.pointerMove(surface, {
+      ...pointer,
+      clientX: pointer.clientX + 12,
+      clientY: pointer.clientY + 8,
+    });
+
+    fireEvent.pointerMove(surface, {
+      ...pointer,
+      clientX: pointer.clientX + 16,
+      clientY: pointer.clientY + 12,
+    });
+    expect(document.body).not.toHaveAttribute(
+      "data-canvas-presentation-refresh",
+    );
+    expect(screen.getByTestId(`rf__node-${firstNodeId}`)).toBe(firstNode);
+
+    fireEvent.pointerUp(surface, {
+      ...pointer,
+      clientX: pointer.clientX + 16,
+      clientY: pointer.clientY + 12,
+    });
+    expect(surface).not.toHaveAttribute("data-canvas-overview");
+
+    fireEvent.wheel(surface, {
+      clientX: 320,
+      clientY: 240,
+      deltaMode: WheelEvent.DOM_DELTA_PIXEL,
+      deltaY: -80,
+    });
+    expect(screen.getByTestId(`rf__node-${firstNodeId}`)).toBe(firstNode);
+    expect(document.querySelector(".graph-canvas__dense-overview")).toBeNull();
+    expect(surface).not.toHaveAttribute("data-canvas-overview");
   });
 
   it("does not repeat automatic layout after incremental loading or later insertion", async () => {

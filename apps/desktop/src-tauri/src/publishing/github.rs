@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     error::{PublishingError, PublishingErrorCode, PublishingResult},
-    manifest::PackageOptions,
+    manifest::{PackageOptions, PublisherIdentity},
 };
 
 #[cfg(windows)]
@@ -23,6 +23,7 @@ const MAXIMUM_RELEASE_ASSETS: usize = 1_000;
 const MAXIMUM_RELEASE_ASSET_OUTPUT_BYTES: usize = 256 * 1024;
 const WFP_REPOSITORY: &str = "miaoyu2233/Rino_WFP";
 const WFP_TEMPLATE_ASSET_NAME: &str = "Rino-WFP-win-x64.zip";
+const MAXIMUM_PUBLIC_IDENTITY_BYTES: usize = 8 * 1024;
 const AUTHENTICATION_STATUS_TIMEOUT: Duration = Duration::from_secs(15);
 const AUTHENTICATION_LOGIN_TIMEOUT: Duration = Duration::from_mins(10);
 const AUTHENTICATION_LOGOUT_TIMEOUT: Duration = Duration::from_secs(30);
@@ -45,6 +46,7 @@ const DEBUG_ENVIRONMENTS: [&str; 2] = ["GH_DEBUG", "DEBUG"];
 pub struct GithubStatus {
     pub available: bool,
     pub authenticated: bool,
+    pub publisher: Option<PublisherIdentity>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -263,17 +265,64 @@ fn is_missing_release(output: &Output) -> bool {
     )
 }
 
+fn public_identity(cli: &Path) -> PublishingResult<PublisherIdentity> {
+    let output = run(
+        cli,
+        &[
+            OsString::from("api"),
+            OsString::from("user"),
+            OsString::from("--hostname"),
+            OsString::from("github.com"),
+            OsString::from("--jq"),
+            OsString::from(
+                "{publisherId: .login, displayName: (if .name == null or .name == \"\" then .login else .name end)}",
+            ),
+        ],
+    )?;
+    if !output.status.success() || output.stdout.len() > MAXIMUM_PUBLIC_IDENTITY_BYTES {
+        return Err(PublishingError::new(
+            PublishingErrorCode::GithubAuthenticationFailed,
+            "githubPublicIdentity",
+        ));
+    }
+    let publisher: PublisherIdentity = serde_json::from_slice(&output.stdout).map_err(|_| {
+        PublishingError::new(
+            PublishingErrorCode::GithubAuthenticationFailed,
+            "githubPublicIdentity",
+        )
+    })?;
+    publisher.validate()?;
+    Ok(publisher)
+}
+
+pub fn authenticated_identity() -> PublishingResult<PublisherIdentity> {
+    let cli = github_cli_path().ok_or_else(|| {
+        PublishingError::new(PublishingErrorCode::GithubCliUnavailable, "githubCli")
+    })?;
+    if !authenticated(&cli)? {
+        return Err(PublishingError::new(
+            PublishingErrorCode::GithubAuthenticationRequired,
+            "githubAuthentication",
+        ));
+    }
+    public_identity(&cli)
+}
+
 #[must_use]
 pub fn status() -> GithubStatus {
     let Some(cli) = github_cli_path() else {
         return GithubStatus {
             available: false,
             authenticated: false,
+            publisher: None,
         };
     };
+    let authenticated = authenticated(&cli).unwrap_or(false);
+    let publisher = authenticated.then(|| public_identity(&cli).ok()).flatten();
     GithubStatus {
         available: true,
-        authenticated: authenticated(&cli).unwrap_or(false),
+        authenticated,
+        publisher,
     }
 }
 
@@ -285,6 +334,7 @@ pub fn login() -> PublishingResult<GithubStatus> {
         return Ok(GithubStatus {
             available: true,
             authenticated: true,
+            publisher: Some(public_identity(&cli)?),
         });
     }
 
@@ -304,6 +354,7 @@ pub fn login() -> PublishingResult<GithubStatus> {
     Ok(GithubStatus {
         available: true,
         authenticated: true,
+        publisher: Some(public_identity(&cli)?),
     })
 }
 
@@ -315,6 +366,7 @@ pub fn logout() -> PublishingResult<GithubStatus> {
         return Ok(GithubStatus {
             available: true,
             authenticated: false,
+            publisher: None,
         });
     }
 
@@ -334,6 +386,7 @@ pub fn logout() -> PublishingResult<GithubStatus> {
     Ok(GithubStatus {
         available: true,
         authenticated: false,
+        publisher: None,
     })
 }
 
@@ -677,15 +730,26 @@ mod tests {
     }
 
     #[test]
-    fn status_serialization_exposes_no_account_identifier() {
+    fn status_serialization_exposes_only_public_publisher_identity() {
         let value = serde_json::to_value(GithubStatus {
             available: true,
             authenticated: true,
+            publisher: Some(PublisherIdentity {
+                publisher_id: "example-owner".to_owned(),
+                display_name: "Example Publisher".to_owned(),
+            }),
         })
         .unwrap_or(serde_json::Value::Null);
         assert_eq!(
             value,
-            serde_json::json!({ "available": true, "authenticated": true })
+            serde_json::json!({
+                "available": true,
+                "authenticated": true,
+                "publisher": {
+                    "publisherId": "example-owner",
+                    "displayName": "Example Publisher"
+                }
+            })
         );
     }
 

@@ -1,25 +1,30 @@
 mod app_directories;
+mod application_instance;
 pub mod commands;
 mod device_preview;
+mod lifecycle;
 mod preview;
 pub mod project;
 pub mod publishing;
 pub mod sidecar;
 mod startup;
 
-use std::sync::mpsc::{Receiver, channel};
+use std::sync::mpsc::{Receiver, channel, sync_channel};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
 
 use app_directories::ApplicationDirectories;
+use application_instance::ApplicationInstanceGuard;
 use commands::{RuntimePreviewState, RuntimeSupervisorState};
 use device_preview::DevicePreviewState;
+use lifecycle::{SHUTDOWN_DEADLINE, SPLASHSCREEN_WINDOW_LABEL, ShutdownCoordinator};
 use preview::PreviewCache;
 use project::{ProjectWorkspace, ProjectWorkspaceState};
 use sidecar::{
     ForwardedDiagnostic, ForwardedEvent, SidecarSupervisor,
     development_adb_executable_from_environment, resolve_launch,
 };
+use startup::StartupStage;
 pub use startup::{StartupError, report_startup_failure};
 use tauri::{AppHandle, Emitter, Manager, RunEvent};
 
@@ -39,6 +44,13 @@ pub const RUNTIME_DIAGNOSTIC_EVENT_NAME: &str = "rino://runtime-diagnostic";
 /// Returns a structured startup error when the desktop runtime, its private application
 /// directories, or the runtime supervisor cannot be initialized.
 pub fn run() -> Result<(), StartupError> {
+    let _application_instance = ApplicationInstanceGuard::register().map_err(|error| {
+        StartupError::io(
+            "APPLICATION_INSTANCE_REGISTRATION_FAILED",
+            StartupStage::RegisterApplicationInstance,
+            error,
+        )
+    })?;
     let setup_failure: Arc<OnceLock<StartupError>> = Arc::new(OnceLock::new());
     let reported_failure = Arc::clone(&setup_failure);
 
@@ -55,6 +67,8 @@ pub fn run() -> Result<(), StartupError> {
             commands::runtime_request,
             commands::runtime_preview_read,
             commands::runtime_capture_read,
+            lifecycle::complete_startup,
+            lifecycle::update_startup_stage,
             device_preview::device_preview_open,
             device_preview::device_preview_publish,
             device_preview::device_preview_current,
@@ -97,13 +111,25 @@ pub fn run() -> Result<(), StartupError> {
         }
     };
 
-    app.run(|handle, event| {
-        // The runtime holds a device and a process tree, so it is stopped before the event
-        // loop tears down rather than being left to process cleanup.
-        if matches!(event, RunEvent::ExitRequested { .. } | RunEvent::Exit) {
-            device_preview::close_on_application_exit(handle);
-            stop_runtime(handle);
+    let shutdown = Arc::new(ShutdownCoordinator::default());
+    app.run(move |handle, event| match event {
+        RunEvent::WindowEvent {
+            label,
+            event: tauri::WindowEvent::CloseRequested { api, .. },
+            ..
+        } if label == "main" || label == SPLASHSCREEN_WINDOW_LABEL => {
+            api.prevent_close();
+            hide_window(handle, &label);
+            request_application_exit(handle, &shutdown);
         }
+        RunEvent::ExitRequested {
+            api, code: None, ..
+        } => {
+            api.prevent_exit();
+            request_application_exit(handle, &shutdown);
+        }
+        RunEvent::ExitRequested { .. } | RunEvent::Exit => {}
+        _ => {}
     });
 
     Ok(())
@@ -216,4 +242,33 @@ fn stop_runtime(handle: &AppHandle) {
             .unwrap_or_else(std::sync::PoisonError::into_inner)
             .clear();
     }
+}
+
+fn hide_window(handle: &AppHandle, label: &str) {
+    if let Some(window) = handle.get_webview_window(label) {
+        let _ignored = window.hide();
+    }
+}
+
+fn request_application_exit(handle: &AppHandle, coordinator: &Arc<ShutdownCoordinator>) {
+    if !coordinator.begin() {
+        return;
+    }
+
+    let (done_sender, done_receiver) = sync_channel(1);
+    let cleanup_handle = handle.clone();
+    thread::spawn(move || {
+        device_preview::close_on_application_exit(&cleanup_handle);
+        stop_runtime(&cleanup_handle);
+        let _ignored = done_sender.send(());
+    });
+
+    let watchdog_handle = handle.clone();
+    let watchdog_coordinator = Arc::clone(coordinator);
+    thread::spawn(move || {
+        let _ignored = done_receiver.recv_timeout(SHUTDOWN_DEADLINE);
+        if watchdog_coordinator.request_exit() {
+            watchdog_handle.exit(0);
+        }
+    });
 }

@@ -52,6 +52,64 @@ describe("ApplicationFrame", () => {
     expect(screen.getByRole("button", { name: /流程/ })).toBeInTheDocument();
   });
 
+  it("keeps the debug panel inside the center column so both side panels reach the bottom", () => {
+    render(<App />);
+
+    const workspace = document.querySelector(".application-frame__workspace");
+    const centerColumn = document.querySelector(
+      ".application-frame__center-column",
+    );
+    const paletteColumn = document.querySelector(
+      ".application-frame__palette-column",
+    );
+    const rightColumn = document.querySelector(
+      ".application-frame__right-column",
+    );
+    const debugPanel = document.querySelector(".debug-panel-shell");
+
+    expect(workspace).not.toBeNull();
+    expect(centerColumn).not.toBeNull();
+    expect(paletteColumn?.parentElement).toBe(workspace);
+    expect(rightColumn?.parentElement).toBe(workspace);
+    expect(debugPanel).not.toBeNull();
+    expect(debugPanel).toHaveClass("debug-panel-shell");
+    expect(centerColumn?.parentElement).toBe(workspace);
+    expect(debugPanel?.parentElement).toBe(centerColumn);
+    expect(
+      workspace?.querySelector(":scope > .debug-panel-shell"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not expose resize separators in the expanded wide layout", () => {
+    useLayoutPreferenceStore.setState({
+      layout: {
+        ...defaultLayoutPreferences,
+        paletteCollapsed: false,
+        rightCollapsed: false,
+        debugCollapsed: false,
+        rightWorkbenchMode: "docked",
+      },
+    });
+    setViewport(1280);
+    render(<App />);
+
+    expect(document.querySelector(".application-frame")).toHaveAttribute(
+      "data-layout-mode",
+      "wide",
+    );
+    for (const key of [
+      "shell.resize.palette",
+      "shell.resize.workbench",
+      "shell.resize.debug",
+    ] as const) {
+      expect(
+        screen.queryByRole("separator", {
+          name: applicationI18n.t(key),
+        }),
+      ).not.toBeInTheDocument();
+    }
+  });
+
   it("opens and filters the shortcut reference with user interactions", async () => {
     const user = userEvent.setup();
     render(<App />);

@@ -5,6 +5,7 @@ import { Button } from "../components/ui/Button";
 import { Dialog, DialogContent } from "../components/ui/Dialog";
 import { Input } from "../components/ui/Input";
 import { ProductIcon } from "../design-system/icons/ProductIcon";
+import { DEFAULT_PROJECT_LICENSE } from "../graph/project-license";
 import { saveProject } from "../graph/project/project-actions";
 import { useDocumentStore } from "../graph/store/document-store";
 import {
@@ -33,6 +34,7 @@ type PublishingActivity =
 const INITIAL_GITHUB_STATUS: GithubStatus = {
   available: false,
   authenticated: false,
+  publisher: null,
 };
 
 function slug(value: string): string {
@@ -46,15 +48,14 @@ function slug(value: string): string {
 
 function initialOptions(
   projectName: string,
+  documentId: string,
 ): Omit<PackageOptions, "releasedAt"> {
   const projectSlug = slug(projectName) || "rino-project";
   return {
-    packageId: `io.rino.project.${projectSlug}`,
+    packageId: `io.rino.project.${documentId.toLowerCase()}`,
     version: "1.0.0",
     summary: `${projectName} automation project`,
-    publisherId: "rino.publisher",
-    publisherDisplayName: "Rino Publisher",
-    licenseIdentifier: "LicenseRef-Proprietary",
+    applicationName: projectName,
     githubOwner: "",
     githubRepository: projectSlug,
     content: "resource",
@@ -87,7 +88,20 @@ function PackagePublishingDialogContent({
   const projectName = useDocumentStore(
     (state) => state.history?.document.metadata.name ?? "Rino project",
   );
-  const defaults = useMemo(() => initialOptions(projectName), [projectName]);
+  const documentId = useDocumentStore(
+    (state) =>
+      state.history?.document.documentId ??
+      "00000000-0000-4000-8000-000000000000",
+  );
+  const projectLicense = useDocumentStore(
+    (state) =>
+      state.history?.document.metadata.licenseIdentifier ??
+      DEFAULT_PROJECT_LICENSE,
+  );
+  const defaults = useMemo(
+    () => initialOptions(projectName, documentId),
+    [documentId, projectName],
+  );
   const [options, setOptions] = useState(defaults);
   const [activity, setActivity] = useState<PublishingActivity>(() =>
     isPublishingAvailable() ? "checking" : "idle",
@@ -104,6 +118,13 @@ function PackagePublishingDialogContent({
     void readGithubStatus()
       .then((status) => {
         setGithubStatus(status);
+        if (status.publisher) {
+          setOptions((current) => ({
+            ...current,
+            githubOwner:
+              current.githubOwner || status.publisher?.publisherId || "",
+          }));
+        }
       })
       .catch(() => {
         setGithubStatus(INITIAL_GITHUB_STATUS);
@@ -186,7 +207,15 @@ function PackagePublishingDialogContent({
     setError(undefined);
     setOutput(undefined);
     try {
-      setGithubStatus(await loginGithub());
+      const status = await loginGithub();
+      setGithubStatus(status);
+      if (status.publisher) {
+        setOptions((current) => ({
+          ...current,
+          githubOwner:
+            current.githubOwner || status.publisher?.publisherId || "",
+        }));
+      }
     } catch (cause) {
       setError(errorCode(cause));
     } finally {
@@ -224,7 +253,9 @@ function PackagePublishingDialogContent({
     void runPublish();
   };
 
-  const canPublish = githubStatus.authenticated && !busy;
+  const hasPublisher = githubStatus.publisher !== null;
+  const canExport = githubStatus.authenticated && hasPublisher && !busy;
+  const canPublish = canExport;
   const publishOutput = output && "releaseUrl" in output ? output : undefined;
 
   return (
@@ -315,7 +346,9 @@ function PackagePublishingDialogContent({
                 {activity === "checking"
                   ? t("publishing.status.checking")
                   : githubStatus.authenticated
-                    ? t("publishing.status.authenticated")
+                    ? hasPublisher
+                      ? t("publishing.status.authenticated")
+                      : t("publishing.status.identityUnavailable")
                     : githubStatus.available
                       ? t("publishing.status.loginRequired")
                       : t("publishing.status.cliRequired")}
@@ -369,17 +402,39 @@ function PackagePublishingDialogContent({
             ) : null}
           </section>
 
+          <dl className="publishing-form__metadata">
+            <div>
+              <dt>{t("publishing.fields.packageId")}</dt>
+              <dd>{options.packageId}</dd>
+            </div>
+            <div>
+              <dt>{t("publishing.fields.publisherId")}</dt>
+              <dd>{githubStatus.publisher?.publisherId ?? "—"}</dd>
+            </div>
+            <div>
+              <dt>{t("publishing.fields.publisherName")}</dt>
+              <dd>{githubStatus.publisher?.displayName ?? "—"}</dd>
+            </div>
+            <div>
+              <dt>{t("publishing.fields.license")}</dt>
+              <dd>{projectLicense}</dd>
+            </div>
+          </dl>
+
           <div className="publishing-form__grid">
-            <label>
-              <span>{t("publishing.fields.packageId")}</span>
-              <Input
-                required
-                value={options.packageId}
-                onChange={(event) => {
-                  update("packageId", event.target.value);
-                }}
-              />
-            </label>
+            {options.content === "application" ? (
+              <label className="publishing-form__wide">
+                <span>{t("publishing.fields.applicationName")}</span>
+                <Input
+                  required
+                  maxLength={80}
+                  value={options.applicationName}
+                  onChange={(event) => {
+                    update("applicationName", event.target.value);
+                  }}
+                />
+              </label>
+            ) : null}
             <label>
               <span>{t("publishing.fields.version")}</span>
               <Input
@@ -399,36 +454,6 @@ function PackagePublishingDialogContent({
                 value={options.summary}
                 onChange={(event) => {
                   update("summary", event.target.value);
-                }}
-              />
-            </label>
-            <label>
-              <span>{t("publishing.fields.publisherId")}</span>
-              <Input
-                required
-                value={options.publisherId}
-                onChange={(event) => {
-                  update("publisherId", event.target.value);
-                }}
-              />
-            </label>
-            <label>
-              <span>{t("publishing.fields.publisherName")}</span>
-              <Input
-                required
-                value={options.publisherDisplayName}
-                onChange={(event) => {
-                  update("publisherDisplayName", event.target.value);
-                }}
-              />
-            </label>
-            <label>
-              <span>{t("publishing.fields.license")}</span>
-              <Input
-                required
-                value={options.licenseIdentifier}
-                onChange={(event) => {
-                  update("licenseIdentifier", event.target.value);
                 }}
               />
             </label>
@@ -495,7 +520,7 @@ function PackagePublishingDialogContent({
           ) : null}
 
           <div className="publishing-form__actions">
-            <Button disabled={busy} onClick={() => void handleExport()}>
+            <Button disabled={!canExport} onClick={() => void handleExport()}>
               {activity === "exporting"
                 ? t("publishing.actions.exporting")
                 : t("publishing.actions.export")}

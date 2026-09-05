@@ -11,6 +11,7 @@ export interface PreviewRefreshSchedulerOptions {
   userPaused: boolean;
   surfaceVisible: boolean;
   windowActive: boolean;
+  windowInteracting: boolean;
   deviceBusy: boolean;
   graphInteracting: boolean;
   runActive: boolean;
@@ -72,6 +73,7 @@ export function usePreviewRefresh(
         userPaused: options.userPaused,
         surfaceVisible: options.surfaceVisible,
         windowActive: options.windowActive,
+        windowInteracting: options.windowInteracting,
         deviceBusy: options.deviceBusy,
         graphInteracting: options.graphInteracting,
         runActive: options.runActive,
@@ -90,6 +92,7 @@ export function usePreviewRefresh(
       options.surfaceVisible,
       options.userPaused,
       options.windowActive,
+      options.windowInteracting,
     ],
   );
 

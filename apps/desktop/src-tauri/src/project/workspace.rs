@@ -35,6 +35,7 @@ use super::{
 const STAGING_SUFFIX: &str = ".rino-staging";
 const PNG_SIGNATURE: &[u8; 8] = b"\x89PNG\r\n\x1a\n";
 const MAXIMUM_CAPTURE_DIMENSION: u32 = 16_384;
+const MAXIMUM_LEGACY_PROJECT_FILE_BYTES: usize = 64 * 1024 * 1024;
 
 pub type ProjectResult<T> = Result<T, Box<ProjectError>>;
 
@@ -223,6 +224,84 @@ fn read_bounded(path: &Path, limit: usize, stage: &str) -> ProjectResult<String>
         .map_err(|error| ProjectError::from_io(ProjectErrorCode::ReadFailed, stage, &error))
 }
 
+fn looks_like_legacy_project_document(contents: &str) -> bool {
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(contents) else {
+        return false;
+    };
+    let Some(object) = value.as_object() else {
+        return false;
+    };
+    let Some(graphs) = object.get("graphs").and_then(serde_json::Value::as_array) else {
+        return false;
+    };
+    let has_document_shape = object
+        .get("schemaVersion")
+        .and_then(serde_json::Value::as_u64)
+        == Some(1)
+        && object
+            .get("documentId")
+            .and_then(serde_json::Value::as_str)
+            .is_some()
+        && object
+            .get("metadata")
+            .and_then(serde_json::Value::as_object)
+            .is_some()
+        && object
+            .get("entryGraphId")
+            .and_then(serde_json::Value::as_str)
+            .is_some()
+        && object
+            .get("assets")
+            .and_then(serde_json::Value::as_array)
+            .is_some()
+        && object
+            .get("requiredCapabilities")
+            .and_then(serde_json::Value::as_array)
+            .is_some();
+
+    has_document_shape
+        && !graphs.is_empty()
+        && graphs.iter().all(|graph| {
+            let Some(graph) = graph.as_object() else {
+                return false;
+            };
+            graph
+                .get("graphId")
+                .and_then(serde_json::Value::as_str)
+                .is_some()
+                && graph
+                    .get("name")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some()
+                && graph
+                    .get("kind")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some()
+                && graph
+                    .get("nodes")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some()
+                && graph
+                    .get("edges")
+                    .and_then(serde_json::Value::as_array)
+                    .is_some()
+                && !graph.contains_key("fileName")
+        })
+}
+
+fn read_manifest_for_open(path: &Path) -> ProjectResult<String> {
+    let standard = match read_bounded(path, MAXIMUM_MANIFEST_BYTES, "manifest") {
+        Ok(contents) => return Ok(contents),
+        Err(error) => error,
+    };
+    let oversized = read_bounded(path, MAXIMUM_LEGACY_PROJECT_FILE_BYTES, "manifest")?;
+    if looks_like_legacy_project_document(&oversized) {
+        Ok(oversized)
+    } else {
+        Err(standard)
+    }
+}
+
 fn validate_file_set(files: &ProjectFileSet) -> ProjectResult<()> {
     if files.manifest.len() > MAXIMUM_MANIFEST_BYTES {
         return Err(ProjectError::boxed(
@@ -295,11 +374,13 @@ fn commit_file_set(root: &Path, files: &ProjectFileSet) -> ProjectResult<()> {
 }
 
 fn read_file_set(root: &Path) -> ProjectResult<ProjectFileSet> {
-    let manifest = read_bounded(
-        &layout::manifest_path(root),
-        MAXIMUM_MANIFEST_BYTES,
-        "manifest",
-    )?;
+    let manifest = read_manifest_for_open(&layout::manifest_path(root))?;
+    if looks_like_legacy_project_document(&manifest) {
+        return Ok(ProjectFileSet {
+            manifest,
+            graphs: Vec::new(),
+        });
+    }
     let referenced = referenced_graph_file_names(&manifest)?;
 
     let graphs_directory = layout::graphs_directory(root);
@@ -1142,5 +1223,87 @@ impl ProjectWorkspace {
             return None;
         }
         read_file_set(&self.recovery_root).ok()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{
+        fs::{self, File},
+        path::PathBuf,
+    };
+
+    use super::{
+        MAXIMUM_LEGACY_PROJECT_FILE_BYTES, MAXIMUM_MANIFEST_BYTES, ProjectErrorCode, Uuid,
+        read_manifest_for_open,
+    };
+
+    fn temporary_manifest_path(label: &str) -> PathBuf {
+        std::env::temp_dir().join(format!("rino-workspace-{label}-{}.json", Uuid::new_v4()))
+    }
+
+    fn padded_json(base: &str, target_bytes: usize) -> String {
+        format!(
+            "{base}{}",
+            " ".repeat(target_bytes.saturating_sub(base.len()))
+        )
+    }
+
+    fn legacy_manifest() -> &'static str {
+        r#"{"schemaVersion":1,"documentId":"0a1b2c3d-4e5f-4061-8273-8495a6b7c8d9","metadata":{"name":"项目","createdAt":"2026-07-27T09:00:00Z","updatedAt":"2026-07-27T09:00:00Z"},"entryGraphId":"1b2c3d4e-5f60-4172-8384-95a6b7c8d9ea","graphs":[{"graphId":"1b2c3d4e-5f60-4172-8384-95a6b7c8d9ea","name":"主图","kind":"entry","nodes":[],"edges":[]}],"assets":[],"requiredCapabilities":[]}"#
+    }
+
+    fn split_manifest() -> &'static str {
+        r#"{"schemaVersion":1,"documentId":"0a1b2c3d-4e5f-4061-8273-8495a6b7c8d9","metadata":{"name":"项目","createdAt":"2026-07-27T09:00:00Z","updatedAt":"2026-07-27T09:00:00Z"},"entryGraphId":"1b2c3d4e-5f60-4172-8384-95a6b7c8d9ea","graphs":[{"graphId":"1b2c3d4e-5f60-4172-8384-95a6b7c8d9ea","fileName":"main.rino.graph.json"}],"assets":[],"requiredCapabilities":[]}"#
+    }
+
+    #[test]
+    fn accepts_an_oversized_legacy_manifest_below_the_hard_limit() {
+        let path = temporary_manifest_path("legacy");
+        let contents = padded_json(legacy_manifest(), MAXIMUM_MANIFEST_BYTES + 1);
+        fs::write(&path, &contents).expect("legacy manifest should be written");
+
+        let read = read_manifest_for_open(&path).expect("legacy manifest should be accepted");
+
+        assert_eq!(read, contents);
+        fs::remove_file(path).expect("temporary manifest should be removed");
+    }
+
+    #[test]
+    fn rejects_large_split_or_malformed_manifests_at_the_normal_limit() {
+        for (label, contents) in [
+            (
+                "split",
+                padded_json(split_manifest(), MAXIMUM_MANIFEST_BYTES + 1),
+            ),
+            (
+                "malformed",
+                padded_json("{\"schemaVersion\":1", MAXIMUM_MANIFEST_BYTES + 1),
+            ),
+        ] {
+            let path = temporary_manifest_path(label);
+            fs::write(&path, contents).expect("manifest should be written");
+
+            let error =
+                read_manifest_for_open(&path).expect_err("non-legacy manifest should be rejected");
+
+            assert_eq!(error.code, ProjectErrorCode::FileTooLarge);
+            fs::remove_file(path).expect("temporary manifest should be removed");
+        }
+    }
+
+    #[test]
+    fn rejects_a_legacy_manifest_above_the_hard_limit() {
+        let path = temporary_manifest_path("too-large");
+        let file = File::create(&path).expect("temporary manifest should be created");
+        file.set_len((MAXIMUM_LEGACY_PROJECT_FILE_BYTES + 1) as u64)
+            .expect("temporary manifest should be extended");
+        drop(file);
+
+        let error =
+            read_manifest_for_open(&path).expect_err("oversized legacy manifest should fail");
+
+        assert_eq!(error.code, ProjectErrorCode::FileTooLarge);
+        fs::remove_file(path).expect("temporary manifest should be removed");
     }
 }

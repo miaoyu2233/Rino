@@ -1,5 +1,6 @@
-import { Position } from "@xyflow/react";
-import { render } from "@testing-library/react";
+import { Position, ReactFlowProvider, useStoreApi } from "@xyflow/react";
+import { render, waitFor } from "@testing-library/react";
+import { useEffect, type ReactNode } from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { applicationI18n } from "../../localization/i18n";
@@ -10,22 +11,57 @@ const EDGE = "8c7ebda1-c5d6-41e2-9d05-7f8091021324";
 const SOURCE = "4e3a7f6d-8192-4dae-9fc1-3b4c5d6e7f80";
 const TARGET = "5f4b8a7e-92a3-4ebf-8ad2-4c5d6e7f8091";
 
+function SelectSourceNode() {
+  const store = useStoreApi();
+
+  useEffect(() => {
+    store.getState().setNodes([
+      {
+        id: SOURCE,
+        position: { x: 0, y: 0 },
+        data: {},
+        selected: true,
+      },
+    ]);
+  }, [store]);
+
+  return null;
+}
+
+function SetCanvasZoom({ zoom }: { zoom: number }) {
+  const store = useStoreApi();
+
+  useEffect(() => {
+    store.setState({ transform: [0, 0, zoom] });
+  }, [store, zoom]);
+
+  return null;
+}
+
+function renderEdgeRoot(element: ReactNode, zoom = 1, sourceSelected = false) {
+  return render(
+    <ReactFlowProvider>
+      <SetCanvasZoom zoom={zoom} />
+      {sourceSelected ? <SelectSourceNode /> : null}
+      <svg>{element}</svg>
+    </ReactFlowProvider>,
+  );
+}
+
 function renderEdge(data: CanvasEdgeData): SVGSVGElement {
-  const { container } = render(
-    <svg>
-      <RinoEdgeView
-        id={EDGE}
-        source={SOURCE}
-        target={TARGET}
-        sourceX={0}
-        sourceY={0}
-        targetX={120}
-        targetY={80}
-        sourcePosition={Position.Right}
-        targetPosition={Position.Left}
-        data={data}
-      />
-    </svg>,
+  const { container } = renderEdgeRoot(
+    <RinoEdgeView
+      id={EDGE}
+      source={SOURCE}
+      target={TARGET}
+      sourceX={0}
+      sourceY={0}
+      targetX={120}
+      targetY={80}
+      sourcePosition={Position.Right}
+      targetPosition={Position.Left}
+      data={data}
+    />,
   );
   const svg = container.querySelector("svg");
   if (!svg) {
@@ -80,26 +116,24 @@ describe("typed edge rendering", () => {
   });
 
   it("routes a backward execution edge outside the nodes before returning", () => {
-    const { container } = render(
-      <svg>
-        <RinoEdgeView
-          id={EDGE}
-          source={SOURCE}
-          target={TARGET}
-          sourceX={360}
-          sourceY={220}
-          targetX={80}
-          targetY={60}
-          sourcePosition={Position.Right}
-          targetPosition={Position.Left}
-          data={{
-            edgeKind: "execution",
-            colorRole: "execution",
-            typeLabel: "exec",
-            activity: "idle",
-          }}
-        />
-      </svg>,
+    const { container } = renderEdgeRoot(
+      <RinoEdgeView
+        id={EDGE}
+        source={SOURCE}
+        target={TARGET}
+        sourceX={360}
+        sourceY={220}
+        targetX={80}
+        targetY={60}
+        sourcePosition={Position.Right}
+        targetPosition={Position.Left}
+        data={{
+          edgeKind: "execution",
+          colorRole: "execution",
+          typeLabel: "exec",
+          activity: "idle",
+        }}
+      />,
     );
     const path = container.querySelector<SVGPathElement>(".rino-edge");
 
@@ -111,26 +145,24 @@ describe("typed edge rendering", () => {
   });
 
   it("keeps a clearly rightward upward execution edge on the forward route", () => {
-    const { container } = render(
-      <svg>
-        <RinoEdgeView
-          id={EDGE}
-          source={SOURCE}
-          target={TARGET}
-          sourceX={100}
-          sourceY={300}
-          targetX={420}
-          targetY={80}
-          sourcePosition={Position.Right}
-          targetPosition={Position.Left}
-          data={{
-            edgeKind: "execution",
-            colorRole: "execution",
-            typeLabel: "exec",
-            activity: "idle",
-          }}
-        />
-      </svg>,
+    const { container } = renderEdgeRoot(
+      <RinoEdgeView
+        id={EDGE}
+        source={SOURCE}
+        target={TARGET}
+        sourceX={100}
+        sourceY={300}
+        targetX={420}
+        targetY={80}
+        sourcePosition={Position.Right}
+        targetPosition={Position.Left}
+        data={{
+          edgeKind: "execution",
+          colorRole: "execution",
+          typeLabel: "exec",
+          activity: "idle",
+        }}
+      />,
     );
     const path = container.querySelector<SVGPathElement>(".rino-edge");
 
@@ -140,26 +172,24 @@ describe("typed edge rendering", () => {
   });
 
   it("keeps a same-height rightward execution edge as a short forward route", () => {
-    const { container } = render(
-      <svg>
-        <RinoEdgeView
-          id={EDGE}
-          source={SOURCE}
-          target={TARGET}
-          sourceX={100}
-          sourceY={300}
-          targetX={420}
-          targetY={300}
-          sourcePosition={Position.Right}
-          targetPosition={Position.Left}
-          data={{
-            edgeKind: "execution",
-            colorRole: "execution",
-            typeLabel: "exec",
-            activity: "idle",
-          }}
-        />
-      </svg>,
+    const { container } = renderEdgeRoot(
+      <RinoEdgeView
+        id={EDGE}
+        source={SOURCE}
+        target={TARGET}
+        sourceX={100}
+        sourceY={300}
+        targetX={420}
+        targetY={300}
+        sourcePosition={Position.Right}
+        targetPosition={Position.Left}
+        data={{
+          edgeKind: "execution",
+          colorRole: "execution",
+          typeLabel: "exec",
+          activity: "idle",
+        }}
+      />,
     );
     const path = container.querySelector<SVGPathElement>(".rino-edge");
 
@@ -181,6 +211,65 @@ describe("typed edge rendering", () => {
     );
     expect(active).toHaveClass("rino-edge--active");
     expect(active).not.toHaveClass("rino-edge--traversed");
+  });
+
+  it("highlights a directly selected edge", () => {
+    const { container } = renderEdgeRoot(
+      <RinoEdgeView
+        id={EDGE}
+        source={SOURCE}
+        target={TARGET}
+        sourceX={0}
+        sourceY={0}
+        targetX={120}
+        targetY={80}
+        sourcePosition={Position.Right}
+        targetPosition={Position.Left}
+        selected
+        data={{
+          edgeKind: "execution",
+          colorRole: "execution",
+          typeLabel: "exec",
+          activity: "idle",
+        }}
+      />,
+    );
+
+    const svg = container.querySelector("svg");
+    if (svg === null) {
+      throw new Error("The selected edge should render inside an SVG root.");
+    }
+    expect(edgePath(svg)).toHaveClass("rino-edge--selected");
+  });
+
+  it("highlights an edge whose source node is selected", async () => {
+    const { container } = renderEdgeRoot(
+      <RinoEdgeView
+        id={EDGE}
+        source={SOURCE}
+        target={TARGET}
+        sourceX={0}
+        sourceY={0}
+        targetX={120}
+        targetY={80}
+        sourcePosition={Position.Right}
+        targetPosition={Position.Left}
+        data={{
+          edgeKind: "execution",
+          colorRole: "execution",
+          typeLabel: "exec",
+          activity: "idle",
+        }}
+      />,
+      1,
+      true,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector(".rino-edge")).toHaveClass(
+        "rino-edge--source-selected",
+      );
+    });
   });
 
   it("marks a traversed path as static history", () => {
@@ -209,5 +298,43 @@ describe("typed edge rendering", () => {
     expect(idle.getAttribute("class")).toBe(
       "react-flow__edge-path rino-edge rino-edge--data",
     );
+  });
+
+  it("uses a marker-free straight path without a title below overview zoom", async () => {
+    const { container } = renderEdgeRoot(
+      <RinoEdgeView
+        id={EDGE}
+        source={SOURCE}
+        target={TARGET}
+        sourceX={0}
+        sourceY={0}
+        targetX={120}
+        targetY={80}
+        sourcePosition={Position.Right}
+        targetPosition={Position.Left}
+        markerEnd="url(#arrow)"
+        data={{
+          edgeKind: "data",
+          colorRole: "number",
+          typeLabel: "number",
+          activity: "idle",
+        }}
+      />,
+      0.4,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector(".rino-edge")).toHaveClass(
+        "rino-edge--overview",
+      );
+    });
+    const path = container.querySelector<SVGPathElement>(".rino-edge");
+
+    expect(path?.getAttribute("d")).toBe("M 0,0L 120,80");
+    expect(path).not.toHaveAttribute("marker-end");
+    expect(container.querySelector("title")).toBeNull();
+    expect(
+      container.querySelector(".react-flow__edge-interaction"),
+    ).toHaveAttribute("stroke-width", "12");
   });
 });

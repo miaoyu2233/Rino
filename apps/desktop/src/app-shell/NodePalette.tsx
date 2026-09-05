@@ -1,8 +1,19 @@
-import { useCallback, useMemo, useState } from "react";
+import {
+  type FocusEvent as ReactFocusEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import { ScrollArea } from "../components/ui/ScrollArea";
 import { ProductIcon } from "../design-system/icons/ProductIcon";
+import type { ProductIconKey } from "../design-system/icons/product-icons";
 import type { LocalizationKey } from "../diagnostics/diagnostic-model";
 import { notify } from "../diagnostics/diagnostic-store";
 import { visibleCanvasCenter } from "../graph/canvas/canvas-viewport-store";
@@ -38,6 +49,55 @@ const categoryLabelKeys: Record<PaletteCategory, LocalizationKey> = {
   templates: "graph.palette.category.templates",
 };
 
+const categoryIcons: Record<PaletteCategory, ProductIconKey> = {
+  common: "action.gridView",
+  flow: "category.flow",
+  logic: "category.logic",
+  values: "category.data",
+  text: "node.text",
+  vision: "category.recognition",
+  device: "panel.device",
+  timing: "node.delay",
+  diagnostics: "node.log",
+  templates: "category.templates",
+};
+
+const PaletteFlyoutWidth = 260;
+const PaletteFlyoutMargin = 8;
+const PaletteFlyoutCloseDelayMs = 140;
+
+interface PaletteFlyoutPosition {
+  left: number;
+  top: number;
+  maxHeight: number;
+}
+
+function flyoutPosition(anchor: HTMLElement): PaletteFlyoutPosition {
+  const bounds = anchor.getBoundingClientRect();
+  const availableHeight = Math.max(
+    160,
+    window.innerHeight - PaletteFlyoutMargin * 2,
+  );
+  const maxHeight = Math.min(availableHeight, 560);
+  const top = Math.min(
+    Math.max(PaletteFlyoutMargin, bounds.top),
+    Math.max(
+      PaletteFlyoutMargin,
+      window.innerHeight - maxHeight - PaletteFlyoutMargin,
+    ),
+  );
+  const opensLeft =
+    bounds.right + PaletteFlyoutMargin + PaletteFlyoutWidth > window.innerWidth;
+  const left = opensLeft
+    ? Math.max(
+        PaletteFlyoutMargin,
+        bounds.left - PaletteFlyoutWidth - PaletteFlyoutMargin,
+      )
+    : bounds.right + PaletteFlyoutMargin;
+
+  return { left, top, maxHeight };
+}
+
 export function NodePalette({
   collapsed = false,
   onCollapse,
@@ -46,9 +106,13 @@ export function NodePalette({
   const { t } = useTranslation();
   const catalog = usePaletteCatalog();
   const projectOpen = useDocumentStore((store) => store.history !== undefined);
-  const [collapsedCategories, setCollapsedCategories] = useState<
-    readonly PaletteCategory[]
-  >([]);
+  const [activeCategory, setActiveCategory] = useState<PaletteCategory>();
+  const [flyout, setFlyout] = useState<PaletteFlyoutPosition>();
+  const activeAnchorRef = useRef<HTMLButtonElement | null>(null);
+  const flyoutRef = useRef<HTMLElement | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   const groups = useMemo(() => {
     if (!catalog) {
@@ -57,6 +121,67 @@ export function NodePalette({
     return groupPaletteEntries(catalog.entries);
   }, [catalog]);
 
+  const activeGroup = useMemo(
+    () => groups.find((group) => group.category === activeCategory),
+    [activeCategory, groups],
+  );
+
+  const cancelScheduledClose = useCallback(() => {
+    if (closeTimerRef.current === undefined) {
+      return;
+    }
+    clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = undefined;
+  }, []);
+
+  const closeFlyout = useCallback(() => {
+    cancelScheduledClose();
+    setActiveCategory(undefined);
+    setFlyout(undefined);
+  }, [cancelScheduledClose]);
+
+  const scheduleClose = useCallback(() => {
+    cancelScheduledClose();
+    closeTimerRef.current = setTimeout(closeFlyout, PaletteFlyoutCloseDelayMs);
+  }, [cancelScheduledClose, closeFlyout]);
+
+  const openFlyout = useCallback(
+    (category: PaletteCategory, anchor: HTMLButtonElement) => {
+      cancelScheduledClose();
+      activeAnchorRef.current = anchor;
+      setActiveCategory(category);
+      setFlyout(flyoutPosition(anchor));
+    },
+    [cancelScheduledClose],
+  );
+
+  useEffect(() => {
+    return cancelScheduledClose;
+  }, [cancelScheduledClose]);
+
+  useEffect(() => {
+    if (activeCategory === undefined) {
+      return;
+    }
+
+    const closeForResize = () => {
+      closeFlyout();
+    };
+    const closeForOutsideScroll = (event: Event) => {
+      const target = event.target;
+      if (target instanceof Node && flyoutRef.current?.contains(target)) {
+        return;
+      }
+      closeFlyout();
+    };
+    window.addEventListener("resize", closeForResize);
+    document.addEventListener("scroll", closeForOutsideScroll, true);
+    return () => {
+      window.removeEventListener("resize", closeForResize);
+      document.removeEventListener("scroll", closeForOutsideScroll, true);
+    };
+  }, [activeCategory, closeFlyout]);
+
   const reportProjectRequired = useCallback(() => {
     notify({
       severity: "info",
@@ -64,30 +189,73 @@ export function NodePalette({
     });
   }, []);
 
-  const activate = useCallback((entry: PaletteEntry) => {
-    // A palette item activated by keyboard or click has no drop position, so the node
-    // lands in the middle of what the user is currently looking at.
-    const outcome = insertPaletteEntry(entry, {
-      centerOn: visibleCanvasCenter(),
-    });
-    if (!outcome.ok) {
-      notify({
-        severity: outcome.reason === "noProject" ? "info" : "error",
-        titleKey:
-          outcome.reason === "noProject"
-            ? "graph.palette.projectRequired"
-            : "graph.palette.insertionFailed",
+  const activate = useCallback(
+    (entry: PaletteEntry) => {
+      const outcome = insertPaletteEntry(entry, {
+        centerOn: visibleCanvasCenter(),
       });
-    }
-  }, []);
+      if (!outcome.ok) {
+        notify({
+          severity: outcome.reason === "noProject" ? "info" : "error",
+          titleKey:
+            outcome.reason === "noProject"
+              ? "graph.palette.projectRequired"
+              : "graph.palette.insertionFailed",
+        });
+        return;
+      }
+      closeFlyout();
+    },
+    [closeFlyout],
+  );
 
-  const toggleCategory = useCallback((category: PaletteCategory) => {
-    setCollapsedCategories((current) =>
-      current.includes(category)
-        ? current.filter((item) => item !== category)
-        : [...current, category],
-    );
-  }, []);
+  const handleCategoryKeyDown = useCallback(
+    (
+      event: ReactKeyboardEvent<HTMLButtonElement>,
+      category: PaletteCategory,
+    ) => {
+      if (!["Enter", " ", "ArrowRight", "ArrowDown"].includes(event.key)) {
+        return;
+      }
+      event.preventDefault();
+      openFlyout(category, event.currentTarget);
+      window.requestAnimationFrame(() => {
+        flyoutRef.current
+          ?.querySelector<HTMLButtonElement>(".palette-item")
+          ?.focus();
+      });
+    },
+    [openFlyout],
+  );
+
+  const handleFlyoutBlur = useCallback(
+    (event: ReactFocusEvent<HTMLElement>) => {
+      const nextTarget = event.relatedTarget;
+      if (
+        nextTarget instanceof Node &&
+        (flyoutRef.current?.contains(nextTarget) ||
+          activeAnchorRef.current?.contains(nextTarget))
+      ) {
+        return;
+      }
+      scheduleClose();
+    },
+    [scheduleClose],
+  );
+
+  const handleFlyoutPointerLeave = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      const nextTarget = event.relatedTarget;
+      if (
+        nextTarget instanceof Node &&
+        activeAnchorRef.current?.contains(nextTarget)
+      ) {
+        return;
+      }
+      scheduleClose();
+    },
+    [scheduleClose],
+  );
 
   if (collapsed) {
     return (
@@ -104,101 +272,154 @@ export function NodePalette({
     );
   }
 
+  const flyoutContent =
+    activeGroup === undefined || flyout === undefined || catalog === undefined
+      ? null
+      : createPortal(
+          <section
+            ref={flyoutRef}
+            id={"node-palette-" + activeGroup.category + "-flyout"}
+            className="node-palette__flyout"
+            role="region"
+            aria-label={t(categoryLabelKeys[activeGroup.category])}
+            style={flyout}
+            onPointerEnter={cancelScheduledClose}
+            onPointerLeave={handleFlyoutPointerLeave}
+            onFocus={cancelScheduledClose}
+            onBlur={handleFlyoutBlur}
+            onKeyDown={(event) => {
+              if (event.key !== "Escape") {
+                return;
+              }
+              event.preventDefault();
+              activeAnchorRef.current?.focus();
+              closeFlyout();
+            }}
+          >
+            <header className="node-palette__flyout-header">
+              <ProductIcon icon={categoryIcons[activeGroup.category]} />
+              <strong>{t(categoryLabelKeys[activeGroup.category])}</strong>
+              <span>{activeGroup.entries.length}</span>
+            </header>
+            <ScrollArea className="node-palette__flyout-items">
+              <div className="node-palette__flyout-list">
+                {activeGroup.entries.map((entry) => (
+                  <PaletteEntryButton
+                    key={entry.key}
+                    entry={entry}
+                    labels={catalog.describe(entry)}
+                    capability={capabilityState(entry, undefined)}
+                    disabled={!projectOpen}
+                    {...(projectOpen
+                      ? {}
+                      : {
+                          disabledDescription: t(
+                            "graph.palette.projectRequired",
+                          ),
+                        })}
+                    onActivate={activate}
+                    onDisabledActivate={reportProjectRequired}
+                  />
+                ))}
+              </div>
+            </ScrollArea>
+          </section>,
+          document.body,
+        );
+
   return (
-    <aside
-      className="application-panel node-palette"
-      aria-label={t("shell.palette.title")}
-    >
-      <header className="panel-header">
-        <div className="panel-title">
-          <ProductIcon icon="panel.palette" />
-          <h2>{t("shell.palette.title")}</h2>
-        </div>
-        {onCollapse === undefined ? null : (
-          <IconAction
-            icon="action.collapseLeft"
-            label={t("common.actions.collapse")}
-            onClick={onCollapse}
-          />
-        )}
-      </header>
-      <div className="panel-content">
-        <ScrollArea className="node-palette__list">
-          {catalog === undefined ? (
-            <EmptyState
-              icon="category.utility"
-              title={t("shell.palette.emptyTitle")}
-              description={t("shell.palette.emptyDescription")}
+    <>
+      <aside
+        className="application-panel node-palette"
+        aria-label={t("shell.palette.title")}
+      >
+        <header className="panel-header">
+          <div className="panel-title">
+            <ProductIcon icon="panel.palette" />
+            <h2>{t("shell.palette.title")}</h2>
+          </div>
+          {onCollapse === undefined ? null : (
+            <IconAction
+              icon="action.collapseLeft"
+              label={t("common.actions.collapse")}
+              onClick={onCollapse}
             />
-          ) : groups.length === 0 ? (
-            <EmptyState
-              icon="action.search"
-              title={t("graph.palette.noResultsTitle")}
-              description={t("graph.palette.noResultsDescription")}
-            />
-          ) : (
-            <>
-              {projectOpen ? null : (
-                <p className="node-palette__notice">
-                  {t("graph.palette.noProjectNotice")}
-                </p>
-              )}
-              {groups.map((group) => {
-                const open = !collapsedCategories.includes(group.category);
-                return (
-                  <section
-                    key={group.category}
-                    className="palette-group"
-                    aria-label={t(categoryLabelKeys[group.category])}
-                  >
+          )}
+        </header>
+        <div className="panel-content">
+          <ScrollArea className="node-palette__list">
+            {catalog === undefined ? (
+              <EmptyState
+                icon="category.utility"
+                title={t("shell.palette.emptyTitle")}
+                description={t("shell.palette.emptyDescription")}
+              />
+            ) : groups.length === 0 ? (
+              <EmptyState
+                icon="action.search"
+                title={t("graph.palette.noResultsTitle")}
+                description={t("graph.palette.noResultsDescription")}
+              />
+            ) : (
+              <>
+                {projectOpen ? null : (
+                  <p className="node-palette__notice">
+                    {t("graph.palette.noProjectNotice")}
+                  </p>
+                )}
+                {groups.map((group) => (
+                  <section key={group.category} className="palette-group">
                     <button
                       type="button"
                       className="palette-group__heading"
-                      aria-expanded={open}
-                      onClick={() => {
-                        toggleCategory(group.category);
+                      aria-haspopup="true"
+                      aria-expanded={activeCategory === group.category}
+                      aria-controls={
+                        "node-palette-" + group.category + "-flyout"
+                      }
+                      onPointerEnter={(event) => {
+                        openFlyout(group.category, event.currentTarget);
+                      }}
+                      onPointerLeave={scheduleClose}
+                      onFocus={(event) => {
+                        openFlyout(group.category, event.currentTarget);
+                      }}
+                      onBlur={(event) => {
+                        const nextTarget = event.relatedTarget;
+                        if (
+                          nextTarget instanceof Node &&
+                          flyoutRef.current?.contains(nextTarget)
+                        ) {
+                          return;
+                        }
+                        scheduleClose();
+                      }}
+                      onKeyDown={(event) => {
+                        handleCategoryKeyDown(event, group.category);
                       }}
                     >
                       <ProductIcon
-                        icon={
-                          open ? "action.collapseDown" : "action.expandLeft"
-                        }
+                        icon={categoryIcons[group.category]}
                         size="small"
                       />
                       <span>{t(categoryLabelKeys[group.category])}</span>
                       <span className="palette-group__count">
                         {group.entries.length}
                       </span>
+                      <ProductIcon
+                        icon="action.chevronRight"
+                        size="small"
+                        className="palette-group__indicator"
+                      />
                     </button>
-                    {open ? (
-                      <div className="palette-group__items">
-                        {group.entries.map((entry) => (
-                          <PaletteEntryButton
-                            key={entry.key}
-                            entry={entry}
-                            labels={catalog.describe(entry)}
-                            capability={capabilityState(entry, undefined)}
-                            disabled={!projectOpen}
-                            {...(projectOpen
-                              ? {}
-                              : {
-                                  disabledDescription: t(
-                                    "graph.palette.projectRequired",
-                                  ),
-                                })}
-                            onActivate={activate}
-                            onDisabledActivate={reportProjectRequired}
-                          />
-                        ))}
-                      </div>
-                    ) : null}
                   </section>
-                );
-              })}
-            </>
-          )}
-        </ScrollArea>
-      </div>
-    </aside>
+                ))}
+              </>
+            )}
+          </ScrollArea>
+        </div>
+      </aside>
+      {flyoutContent}
+    </>
   );
 }

@@ -18,9 +18,7 @@ pub struct PackageOptions {
     pub package_id: String,
     pub version: String,
     pub summary: String,
-    pub publisher_id: String,
-    pub publisher_display_name: String,
-    pub license_identifier: String,
+    pub application_name: String,
     pub github_owner: String,
     pub github_repository: String,
     pub released_at: String,
@@ -48,25 +46,9 @@ impl PackageOptions {
             ));
         }
         require_text(&self.summary, MAXIMUM_TEXT_LENGTH, "summary")?;
-        require_ascii_identifier(
-            &self.publisher_id,
-            1,
-            128,
-            |character| {
-                character.is_ascii_lowercase()
-                    || character.is_ascii_digit()
-                    || "._-".contains(character)
-            },
-            "publisherId",
-        )?;
-        require_text(&self.publisher_display_name, 128, "publisherDisplayName")?;
-        require_ascii_identifier(
-            &self.license_identifier,
-            1,
-            128,
-            |character| character.is_ascii_alphanumeric() || ".+-".contains(character),
-            "licenseIdentifier",
-        )?;
+        if self.content == PublishingContent::Application {
+            require_application_name(&self.application_name)?;
+        }
         require_github_name(&self.github_owner, "githubOwner")?;
         require_github_name(&self.github_repository, "githubRepository")?;
         if !is_utc_timestamp(&self.released_at) {
@@ -91,8 +73,11 @@ impl PackageOptions {
 
     #[must_use]
     pub fn application_asset_name(&self) -> String {
-        let stem = self.package_id.replace('.', "-");
-        format!("{stem}-{}.rino-app.zip", self.version)
+        format!(
+            "{}_{}_Setup.exe",
+            self.application_name.trim(),
+            self.version
+        )
     }
 
     #[must_use]
@@ -102,6 +87,46 @@ impl PackageOptions {
             PublishingContent::Application => self.application_asset_name(),
         }
     }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct PublisherIdentity {
+    pub publisher_id: String,
+    pub display_name: String,
+}
+
+impl PublisherIdentity {
+    pub fn validate(&self) -> PublishingResult<()> {
+        require_github_name(&self.publisher_id, "publisherId")?;
+        require_text(&self.display_name, 128, "publisherDisplayName")
+    }
+}
+
+fn require_application_name(value: &str) -> PublishingResult<()> {
+    let value = value.trim();
+    let forbidden = |character: char| "<>:\"/\\|?*{}[];#%".contains(character);
+    let reserved = [
+        "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8",
+        "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+    ];
+    let base_name = value.split('.').next().unwrap_or_default();
+    if value.is_empty()
+        || value.chars().count() > 80
+        || value
+            .chars()
+            .any(|character| character.is_control() || forbidden(character))
+        || value.ends_with(['.', ' '])
+        || reserved
+            .iter()
+            .any(|candidate| candidate.eq_ignore_ascii_case(base_name))
+    {
+        return Err(PublishingError::new(
+            PublishingErrorCode::InvalidInput,
+            "applicationName",
+        ));
+    }
+    Ok(())
 }
 
 fn require_text(value: &str, maximum: usize, detail: &str) -> PublishingResult<()> {
@@ -202,6 +227,7 @@ pub struct ProjectManifestSnapshot {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ProjectMetadataSnapshot {
     pub name: String,
+    pub license_identifier: Option<String>,
     #[serde(rename = "createdAt")]
     pub _created_at: String,
     #[serde(rename = "updatedAt")]

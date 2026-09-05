@@ -33,6 +33,8 @@ The selected model is `OCR/ppocr_v5/zh_cn` from [MaaCommonAssets](https://github
 | `rec.onnx` | 16,517,247 | `31fb844ce3a4aaf13e4bea62ae35f43bd9a509966061980c30db9b248c542a6b` |
 | `keys.txt` | 92,395 | `1ea29636956177e400af712d9782e7693f3fb25f98617bed10479d2965a836fd` |
 
+The upstream keys.txt blob uses LF line endings and is 74,012 bytes. Rino deterministically normalizes it to CRLF without a BOM before packaging; the normalized 92,395-byte file has the pinned digest above. The dictionary content is otherwise unchanged.
+
 Initialization fails closed when a required file is missing, is a symbolic link, has a different size, or has a different digest. The model directory is supplied by the desktop packaging boundary, not by a user-authored graph.
 
 The asset repository declares the MIT license. Its model README identifies the upstream PP-OCRv5 detection and recognition artifacts. Release packaging must include the complete reviewed notices for MaaFramework, MaaCommonAssets, and the upstream model before public distribution.
@@ -111,7 +113,7 @@ It creates a numeric image in memory, connects an in-memory controller, selects 
 
 ## Remaining release work
 
-- Package the three verified model files as application resources.
+- Keep the three verified model files and their deterministic normalization in the application packaging pipeline.
 - Pass their resolved read-only directory from the Tauri launcher.
 - Add complete third-party notices and verify redistribution obligations.
 - Run packaged Windows smoke tests without a system Python installation.

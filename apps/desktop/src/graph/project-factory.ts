@@ -1,6 +1,7 @@
 import type { RinoProjectDocumentV1 } from "@rino/contracts";
 
 import { createIdentifier } from "../platform/identifiers";
+import { DEFAULT_PROJECT_LICENSE } from "./project-license";
 
 export interface NewProjectOptions {
   name: string;
@@ -28,6 +29,7 @@ export function createEmptyProject(
       name: options.name,
       createdAt: options.createdAt,
       updatedAt: options.createdAt,
+      licenseIdentifier: DEFAULT_PROJECT_LICENSE,
     },
     entryGraphId: graphId,
     graphs: [

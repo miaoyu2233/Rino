@@ -20,6 +20,13 @@ interface CanvasViewportState {
   ) => void;
 }
 
+function canvasViewportsEqual(
+  left: CanvasViewport,
+  right: CanvasViewport,
+): boolean {
+  return left.x === right.x && left.y === right.y && left.zoom === right.zoom;
+}
+
 /** The canvas reports its pan, zoom, and size here.
  *
  * Insertions that have no pointer position — a keyboard quick add, a palette item
@@ -32,10 +39,18 @@ export const useCanvasViewportStore = create<CanvasViewportState>((set) => ({
   width: 0,
   height: 0,
   reportViewport: (viewport) => {
-    set({ viewport });
+    set((state) =>
+      canvasViewportsEqual(state.viewport, viewport) ? state : { viewport },
+    );
   },
   reportGeometry: (viewport, width, height) => {
-    set({ viewport, width, height });
+    set((state) =>
+      canvasViewportsEqual(state.viewport, viewport) &&
+      state.width === width &&
+      state.height === height
+        ? state
+        : { viewport, width, height },
+    );
   },
 }));
 

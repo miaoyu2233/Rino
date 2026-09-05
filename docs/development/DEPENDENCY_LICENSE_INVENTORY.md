@@ -86,6 +86,15 @@ HTTP, file, and asynchronous schema retrieval are not compiled, so this boundary
 network access or runtime schema loading. The upstream crate declares MIT. Its transitive graph
 remains subject to the normal release SBOM and notice review.
 
+Generated project installers embed the Simplified Chinese Inno Setup translation from
+`kira-96/Inno-Setup-Chinese-Simplified-Translation` at commit
+`1ff90acc4ed4aee82b1cda43253243deee3daed4`. The pinned `ChineseSimplified.isl` is
+21,516 bytes with SHA-256 `e0b0b350e2245f3c5e65586dfe43d574f6e7f06f2261149aba284954b3fc9a8d`;
+upstream declares MIT. The unmodified translation and its license are stored with the installer
+sources, copied into the bundled compiler, and the license is included in every generated
+application installation. Updating the translation requires a new immutable revision, hash,
+compatibility compile, and notice review.
+
 P1-T03 adds four shipped frontend families and two build-only Tailwind packages. Motion resolves `framer-motion 12.42.2`, `motion-dom 12.42.2`, `motion-utils 12.39.0`, and `tslib 2.8.1`; their installed metadata reports MIT or 0BSD. Lucide and both font packages have no package dependencies. The Tailwind Vite build path resolves Tailwind's Node and Oxide packages at 4.3.3, plus build-only resolver and CSS transformation packages. The installed license report includes MIT, ISC, BSD, and MPL-2.0 build-time components; these build tools and platform binaries must not be copied into the application installer.
 
 P1-T04 adds `i18next 26.3.6` and `react-i18next 17.0.11`. The React adapter resolves `@babel/runtime 7.29.7`, `html-parse-stringify 4.0.1`, and `use-sync-external-store 1.6.0`; all five packages report MIT in the installed production license report. Rino does not install an HTTP backend, remote catalog loader, browser detector plugin, or localization service client. Only the two reviewed in-bundle catalogs enter the runtime.

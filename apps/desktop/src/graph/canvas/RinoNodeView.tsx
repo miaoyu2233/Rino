@@ -1,15 +1,7 @@
-import {
-  Handle,
-  Position,
-  useStore,
-  useUpdateNodeInternals,
-  type NodeProps,
-} from "@xyflow/react";
+import { Handle, Position, useStore, type NodeProps } from "@xyflow/react";
 import {
   memo,
-  useEffect,
   useMemo,
-  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
@@ -51,6 +43,8 @@ import {
   setTextRecognitionClickMethod,
   setTextRecognitionConfidence,
   setRecognitionDelay,
+  setRecognitionRepeatDelay,
+  setRecognitionRepeatEnabled,
   setRecognitionDelayMode,
   setTextRecognitionRegion,
   setTextRecognitionRegionEnabled,
@@ -91,10 +85,9 @@ import { DescribedLabel } from "./DescribedLabel";
 import { displayPortType, portDescriptionKey } from "./port-presentation";
 import { RepeatHintNodeView } from "./RepeatHintView";
 import { estimateNodeHeight } from "./node-layout-size";
+import { FULL_CANVAS_DETAIL_MINIMUM_ZOOM } from "./canvas-detail";
 
 type PortHandleStyle = CSSProperties & { "--port-color": string };
-
-const FULL_NODE_DETAIL_MINIMUM_ZOOM = 0.5;
 
 function overviewHandleStyle(port: CanvasPortView): PortHandleStyle {
   return {
@@ -438,6 +431,7 @@ function WorkflowGroupBody({ data }: { data: CanvasNodeData }) {
         : "rectCenter";
   const imageParameters = group.imageRecognitionParameters;
   const textParameters = group.textRecognitionParameters;
+  const repeat = group.recognitionRepeat;
   return (
     <section className="rino-workflow-group__steps">
       {group.kind === "imageRecognition" ? (
@@ -543,6 +537,53 @@ function WorkflowGroupBody({ data }: { data: CanvasNodeData }) {
             }
           />
         </label>
+      )}
+      {repeat === undefined ? null : (
+        <>
+          <label className="rino-workflow-group__selector nodrag nopan">
+            <DescribedLabel
+              label={t("workflowGroup.recognition.repeatOnNoMatch")}
+              description={t(
+                "workflowGroup.recognition.repeatOnNoMatchDescription",
+              )}
+            />
+            <input
+              type="checkbox"
+              role="switch"
+              checked={repeat.enabled}
+              onChange={(event) =>
+                setRecognitionRepeatEnabled(group.groupId, event.target.checked)
+              }
+            />
+          </label>
+          {repeat.enabled ? (
+            <label className="rino-workflow-parameter nodrag nopan">
+              <DescribedLabel
+                label={t("workflowGroup.recognition.repeatDelayMilliseconds")}
+                description={t(
+                  "workflowGroup.recognition.repeatDelayMillisecondsDescription",
+                )}
+              />
+              <input
+                key={repeat.delayMilliseconds}
+                type="number"
+                min={0}
+                max={MAXIMUM_TEXT_RECOGNITION_DELAY_MILLISECONDS}
+                step={1}
+                defaultValue={repeat.delayMilliseconds}
+                onBlur={(event) =>
+                  setRecognitionRepeatDelay(
+                    group.groupId,
+                    Number(event.target.value),
+                  )
+                }
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") event.currentTarget.blur();
+                }}
+              />
+            </label>
+          ) : null}
+        </>
       )}
       {group.kind !== "imageRecognition" ||
       imageParameters === undefined ? null : (
@@ -1562,11 +1603,7 @@ function RinoNodeViewComponent(props: NodeProps<RinoFlowNode>) {
   return <StandardRinoNodeView {...props} />;
 }
 
-function StandardRinoNodeView({
-  data,
-  selected,
-  height,
-}: NodeProps<RinoFlowNode>) {
+function StandardRinoNodeView({ data, selected }: NodeProps<RinoFlowNode>) {
   const { i18n, t } = useTranslation();
   const language = i18n.language;
   const [editingAlias, setEditingAlias] = useState(false);
@@ -1574,11 +1611,8 @@ function StandardRinoNodeView({
   // The selector changes only when zoom crosses the semantic-detail threshold. Panning
   // and zoom frames within one tier therefore never re-render every node.
   const showNodeDetails = useStore(
-    (store) => store.transform[2] >= FULL_NODE_DETAIL_MINIMUM_ZOOM,
+    (store) => store.transform[2] >= FULL_CANVAS_DETAIL_MINIMUM_ZOOM,
   );
-  const updateNodeInternals = useUpdateNodeInternals();
-  const nodeRegistered = useStore((store) => store.nodeLookup.has(data.nodeId));
-  const previousShowNodeDetails = useRef(showNodeDetails);
   const execution = useNodeExecutionView(
     data.graphId,
     data.workflowGroup === undefined ? data.nodeId : "",
@@ -1624,16 +1658,6 @@ function StandardRinoNodeView({
   const overviewAlias =
     data.displayAlias ?? data.variableControl?.selectedVariableName;
 
-  useEffect(() => {
-    if (previousShowNodeDetails.current === showNodeDetails) return;
-    previousShowNodeDetails.current = showNodeDetails;
-    if (!nodeRegistered) return;
-
-    // Semantic zoom replaces the port DOM. Re-measuring after the tier changes keeps
-    // every existing edge attached to the compact handles instead of dropping its path.
-    updateNodeInternals(data.nodeId);
-  }, [data.nodeId, nodeRegistered, showNodeDetails, updateNodeInternals]);
-
   const beginAliasEditing = () => {
     setAliasDraft(data.displayAlias ?? "");
     setEditingAlias(true);
@@ -1645,10 +1669,7 @@ function StandardRinoNodeView({
   };
 
   if (!showNodeDetails) {
-    const measuredHeight =
-      typeof height === "number" && height > 0
-        ? height
-        : estimateNodeHeight(data);
+    const overviewHeight = estimateNodeHeight(data);
     const overviewLabel =
       overviewAlias === undefined ? title : `${title}，${overviewAlias}`;
 
@@ -1663,7 +1684,7 @@ function StandardRinoNodeView({
         data-runtime={execution?.state}
         data-workflow-group={data.workflowGroup?.kind}
         data-type-key={data.typeKey}
-        style={{ minHeight: `${String(measuredHeight)}px` }}
+        style={{ height: `${String(overviewHeight)}px` }}
         aria-label={overviewLabel}
       >
         <OverviewNodeHandles inputs={data.inputs} outputs={data.outputs} />

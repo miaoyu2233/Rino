@@ -597,6 +597,41 @@ describe("parsing a project directory", () => {
     expect(parsed.ok && parsed.value.graphFileNames.get(GRAPH_ID)).toBe(
       ENTRY_GRAPH_FILE_NAME,
     );
+    expect(parsed.ok && parsed.value.needsMigration).toBe(false);
+  });
+
+  it("opens a legacy monolithic document and allocates stable graph file names", () => {
+    const original = project();
+    const entry = original.graphs[0];
+    if (entry === undefined) {
+      throw new Error("The fixture must hold an entry graph.");
+    }
+    const legacy: RinoProjectDocumentV1 = {
+      ...original,
+      graphs: [
+        entry,
+        {
+          ...entry,
+          graphId: FUNCTION_GRAPH_ID,
+          name: "刷金币",
+        },
+      ],
+    };
+
+    const parsed = parseProject({
+      manifest: JSON.stringify(legacy),
+      graphs: [],
+    });
+    if (!parsed.ok) {
+      throw new Error(`Legacy project should open: ${parsed.failure.reason}`);
+    }
+
+    expect(parsed.value.document).toStrictEqual(legacy);
+    expect(parsed.value.needsMigration).toBe(true);
+    expect([...parsed.value.graphFileNames.entries()]).toEqual([
+      [GRAPH_ID, ENTRY_GRAPH_FILE_NAME],
+      [FUNCTION_GRAPH_ID, "graph-2.rino.graph.json"],
+    ]);
   });
 
   it("promotes legacy graph variables into one project directory", () => {

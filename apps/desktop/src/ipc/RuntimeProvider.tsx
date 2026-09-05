@@ -70,10 +70,7 @@ function applyPersistentVariableTerminalEvent(event: RuntimeEvent): void {
     return;
   }
   const document = useDocumentStore.getState().history?.document;
-  if (
-    document === undefined ||
-    document.documentId !== result.registration.documentId
-  ) {
+  if (document?.documentId !== result.registration.documentId) {
     reportPersistentVariableUpdateRejected();
     return;
   }
@@ -109,6 +106,9 @@ export function RuntimeProvider({
 }: RuntimeProviderProps) {
   const clientRef = useRef<RuntimeClient | null>(null);
   const setAvailability = useRuntimeStore((store) => store.setAvailability);
+  const setInitializationState = useRuntimeStore(
+    (store) => store.setInitializationState,
+  );
   const setStatus = useRuntimeStore((store) => store.setStatus);
   const markReadySignal = useRuntimeStore((store) => store.markReadySignal);
   const reset = useRuntimeStore((store) => store.reset);
@@ -124,12 +124,14 @@ export function RuntimeProvider({
       // retried, because a browser preview is a development convenience, not a product
       // surface that can host the runtime.
       setAvailability("unavailable");
+      setInitializationState("unavailable");
       resetPersistentVariableRunContext();
       return;
     }
 
     resetPersistentVariableRunContext();
     setAvailability("available");
+    setInitializationState("pending");
     const executionEventBuffer = new RuntimeEventFrameBuffer(
       (events) => {
         useRuntimeExecutionStore.getState().applyEvents(events);
@@ -160,6 +162,13 @@ export function RuntimeProvider({
           useDocumentStore.getState().setExecutionLocked(false);
         }
         setStatus(status);
+        if (
+          status.state === "ready" ||
+          status.state === "degraded" ||
+          status.state === "failed"
+        ) {
+          setInitializationState(status.state);
+        }
       },
       onEvent: (event) => {
         const currentGeneration = useRuntimeStore.getState().status?.generation;
@@ -211,6 +220,7 @@ export function RuntimeProvider({
       .connect()
       .then(async () => (startAutomatically ? client.start() : undefined))
       .catch(() => {
+        setInitializationState("failed");
         reportProblem({
           severity: "error",
           source: "runtime",
@@ -234,6 +244,7 @@ export function RuntimeProvider({
     reset,
     resetExecution,
     setAvailability,
+    setInitializationState,
     setStatus,
     startAutomatically,
     transport,

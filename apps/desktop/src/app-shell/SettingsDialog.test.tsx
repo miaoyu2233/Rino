@@ -21,6 +21,7 @@ import {
   closeProjectDocument,
   openProjectDocument,
 } from "../graph/store/project-lifecycle";
+import { useDocumentStore } from "../graph/store/document-store";
 import { APPLICATION_DATA_STORAGE_KEY } from "../preferences/application-data";
 import {
   initializeApplicationData,
@@ -118,6 +119,7 @@ describe("SettingsDialog", () => {
     );
     expect(screen.getByRole("tab", { name: "性能" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "快捷键" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "项目" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "数据" })).toBeInTheDocument();
     expect(screen.queryByText("显卡加速")).not.toBeInTheDocument();
 
@@ -132,6 +134,24 @@ describe("SettingsDialog", () => {
     for (const shortcut of shortcutDefinitions) {
       expect(screen.getAllByText(shortcut.keys).length).toBeGreaterThan(0);
     }
+  });
+
+  it("edits the project license outside the publishing dialog", async () => {
+    const user = userEvent.setup();
+    openPersistentProject();
+    renderDialog();
+
+    await user.click(screen.getByRole("tab", { name: "项目" }));
+    const input = screen.getByRole("textbox", { name: "项目许可证" });
+    expect(input).toHaveValue("LicenseRef-Proprietary");
+
+    await user.clear(input);
+    await user.type(input, "MIT");
+    await user.click(screen.getByRole("button", { name: "保存" }));
+
+    expect(
+      useDocumentStore.getState().history?.document.metadata.licenseIdentifier,
+    ).toBe("MIT");
   });
 
   it("shows the persisted installation code and naming example on the data page", async () => {

@@ -1,7 +1,8 @@
 """Deterministic cross-language contract artifact generation.
 
 Every canonical schema under contracts/ generates one TypeScript type module, one
-TypeScript schema module, one Python model module, and one Python schema module. Running
+TypeScript schema module, one static TypeScript validator module with declarations, one
+Python model module, and one Python schema module. Running
 with --check generates twice into separate temporary roots, compares the two outputs byte
 for byte, and compares them with the tracked files, so a stale or non-deterministic
 artifact fails the workspace check.
@@ -45,6 +46,14 @@ class Contract:
         return TYPESCRIPT_GENERATED_ROOT / f"{self.basename}.schema.ts"
 
     @property
+    def typescript_validators(self) -> Path:
+        return TYPESCRIPT_GENERATED_ROOT / f"{self.basename}.validators.js"
+
+    @property
+    def typescript_validator_types(self) -> Path:
+        return TYPESCRIPT_GENERATED_ROOT / f"{self.basename}.validators.d.ts"
+
+    @property
     def python_models(self) -> Path:
         return PYTHON_GENERATED_ROOT / f"{self.python_module}.py"
 
@@ -57,6 +66,8 @@ class Contract:
         return (
             self.typescript_types,
             self.typescript_schema,
+            self.typescript_validators,
+            self.typescript_validator_types,
             self.python_models,
             self.python_schema,
         )

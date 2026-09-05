@@ -44,7 +44,6 @@ import { IconAction } from "./IconAction";
 import { resolveApplicationLayoutMode } from "./layout-mode";
 import { NodePalette } from "./NodePalette";
 import { ProjectDialogs } from "./ProjectDialogs";
-import { ResizeHandle } from "./ResizeHandle";
 import { RightWorkbench } from "./RightWorkbench";
 import { SettingsDialog } from "./SettingsDialog";
 import { resolveAvailableShortcut } from "./shortcut-registry";
@@ -268,13 +267,6 @@ export function ApplicationFrame() {
     updateLayout({ paletteCollapsed: false });
   }, [updateLayout]);
 
-  const resizePalette = useCallback(
-    (delta: number) => {
-      updateLayout({ paletteWidth: layout.paletteWidth + delta });
-    },
-    [layout.paletteWidth, updateLayout],
-  );
-
   const collapseWorkbench = useCallback(() => {
     updateLayout({ rightCollapsed: true });
   }, [updateLayout]);
@@ -311,13 +303,6 @@ export function ApplicationFrame() {
     [updateLayout],
   );
 
-  const resizeWorkbench = useCallback(
-    (delta: number) => {
-      updateLayout({ rightWidth: layout.rightWidth - delta });
-    },
-    [layout.rightWidth, updateLayout],
-  );
-
   const resizePreviewRatio = useCallback(
     (delta: number) => {
       updateLayout({
@@ -325,13 +310,6 @@ export function ApplicationFrame() {
       });
     },
     [layout.previewRatio, updateLayout, workbenchHeight],
-  );
-
-  const resizeDebugPanel = useCallback(
-    (delta: number) => {
-      updateLayout({ debugHeight: layout.debugHeight - delta });
-    },
-    [layout.debugHeight, updateLayout],
   );
 
   const setDebugTab = useCallback(
@@ -389,16 +367,6 @@ export function ApplicationFrame() {
                   onExpand={expandPalette}
                 />
               </FeatureErrorBoundary>
-              {layout.paletteCollapsed ? null : (
-                <ResizeHandle
-                  axis="horizontal"
-                  ariaLabel={t("shell.resize.palette")}
-                  minimum={layoutLimits.paletteWidth.minimum}
-                  maximum={layoutLimits.paletteWidth.maximum}
-                  value={layout.paletteWidth}
-                  onChange={resizePalette}
-                />
-              )}
             </section>
           ) : layoutMode === "compact" ? (
             <aside className="panel-rail" aria-label={t("shell.palette.title")}>
@@ -419,19 +387,6 @@ export function ApplicationFrame() {
               className="debug-panel-shell"
               aria-label={t("shell.debug.title")}
             >
-              {debugCollapsed ? null : (
-                <ResizeHandle
-                  axis="vertical"
-                  ariaLabel={t("shell.resize.debug")}
-                  minimum={layoutLimits.debugHeight.minimum}
-                  maximum={Math.min(
-                    layoutLimits.debugHeight.maximum,
-                    maximumDebugHeight,
-                  )}
-                  value={debugHeight}
-                  onChange={resizeDebugPanel}
-                />
-              )}
               <FeatureErrorBoundary feature="debug">
                 <DebugPanel
                   activeTab={layout.activeDebugTab}
@@ -457,14 +412,6 @@ export function ApplicationFrame() {
               (layoutMode === "wide" &&
                 layout.rightWorkbenchMode === "floating") ? null : (
                 <>
-                  <ResizeHandle
-                    axis="horizontal"
-                    ariaLabel={t("shell.resize.workbench")}
-                    minimum={layoutLimits.rightWidth.minimum}
-                    maximum={layoutLimits.rightWidth.maximum}
-                    value={layout.rightWidth}
-                    onChange={resizeWorkbench}
-                  />
                   <FeatureErrorBoundary feature="workbench">
                     <WorkbenchContextMenu
                       mode="docked"

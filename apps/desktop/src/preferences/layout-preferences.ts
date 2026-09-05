@@ -7,14 +7,14 @@ export const PREFERENCE_STORAGE_KEY = "rino.preferences.v1";
 export const PREFERENCE_DOCUMENT_VERSION = 1;
 
 export const layoutLimits = {
-  paletteWidth: { minimum: 140, maximum: 360, default: 180 },
+  paletteWidth: { minimum: 140, maximum: 360, default: 156 },
   rightWidth: { minimum: 280, maximum: 520, default: 328 },
   debugHeight: { minimum: 160, maximum: 720, default: 240 },
   previewRatio: { minimum: 0.3, maximum: 0.7, default: 0.55 },
 } as const;
 
 const LEGACY_DEFAULT_PALETTE_WIDTHS = [
-  80, 100, 120, 140, 160, 200, 224, 240, 264,
+  80, 100, 120, 140, 160, 180, 200, 224, 240, 264,
 ] as const;
 const LEGACY_DEFAULT_RIGHT_WIDTH = 360;
 

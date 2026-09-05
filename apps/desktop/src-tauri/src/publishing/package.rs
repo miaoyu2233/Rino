@@ -19,7 +19,7 @@ use super::{
         GraphDocumentSnapshot, LocalizedText, MAXIMUM_PACKAGE_BYTES, PackageCompatibility,
         PackageEntrypoint, PackageFileRecord, PackageLicense, PackageManifest, PackageMetadata,
         PackageOptions, PackagePayload, PackagePublisher, PackageSigning, PackageSource,
-        ProjectManifestSnapshot,
+        ProjectManifestSnapshot, PublisherIdentity,
     },
     signing::PublisherSigningKey,
 };
@@ -39,6 +39,7 @@ pub struct PackageOutput {
     pub sha256: String,
     pub key_id: String,
     pub public_key_base64: String,
+    pub publisher_display_name: String,
 }
 
 struct PackageAsset {
@@ -127,9 +128,11 @@ fn validate_project_definition(
 fn prepare_package(
     files: ProjectFileSet,
     options: &PackageOptions,
+    publisher: &PublisherIdentity,
     signing_key: &PublisherSigningKey,
 ) -> PublishingResult<PreparedPackage> {
     options.validate()?;
+    publisher.validate()?;
     let project_value: serde_json::Value = serde_json::from_str(&files.manifest).map_err(|_| {
         PublishingError::new(PublishingErrorCode::InvalidProject, "projectManifest")
     })?;
@@ -141,6 +144,16 @@ fn prepare_package(
         return Err(PublishingError::new(
             PublishingErrorCode::InvalidProject,
             "projectShape",
+        ));
+    }
+    let expected_package_id = format!(
+        "io.rino.project.{}",
+        project.document_id.to_ascii_lowercase()
+    );
+    if options.package_id != expected_package_id {
+        return Err(PublishingError::new(
+            PublishingErrorCode::InvalidInput,
+            "packageId",
         ));
     }
     let mut graph_ids = HashSet::with_capacity(project.graphs.len());
@@ -264,7 +277,7 @@ fn prepare_package(
         ));
     }
 
-    let key_id = signing_key.key_id(&options.publisher_id);
+    let key_id = signing_key.key_id(&publisher.publisher_id);
     let entry_graph_name = entry_graph_name
         .ok_or_else(|| PublishingError::new(PublishingErrorCode::InvalidProject, "entryGraph"))?;
     let manifest = PackageManifest {
@@ -281,11 +294,15 @@ fn prepare_package(
             },
         },
         publisher: PackagePublisher {
-            publisher_id: options.publisher_id.clone(),
-            display_name: options.publisher_display_name.clone(),
+            publisher_id: publisher.publisher_id.clone(),
+            display_name: publisher.display_name.clone(),
         },
         license: PackageLicense {
-            identifier: options.license_identifier.clone(),
+            identifier: project
+                .metadata
+                .license_identifier
+                .clone()
+                .unwrap_or_else(|| "LicenseRef-Proprietary".to_owned()),
         },
         source: PackageSource {
             provider: "github",
@@ -488,6 +505,7 @@ pub fn write_package(
     target: &Path,
     workspace: &ProjectWorkspace,
     options: &PackageOptions,
+    publisher: &PublisherIdentity,
     signing_key: &PublisherSigningKey,
 ) -> PublishingResult<PackageOutput> {
     let files = workspace.read_current_files().map_err(|error| {
@@ -498,7 +516,7 @@ pub fn write_package(
         };
         PublishingError::new(code, "projectSnapshot")
     })?;
-    let prepared = prepare_package(files, options, signing_key)?;
+    let prepared = prepare_package(files, options, publisher, signing_key)?;
     let staged = staging_path(target)?;
     let archive = match write_staged_archive(&staged, workspace, prepared) {
         Ok(archive) => archive,
@@ -515,8 +533,9 @@ pub fn write_package(
         asset_name: options.asset_name(),
         byte_length: archive.byte_length,
         sha256: archive.sha256,
-        key_id: signing_key.key_id(&options.publisher_id),
+        key_id: signing_key.key_id(&publisher.publisher_id),
         public_key_base64: signing_key.public_key_base64(),
+        publisher_display_name: publisher.display_name.clone(),
     })
 }
 
@@ -569,6 +588,16 @@ mod tests {
         options.github_repository = "repository".to_owned();
         options.released_at = "2026-99-12T12:34:56.000Z".to_owned();
         assert!(options.validate().is_err());
+        options.released_at = "2026-08-12T12:34:56.000Z".to_owned();
+        options.content = super::super::manifest::PublishingContent::Application;
+        options.application_name = "unsafe/name".to_owned();
+        assert!(options.validate().is_err());
+        options.application_name = "Example App".to_owned();
+        assert!(options.validate().is_ok());
+        assert_eq!(
+            options.application_asset_name(),
+            "Example App_1.0.0_Setup.exe"
+        );
     }
 
     #[test]
@@ -600,7 +629,7 @@ mod tests {
 
         let target = test_root.join("example.rino-package");
         let key = PublisherSigningKey::from_test_secret([11_u8; 32]);
-        let output = write_package(&target, &workspace, &options(), &key);
+        let output = write_package(&target, &workspace, &options(), &publisher(), &key);
         assert!(output.is_ok());
 
         let archive_file = File::open(&target);
@@ -624,6 +653,30 @@ mod tests {
                     .and_then(|value| value.get("packageType"))
                     .and_then(serde_json::Value::as_str),
                 Some("project")
+            );
+            assert_eq!(
+                manifest
+                    .as_ref()
+                    .ok()
+                    .and_then(|value| value.get("packageId"))
+                    .and_then(serde_json::Value::as_str),
+                Some("io.rino.project.0a1b2c3d-4e5f-4061-8273-8495a6b7c8d9")
+            );
+            assert_eq!(
+                manifest
+                    .as_ref()
+                    .ok()
+                    .and_then(|value| value.pointer("/publisher/publisherId"))
+                    .and_then(serde_json::Value::as_str),
+                Some("example-publisher")
+            );
+            assert_eq!(
+                manifest
+                    .as_ref()
+                    .ok()
+                    .and_then(|value| value.pointer("/license/identifier"))
+                    .and_then(serde_json::Value::as_str),
+                Some("MIT")
             );
             assert_eq!(
                 manifest
@@ -686,6 +739,7 @@ mod tests {
             &target,
             &workspace,
             &options(),
+            &publisher(),
             &PublisherSigningKey::from_test_secret([13_u8; 32]),
         );
 
@@ -725,6 +779,7 @@ mod tests {
             &target,
             &workspace,
             &options(),
+            &publisher(),
             &PublisherSigningKey::from_test_secret([17_u8; 32]),
         );
 
@@ -746,6 +801,7 @@ mod tests {
   "documentId": "0a1b2c3d-4e5f-4061-8273-8495a6b7c8d9",
   "metadata": {
     "name": "Example",
+    "licenseIdentifier": "MIT",
     "createdAt": "2026-08-12T00:00:00.000Z",
     "updatedAt": "2026-08-12T00:00:00.000Z"
   },
@@ -778,17 +834,22 @@ mod tests {
 
     fn options() -> PackageOptions {
         PackageOptions {
-            package_id: "io.rino.project.example".to_owned(),
+            package_id: "io.rino.project.0a1b2c3d-4e5f-4061-8273-8495a6b7c8d9".to_owned(),
             version: "1.2.3".to_owned(),
             summary: "Example package".to_owned(),
-            publisher_id: "example.publisher".to_owned(),
-            publisher_display_name: "Example Publisher".to_owned(),
-            license_identifier: "LicenseRef-Proprietary".to_owned(),
+            application_name: "Example App".to_owned(),
             github_owner: "example-owner".to_owned(),
             github_repository: "example-repository".to_owned(),
             released_at: "2026-08-12T12:34:56.000Z".to_owned(),
             content: super::super::manifest::PublishingContent::Resource,
             update_wfp: false,
+        }
+    }
+
+    fn publisher() -> PublisherIdentity {
+        PublisherIdentity {
+            publisher_id: "example-publisher".to_owned(),
+            display_name: "Example Publisher".to_owned(),
         }
     }
 }

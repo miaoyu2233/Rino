@@ -178,7 +178,9 @@ function adoptOpenedProject(opened: {
     return { status: "failed" };
   }
   openProjectDocument(parsed.value.document);
-  useProjectStore.getState().recordCommit(opened.location, baseline.value);
+  useProjectStore
+    .getState()
+    .recordCommit(opened.location, baseline.value, parsed.value.needsMigration);
   useProjectStore.getState().offerRecovery(opened.recovery ?? undefined);
   return { status: "completed" };
 }
@@ -307,6 +309,7 @@ export async function saveProject(): Promise<ProjectOutcome> {
     return { status: "failed" };
   }
   if (
+    !store.pendingMigration &&
     store.lastWritten &&
     serializedProjectsMatch(store.lastWritten, pending)
   ) {

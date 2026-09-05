@@ -138,6 +138,23 @@ export function decodeDevicePreviewSnapshot(
   return baseSnapshot;
 }
 
+function isQueryDevicePreviewWindow(): boolean {
+  return new URLSearchParams(window.location.search).get("window") ===
+    "device-preview";
+}
+
+/** Identifies the independent preview route without relying on a Tauri URL query. */
+export function isDevicePreviewWindow(): boolean {
+  if (!isTauri()) {
+    return isQueryDevicePreviewWindow();
+  }
+  try {
+    return getCurrentWindow().label === DEVICE_PREVIEW_WINDOW_LABEL;
+  } catch {
+    return isQueryDevicePreviewWindow();
+  }
+}
+
 function isMainDesktopWindow(): boolean {
   if (!isTauri()) {
     return false;

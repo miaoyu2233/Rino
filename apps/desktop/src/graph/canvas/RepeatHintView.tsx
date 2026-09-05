@@ -1,9 +1,9 @@
-import type { NodeProps } from "@xyflow/react";
+import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { memo, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 
 import { ProductIcon } from "../../design-system/icons/ProductIcon";
-import { useDocumentStore } from "../store/document-store";
+import { removeRepeatHintFromCanvas } from "../commands/workflow-group-commands";
 import type { RinoFlowNode } from "./graph-view-model";
 
 interface RepeatHintViewProps {
@@ -29,6 +29,14 @@ export function RepeatHintView({
       tabIndex={0}
       aria-label={t("graph.repeatHint.title")}
     >
+      <Handle
+        id="repeat"
+        type="target"
+        position={Position.Left}
+        className="rino-repeat-hint__handle"
+        isConnectable={false}
+        aria-label={t("graph.repeatHint.input")}
+      />
       <div className="rino-repeat-hint__copy">
         <strong>{t("graph.repeatHint.title")}</strong>
         <span>{t("graph.repeatHint.description")}</span>
@@ -40,13 +48,7 @@ export function RepeatHintView({
         title={t("graph.repeatHint.remove")}
         onClick={(event) => {
           event.stopPropagation();
-          useDocumentStore
-            .getState()
-            .runCommand("graph.history.removeRepeatHint", {
-              kind: "removeRepeatHint",
-              graphId,
-              hintId,
-            });
+          removeRepeatHintFromCanvas(graphId, hintId, edgeId);
         }}
         onPointerDown={(event) => {
           event.stopPropagation();

@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 
 import { App } from "./app/App";
 import { DevicePreviewWindowRoot } from "./device-preview/DevicePreviewWindowApp";
+import { isDevicePreviewWindow } from "./device-preview/device-preview-window-bridge";
 import { initializeTheme } from "./design-system/theme/theme-state";
 import { ApplicationErrorScreen } from "./diagnostics/ApplicationErrorScreen";
 import {
@@ -17,6 +18,8 @@ import { initializeLocalization } from "./localization/i18n";
 import { initializeApplicationData } from "./preferences/application-data-store";
 import { initializeLayoutPreferences } from "./preferences/layout-preference-store";
 import { hardenObjectPrototype } from "./security/prototype-hardening";
+import { StartupGate } from "./startup/startup-gate";
+import { completeStartupWindow } from "./startup/startup-gate-runtime";
 import "./styles.css";
 
 const rootElement = document.getElementById("root");
@@ -27,6 +30,7 @@ if (rootElement === null) {
 
 const root = createRoot(rootElement);
 const showFatalFailure = (failure: ApplicationFailureDetails): void => {
+  void completeStartupWindow();
   reportProblem({
     severity: "error",
     source: "application",
@@ -45,11 +49,9 @@ try {
   hardenObjectPrototype();
   initializeTheme();
   initializeLocalization();
-  const isDevicePreviewWindow =
-    new URLSearchParams(window.location.search).get("window") ===
-    "device-preview";
+  const isPreviewWindow = isDevicePreviewWindow();
 
-  if (!isDevicePreviewWindow) {
+  if (!isPreviewWindow) {
     initializeApplicationData();
     initializeLayoutPreferences();
     initializeProjectService();
@@ -57,7 +59,13 @@ try {
 
   root.render(
     <StrictMode>
-      {isDevicePreviewWindow ? <DevicePreviewWindowRoot /> : <App />}
+      {isPreviewWindow ? (
+        <DevicePreviewWindowRoot />
+      ) : (
+        <StartupGate>
+          <App />
+        </StartupGate>
+      )}
     </StrictMode>,
   );
 } catch (failure: unknown) {

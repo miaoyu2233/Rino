@@ -98,6 +98,11 @@ _SCHEMA_TEXT: Final[str] = r"""
       "required": ["name", "createdAt", "updatedAt"],
       "properties": {
         "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "licenseIdentifier": {
+          "description": "The project-wide SPDX expression or LicenseRef identifier inherited by every exported package.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9.+-]{0,127}$"
+        },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
